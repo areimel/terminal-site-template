@@ -25,6 +25,8 @@ export const mainNav: NavItem[] = [
 
 /** Secondary/legal navigation, read by Footer. */
 export const footerNav: NavItem[] = [
+  { label: 'Landing', href: getPermalink('/landing'), icon: 'tabler:rocket', shellAlias: 'landing' },
+  { label: 'Pricing', href: getPermalink('/pricing'), icon: 'tabler:receipt', shellAlias: 'pricing' },
   { label: 'Now', href: getPermalink('/now'), icon: 'tabler:clock', shellAlias: 'now' },
   { label: 'Uses', href: getPermalink('/uses'), icon: 'tabler:tool', shellAlias: 'uses' },
   { label: 'Privacy', href: getPermalink('/privacy'), icon: 'tabler:shield-lock' },
