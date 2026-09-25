@@ -1,6 +1,12 @@
 ---
+/**
+ * MarkdownLayout - the layout `.md` pages opt into via `layout: '~/layouts/MarkdownLayout.astro'`
+ * in their frontmatter (see `privacy.md` / `terms.md`). Astro passes the whole frontmatter object
+ * as the `frontmatter` prop.
+ */
 import Layout from '~/layouts/PageLayout.astro';
-import { Panel, Heading } from '~/components/core';
+import { Container, Heading } from '~/components/core';
+import { Prose } from '~/components/content';
 
 import type { MetaData } from '~/types';
 
@@ -18,14 +24,12 @@ const metadata: MetaData = {
 ---
 
 <Layout metadata={metadata}>
-  <section class="px-4 py-16 sm:px-6 mx-auto lg:px-8 lg:py-20 max-w-4xl">
-    <Panel title={frontmatter.title} variant="line" padding="lg">
-      <Heading level={1} class="mb-6">
-        {frontmatter.title}
-      </Heading>
-      <div class="prose prose-terminal max-w-none">
-        <slot />
-      </div>
-    </Panel>
-  </section>
+  <Container size="prose" spacing="lg">
+    <Heading level={1} class="mb-6">
+      {frontmatter.title}
+    </Heading>
+    <Prose>
+      <slot />
+    </Prose>
+  </Container>
 </Layout>

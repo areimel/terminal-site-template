@@ -5,7 +5,16 @@ section: Guides
 order: 2
 ---
 
+import { DecoderText, Typewriter } from '~/components/effects';
+import { Callout } from '~/components/content';
+
 Effects add retro terminal aesthetics to the site. Each one can be toggled independently by the user. When a visitor enables `prefers-reduced-motion` in their OS, all effects disable automatically.
+
+<Callout tone="note" title="Reduced motion">
+  Every effect on this page checks `isEnabled()` before animating, and all of them turn off automatically when the
+  visitor's OS has `prefers-reduced-motion` set. The examples below fall back to static text in that case — nothing here
+  is required to read the page.
+</Callout>
 
 ## Available effects
 
@@ -18,6 +27,15 @@ Effects add retro terminal aesthetics to the site. Each one can be toggled indep
 **Overlay** — An additional CRT screen bloom/vignette effect.
 
 **Decoder** — Text decode animation on headings and callouts. Characters appear one by one from random positions, then settle into place.
+
+<div class="not-prose my-6 flex flex-col gap-4 font-uav-mono text-t-lg">
+  <p>
+    <DecoderText text="MAINFRAME-7 SYSTEMS" />
+  </p>
+  <p>
+    <Typewriter text={['Booting subsystems...', 'Loading terminal shell...', 'Ready.']} loop />
+  </p>
+</div>
 
 ## User controls
 

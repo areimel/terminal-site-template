@@ -18,11 +18,34 @@ duration: 3 months
 image: /images/blog/photo-1546984575-757f4f7c13cf.webp
 ---
 
+import { CrtImage } from '~/components/media';
+import { FactGrid, CodeBlock } from '~/components/content';
+
 ## Overview
 
 Uplink is a self-hosted status page tool designed for teams that need reliability reporting without the cost of managed SaaS. Built with an 80s terminal aesthetic, it renders beautiful HTML from raw metrics collected at five-minute intervals and distributed globally via CDN.
 
 The tool splits into two pieces: a Rust collector that gathers metrics from your infrastructure, and an Astro build pipeline that transforms those metrics into a static status page. This separation keeps the system simple and the costs low.
+
+<div class="not-prose my-8">
+  <CrtImage
+    src="/images/blog/photo-1546984575-757f4f7c13cf.webp"
+    alt="Uplink status page rendered in the terminal theme"
+    caption="The status page, rendered through the CrtImage component."
+  />
+</div>
+
+<div class="not-prose my-8">
+  <FactGrid
+    columns={2}
+    items={[
+      { label: 'Metrics interval', value: '5 minutes' },
+      { label: 'History window', value: '30 days' },
+      { label: 'Hosting cost', value: '$0/mo (free tier)' },
+      { label: 'Themes supported', value: '5' },
+    ]}
+  />
+</div>
 
 ## What I built
 
@@ -31,6 +54,25 @@ The Rust collector is the nervous system—it hits your service endpoints, recor
 Then Astro takes that JSON, renders responsive HTML with the terminal theme, and deploys to Netlify. The entire pipeline runs on free tier services. Badges show real-time status; historical graphs show the last 30 days; every component re-themes live across five color palettes.
 
 For teams that need live updates, I added an optional WebSocket layer on Fly.io that streams changes as they happen.
+
+Configuration is a single YAML file per status page:
+
+<div class="not-prose my-8">
+  <CodeBlock
+    filename="uplink.yaml"
+    lang="yaml"
+    code={`interval: 5m
+history: 30d
+services:
+  - name: API
+    url: https://api.example.com/healthz
+  - name: Edge cache
+    url: https://cdn.example.com/ping
+notify:
+  websocket: true
+`}
+  />
+</div>
 
 ## Lessons
 
