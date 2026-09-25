@@ -57,3 +57,65 @@ Every component group ships `src/components/<group>/_demo/<Group>Demo.astro`: re
 git add -A && git commit -m "<type>(<scope>): <summary>" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 5. Final report (< 350 words): branch + commit hash; files created/changed/deleted; public API (Props / exports); **Requests** (shared-file changes you need); known issues.
+
+## Wave 1 contract additions (binding)
+- **No barrels** (`index.ts`) in Wave 1 except `core/` — the lead adds them at merge.
+- **Don't delete old components that files outside your ownership still import.** List them under "Requests"; the lead deletes after merge.
+- **Toggle** (B1, `~/components/forms/Toggle.astro`): `{ name, label, checked?, id?, description?, disabled?, class? }` → `<input type="checkbox" role="switch">`.
+- **Modal** (B2, `~/components/feedback/Modal.astro`): `{ id, title?, size?: 'sm'|'md'|'lg', class? }`, default slot + `footer` slot; native `<dialog>`; opened by `[data-modal-open="<id>"]`, closed by `[data-modal-close]`, Esc, backdrop click. Also `openModal(id)` / `closeModal(id)` exported from `~/lib/modal.ts` (B2).
+- **AsciiBar** (B4, `~/components/data/AsciiBar.astro`): `{ value, max?=100, width?=20, label?, showValue?, tone?, class? }`; `Meter` (role=meter) and `ProgressBar` (role=progressbar, supports `indeterminate`) both wrap it. Both live in `data/`.
+- **Pagination** (B3, `~/components/navigation/Pagination.astro`): same props as the old `blog/Pagination.astro` (`prevUrl, nextUrl, prevText?, nextText?`) so it's a drop-in swap.
+- **SettingsPanel** (B3): theme switcher + effects controls, no modal wrapper. Sidebar's settings button uses `data-modal-open="settings"`; the lead wraps `SettingsPanel` in `<Modal id="settings">` in PageLayout.
+- **Card** (A2, `~/components/content/Card.astro`): `{ title, href?, excerpt?, meta?: string, tags?: string[], image?: string, imageAlt?, headingLevel?: 2|3|4, class? }` built on `Panel`.
+- **Callout** (A2): `{ tone?: 'note'|'tip'|'warn'|'err', title?, class? }`.
+- **Effects runtime include** (A4): `~/components/effects/EffectsRuntime.astro` — loads the `[data-decode]` enhancer site-wide; included once in Layout.
+
+### Shell contract (C1 implements, C2 consumes) — `src/lib/shell/types.ts`, byte-for-byte:
+```ts
+export type ShellTone = 'default' | 'ok' | 'warn' | 'err';
+
+export interface ShellRoute {
+  alias: string;
+  label: string;
+  href: string;
+}
+
+export interface ShellContext {
+  print(out: string | string[], tone?: ShellTone): void;
+  clear(): void;
+  navigate(href: string): void;
+  setTheme(id: string): void;
+  setEffect(name: string, on: boolean): void;
+  getEffects(): Record<string, boolean>;
+  history: string[];
+  commands: ShellCommand[];
+  routes: ShellRoute[];
+  themes: { id: string; label: string }[];
+  currentTheme: () => string;
+  identity: { name: string; handle: string; role: string; org: string };
+}
+
+export interface ShellCommand {
+  name: string;
+  aliases?: string[];
+  description: string;
+  usage?: string;
+  hidden?: boolean;
+  run(ctx: ShellContext, args: string[]): void | Promise<void>;
+  complete?(args: string[], ctx: ShellContext): string[];
+}
+
+export type ShellHost = Omit<ShellContext, 'history' | 'commands'>;
+
+export interface ShellEngine {
+  run(line: string): Promise<void>;
+  complete(line: string): string[];
+  readonly history: string[];
+  readonly commands: ShellCommand[];
+}
+```
+`src/lib/shell/engine.ts` exports `createShell(host: ShellHost, extraCommands?: ShellCommand[]): ShellEngine`. Engine and commands are DOM-free (no `astrowind:config`, no `window`) so Vitest can run them.
+
+### Collections (D2 defines in `src/content/config.ts`; D3 writes content)
+- `docs` (`src/data/docs/**/*.md|mdx`): `{ title: string, description?: string, section: 'Getting started'|'Guides'|'Components'|'Reference', order: number, draft?: boolean }`. Route: `/docs/<id>`; `index.md` → `/docs`.
+- `changelog` (`src/data/changelog/*.md`): `{ version: string, date: date, summary?: string, draft?: boolean }`.
