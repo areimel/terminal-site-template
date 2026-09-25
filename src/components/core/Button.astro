@@ -6,10 +6,13 @@
  * component with a `variant` prop. Renders an `<a>` when `href` is given, otherwise a `<button>`.
  *
  * When `modalId` is set (and no `href`), it renders
- * `<button type="button" data-modal-open={modalId}>` - this is the modal contract the
+ * `<button {...rest} type="button" data-modal-open={modalId}>` - this is the modal contract the
  * feedback/Modal component implements (it listens for clicks on `[data-modal-open]`).
  */
-export interface Props {
+import type { HTMLAttributes } from 'astro/types';
+
+/** Any extra attributes (e.g. `data-*`, `aria-*`, `id`) are passed through to the rendered element. */
+export interface Props extends Omit<HTMLAttributes<'button'>, 'type' | 'class'> {
   href?: string;
   modalId?: string;
   type?: 'button' | 'submit' | 'reset';
@@ -32,6 +35,7 @@ const {
   disabled = false,
   target,
   class: className,
+  ...rest
 } = Astro.props;
 
 const FOCUS_RING =
@@ -67,6 +71,7 @@ const baseClasses = [
 {
   href ? (
     <a
+      {...rest}
       href={href}
       target={target}
       aria-disabled={disabled ? 'true' : undefined}
@@ -77,12 +82,12 @@ const baseClasses = [
       <slot />
     </a>
   ) : modalId ? (
-    <button type="button" data-modal-open={modalId} disabled={disabled} class:list={baseClasses}>
+    <button {...rest} type="button" data-modal-open={modalId} disabled={disabled} class:list={baseClasses}>
       {prompt && <span aria-hidden="true">&gt;</span>}
       <slot />
     </button>
   ) : (
-    <button type={type} disabled={disabled} class:list={baseClasses}>
+    <button {...rest} type={type} disabled={disabled} class:list={baseClasses}>
       {prompt && <span aria-hidden="true">&gt;</span>}
       <slot />
     </button>
