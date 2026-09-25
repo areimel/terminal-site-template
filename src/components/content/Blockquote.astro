@@ -1,0 +1,71 @@
+---
+/**
+ * Blockquote - a terminal-styled quote.
+ *
+ * The left rule is a column of repeating `│` glyphs (decorative, `aria-hidden`) rather than a
+ * plain border, so it reads as terminal-native rather than a generic card accent. `cite` sets the
+ * standard HTML `cite` attribute (the quote's source URL - not rendered as visible text).
+ * `author`, when given, renders as a `-- author` line below the quote.
+ */
+export interface Props {
+  /** Source URL for the quote; sets the standard `cite` attribute on `<blockquote>`. */
+  cite?: string;
+  /** Rendered as a `-- author` line under the quote. */
+  author?: string;
+  class?: string;
+}
+
+const { cite, author, class: className } = Astro.props;
+
+// Enough glyphs to cover very long quotes; `overflow: hidden` on the rail clips the rest.
+const RAIL_GLYPH = '│';
+const railLines = Array.from({ length: 60 });
+---
+
+<figure class:list={['blockquote relative pl-8', className]}>
+  <div class="blockquote-rail" aria-hidden="true">
+    {railLines.map(() => <span>{RAIL_GLYPH}</span>)}
+  </div>
+  <blockquote cite={cite} class="font-kode text-t-base text-terminal-500">
+    <slot />
+  </blockquote>
+  {
+    author && (
+      <figcaption class="mt-2 font-kode text-t-sm text-terminal-400">
+        <span aria-hidden="true">--</span> {author}
+      </figcaption>
+    )
+  }
+</figure>
+
+<style>
+  .blockquote-rail {
+    position: absolute;
+    inset-block: 0.15em 0;
+    inset-inline-start: 0;
+    width: 1.25em;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.6;
+    color: var(--theme-500);
+    pointer-events: none;
+  }
+
+  .blockquote-rail span {
+    display: block;
+  }
+
+  blockquote {
+    margin: 0;
+  }
+
+  blockquote > :global(:first-child) {
+    margin-top: 0;
+  }
+
+  blockquote > :global(:last-child) {
+    margin-bottom: 0;
+  }
+</style>
