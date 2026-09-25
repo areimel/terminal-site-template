@@ -51,7 +51,9 @@ const COLUMNS: Record<NonNullable<Props['columns']>, string> = {
           features.map((feature) => (
             <div class="feature-grid-cell flex flex-col gap-3 p-5">
               {feature.icon && <Icon name={feature.icon} size={24} class="text-terminal-bright" />}
-              <Heading level={3}>{feature.title}</Heading>
+              <Heading level={3} size={5}>
+                {feature.title}
+              </Heading>
               <p class="text-t-sm text-terminal-400">{feature.description}</p>
             </div>
           ))

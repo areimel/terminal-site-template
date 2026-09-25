@@ -11,6 +11,8 @@
  */
 export interface Props {
   level: 1 | 2 | 3 | 4 | 5 | 6;
+  /** Visual size on the same 1-6 scale; defaults to `level`. Keeps semantics and looks independent. */
+  size?: 1 | 2 | 3 | 4 | 5 | 6;
   /** Override the rendered tag (e.g. visually an `h2` styled as an `h1`). Defaults to `h{level}`. */
   as?: string;
   /** Prepends a `>` prompt glyph before the heading text. */
@@ -21,7 +23,7 @@ export interface Props {
   class?: string;
 }
 
-const { level, as, prompt = false, decode = false, glow = 'none', class: className } = Astro.props;
+const { level, size, as, prompt = false, decode = false, glow = 'none', class: className } = Astro.props;
 
 const Tag = as ?? (`h${level}` as const);
 
@@ -47,7 +49,7 @@ const decodeText = decode ? (await Astro.slots.render('default')).replace(/<[^>]
 ---
 
 <Tag
-  class:list={['font-uav-mono', SIZE[level], GLOW[glow], className]}
+  class:list={['font-uav-mono', SIZE[size ?? level], GLOW[glow], className]}
   data-decode={decode ? '' : undefined}
   data-text={decodeText}
 >
