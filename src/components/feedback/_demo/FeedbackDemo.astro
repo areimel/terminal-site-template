@@ -1,0 +1,146 @@
+---
+/**
+ * FeedbackDemo - renders every `feedback/` component and its meaningful
+ * variants. Embedded in the `/components` gallery (built in a later wave).
+ *
+ * Includes a `<Toaster />` so the toast buttons work when this demo is
+ * previewed on its own, outside `Layout` (which mounts its own `<Toaster />`
+ * site-wide). `Toaster` detects whichever instance mounts first and the
+ * other stays inert, so having both present is safe - toasts never render
+ * twice.
+ */
+import { Panel, Button, Divider } from '~/components/core';
+import Modal from '~/components/feedback/Modal.astro';
+import Toaster from '~/components/feedback/Toaster.astro';
+import Tooltip from '~/components/feedback/Tooltip.astro';
+import Alert from '~/components/feedback/Alert.astro';
+import Spinner from '~/components/feedback/Spinner.astro';
+---
+
+<div class="flex flex-col gap-8">
+  <section>
+    <Panel title="feedback/Modal.astro">
+      <p class="mb-3 font-kode text-t-sm">A native dialog, opened by any element with a matching `data-modal-open`.</p>
+      <Button variant="outline" modalId="demo-feedback-modal"> Open sample modal </Button>
+    </Panel>
+
+    <Modal id="demo-feedback-modal" title="~/system/confirm.txt" size="sm">
+      <p class="font-kode text-t-sm">This will remove the selected process from the run queue. This can't be undone.</p>
+      <Fragment slot="footer">
+        <div class="flex justify-end gap-2">
+          {
+            /* Button (core) doesn't pass through arbitrary data-* attributes,
+               so data-modal-close goes on a wrapper - the delegated listener
+               in ~/lib/modal finds it via `closest()`. */
+          }
+          <span data-modal-close>
+            <Button variant="ghost" size="sm"> Cancel </Button>
+          </span>
+          <span data-modal-close>
+            <Button variant="solid" size="sm"> Confirm </Button>
+          </span>
+        </div>
+      </Fragment>
+    </Modal>
+  </section>
+
+  <Divider label="Toaster" style="line" />
+
+  <section>
+    <Panel title="feedback/Toaster.astro">
+      <p class="mb-3 font-kode text-t-sm">System messages that stack bottom-right and auto-dismiss after 5s.</p>
+      <div class="flex flex-wrap gap-3">
+        {
+          /* Button (core) doesn't pass through arbitrary data-* attributes,
+             so each trigger's data-demo-toast goes on a wrapper span. */
+        }
+        <span data-demo-toast="default">
+          <Button variant="outline" size="sm"> Fire default toast </Button>
+        </span>
+        <span data-demo-toast="ok">
+          <Button variant="outline" size="sm"> Fire OK toast </Button>
+        </span>
+        <span data-demo-toast="warn">
+          <Button variant="outline" size="sm"> Fire WARN toast </Button>
+        </span>
+        <span data-demo-toast="err">
+          <Button variant="outline" size="sm"> Fire ERR toast </Button>
+        </span>
+      </div>
+    </Panel>
+    <Toaster />
+  </section>
+
+  <Divider label="Tooltip" style="dashed" />
+
+  <section>
+    <Panel title="feedback/Tooltip.astro">
+      <p class="mb-3 font-kode text-t-sm">Shown on hover and on keyboard focus; wraps a single trigger element.</p>
+      <div class="flex flex-wrap items-center gap-6">
+        <Tooltip text="Restarts the current process" position="top">
+          <Button variant="outline" size="sm"> Top </Button>
+        </Tooltip>
+        <Tooltip text="Streams the last 200 log lines" position="bottom">
+          <Button variant="outline" size="sm"> Bottom </Button>
+        </Tooltip>
+        <Tooltip text="Copies the invite link" position="left">
+          <Button variant="outline" size="sm"> Left </Button>
+        </Tooltip>
+        <Tooltip text="Opens the settings panel" position="right">
+          <Button variant="outline" size="sm"> Right </Button>
+        </Tooltip>
+      </div>
+    </Panel>
+  </section>
+
+  <Divider label="Alert" style="ascii" />
+
+  <section>
+    <Panel title="feedback/Alert.astro">
+      <p class="mb-3 font-kode text-t-sm">An inline banner for messages that stay in the page's flow.</p>
+      <div class="flex flex-col gap-3">
+        <Alert tone="default" title="Heads up">
+          Demo mode is on. Submissions are logged locally, not sent anywhere.
+        </Alert>
+        <Alert tone="ok" title="Message sent">Your message reached the inbox. Expect a reply within a day.</Alert>
+        <Alert tone="warn" title="Slow connection">The uplink is degraded. Some panels may lag behind.</Alert>
+        <Alert tone="err" title="Send failed" dismissible>
+          The message didn't go through. Check your connection and try again.
+        </Alert>
+      </div>
+    </Panel>
+  </section>
+
+  <Divider label="Spinner" style="line" />
+
+  <section>
+    <Panel title="feedback/Spinner.astro">
+      <p class="mb-3 font-kode text-t-sm">ASCII loading indicators; each style animates via CSS content steps.</p>
+      <div class="flex flex-wrap items-center gap-8">
+        <Spinner style="bar" label="Loading" />
+        <Spinner style="dots" label="Connecting" />
+        <Spinner style="braille" label="Syncing" />
+      </div>
+    </Panel>
+  </section>
+</div>
+
+<script>
+  import { toast, type ToastTone } from '~/lib/toast';
+
+  const MESSAGE: Record<ToastTone, string> = {
+    default: 'Build finished in 4.2s.',
+    ok: 'Message sent.',
+    warn: 'Session expires in 2 minutes.',
+    err: 'Connection lost. Reconnecting...',
+  };
+
+  document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = target.closest<HTMLElement>('[data-demo-toast]');
+    if (!button) return;
+    const tone = button.getAttribute('data-demo-toast') as ToastTone;
+    toast({ message: MESSAGE[tone], tone });
+  });
+</script>

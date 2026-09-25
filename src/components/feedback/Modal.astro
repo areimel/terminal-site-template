@@ -1,0 +1,117 @@
+---
+/**
+ * Modal - the template's native `<dialog>`-based modal.
+ *
+ * Opened by any element with `data-modal-open="<id>"` (the core `Button`
+ * renders this when given a `modalId`); closed by any element with
+ * `data-modal-close` inside it, Esc, or a backdrop click. The same behavior
+ * is available imperatively via `openModal(id)` / `closeModal(id)` from
+ * `~/lib/modal`.
+ *
+ * The title bar reuses the core `Panel` (`variant="double"`, the border
+ * weight the design spec reserves for app/window chrome) instead of
+ * re-styling a border here.
+ *
+ * Slots: default (body), `footer`.
+ */
+import Panel from '~/components/core/Panel.astro';
+
+export interface Props {
+  id: string;
+  title?: string;
+  size?: 'sm' | 'md' | 'lg';
+  class?: string;
+}
+
+const { id, title, size = 'md', class: className } = Astro.props;
+
+const hasFooter = Astro.slots.has('footer');
+
+const SIZE: Record<NonNullable<Props['size']>, string> = {
+  sm: 'max-w-sm',
+  md: 'max-w-lg',
+  lg: 'max-w-2xl',
+};
+---
+
+<dialog id={id} class:list={['core-modal w-full', SIZE[size], className]} aria-label={title ?? 'Dialog'}>
+  <Panel title={title} variant="double" tone="accent" padding="md" class="core-modal-panel">
+    <Fragment slot="actions">
+      <button type="button" data-modal-close aria-label="Close" class="core-modal-close">
+        <span aria-hidden="true">[x]</span>
+      </button>
+    </Fragment>
+
+    <slot />
+
+    {
+      hasFooter && (
+        <Fragment slot="footer">
+          <slot name="footer" />
+        </Fragment>
+      )
+    }
+  </Panel>
+</dialog>
+
+<script>
+  import { registerDialog, installModalTriggers } from '~/lib/modal';
+
+  function init(): void {
+    document.querySelectorAll<HTMLDialogElement>('dialog.core-modal').forEach(registerDialog);
+    installModalTriggers();
+  }
+
+  init();
+  document.addEventListener('astro:page-load', init);
+</script>
+
+<style>
+  .core-modal {
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    max-height: 90vh;
+    overflow: auto;
+  }
+
+  .core-modal:not([open]) {
+    display: none;
+  }
+
+  .core-modal-close {
+    font-family: 'Kode Mono', monospace;
+    line-height: 1;
+    color: inherit;
+  }
+
+  .core-modal-close:hover {
+    color: var(--theme-bright);
+  }
+
+  /* Backdrop: the active theme's background, dimmed, with a static scanline
+     texture. Gated by the `scanline` effect (which the effects runtime
+     already forces off under reduced motion), not just its own media query,
+     since it's one of the five named CRT effects from `~/lib/effects`. */
+  .core-modal::backdrop {
+    background-color: var(--theme-bg-primary);
+    opacity: 0.85;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.15) 0px,
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+
+  :global(html[data-fx-scanline='off']) .core-modal::backdrop {
+    background-image: none;
+  }
+
+  /* Body scroll lock while any modal is open (toggled by ~/lib/modal). */
+  :global(body.modal-open) {
+    overflow: hidden;
+  }
+</style>

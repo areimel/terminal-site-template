@@ -1,0 +1,89 @@
+---
+/**
+ * Alert - an inline system-message banner (contact form results, form
+ * validation, page-level notices). For a message that should interrupt and
+ * disappear, use `toast()` instead; Alert is for messages that stay in the
+ * page's flow until the user (or the page) removes them.
+ *
+ * Built on the core `Panel` (frame) and `Badge` (status label) so the
+ * banner shares borders/tone colors with the rest of the kit rather than
+ * re-implementing them.
+ */
+import Panel from '~/components/core/Panel.astro';
+import Badge from '~/components/core/Badge.astro';
+
+export interface Props {
+  tone?: 'default' | 'ok' | 'warn' | 'err';
+  title?: string;
+  /** Shows a `[x]` dismiss button that removes the alert from the page. */
+  dismissible?: boolean;
+  class?: string;
+}
+
+const { tone = 'default', title, dismissible = false, class: className } = Astro.props;
+
+const TONE_LABEL: Record<NonNullable<Props['tone']>, string> = {
+  default: 'NOTE',
+  ok: 'OK',
+  warn: 'WARN',
+  err: 'ERR',
+};
+
+const ACCENT_BORDER: Record<NonNullable<Props['tone']>, string> = {
+  default: 'border-l-terminal-400',
+  ok: 'border-l-emerald-500',
+  warn: 'border-l-amber-500',
+  err: 'border-l-rose-500',
+};
+
+// Only a genuine error interrupts assistive tech immediately (role="alert");
+// everything else is a polite status update.
+const role = tone === 'err' ? 'alert' : 'status';
+---
+
+<div role={role} class:list={['core-alert', className]}>
+  <Panel variant="line" padding="sm" class:list={['border-l-4', ACCENT_BORDER[tone]]}>
+    <div class="flex items-start gap-3">
+      <Badge tone={tone} class="mt-0.5 shrink-0">{TONE_LABEL[tone]}</Badge>
+
+      <div class="flex-1 font-kode text-t-sm">
+        {title && <p class="mb-1 font-uav-mono text-t-base font-semibold">{title}</p>}
+        <div>
+          <slot />
+        </div>
+      </div>
+
+      {
+        dismissible && (
+          <button
+            type="button"
+            data-alert-dismiss
+            aria-label="Dismiss"
+            class="shrink-0 font-kode text-terminal-400 hover:text-terminal-bright"
+          >
+            <span aria-hidden="true">[x]</span>
+          </button>
+        )
+      }
+    </div>
+  </Panel>
+</div>
+
+<script>
+  let installed = false;
+
+  function installAlertDismiss(): void {
+    if (installed) return;
+    installed = true;
+
+    document.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const button = target.closest('[data-alert-dismiss]');
+      if (!button) return;
+      button.closest('.core-alert')?.remove();
+    });
+  }
+
+  installAlertDismiss();
+</script>
