@@ -1,0 +1,55 @@
+---
+import { TEMPLATE } from 'astrowind:config';
+
+import PageLayout from '~/layouts/PageLayout.astro';
+import { Heading, Container, Panel } from '~/components/core';
+import { Callout } from '~/components/content';
+import { now } from '~/data/profile';
+import { getFormattedDate } from '~/utils/utils';
+import type { MetaData } from '~/types';
+
+const metadata: MetaData = {
+  title: 'Now',
+  description: `What ${TEMPLATE.identity.name} is focused on right now.`,
+};
+
+const updatedDate = new Date(now.updated);
+const updatedText = Number.isNaN(updatedDate.valueOf()) ? now.updated : getFormattedDate(updatedDate);
+---
+
+<PageLayout metadata={metadata}>
+  <Container size="prose" spacing="lg">
+    <Heading level={1} class="mb-2">Now</Heading>
+    <p class="mb-8 font-kode text-t-sm text-terminal-300">last updated: {updatedText}</p>
+
+    <Panel title="~/now.txt" variant="line" class="mb-8">
+      <ul class="flex flex-col gap-3">
+        {
+          now.items.map((item) => (
+            <li class="flex gap-2 text-terminal-400">
+              <span aria-hidden="true" class="text-terminal-300">
+                -
+              </span>
+              <span>{item}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </Panel>
+
+    <Callout tone="note" title="What is a /now page?">
+      <p>
+        A /now page is a short, plainly dated list of what someone is currently focused on - simpler than a full
+        changelog, more current than an about page. Read more at
+        <a
+          href="https://nownownow.com"
+          class="underline decoration-dotted underline-offset-4 hover:text-terminal-bright"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          nownownow.com
+        </a>.
+      </p>
+    </Callout>
+  </Container>
+</PageLayout>

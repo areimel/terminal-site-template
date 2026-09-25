@@ -1,0 +1,24 @@
+---
+/**
+ * BentoCell - a grid-span wrapper for the home page's bento layout.
+ *
+ * Page-specific composition helper: the home bento grid mixes cells of different width so
+ * the layout doesn't read as a row of identical cards. `half` takes half the row at `md`/`lg`;
+ * `full` takes the whole row. The grid itself collapses to a single column below `md`.
+ */
+export interface Props {
+  span?: 'half' | 'full';
+  class?: string;
+}
+
+const { span = 'half', class: className } = Astro.props;
+
+const SPAN: Record<NonNullable<Props['span']>, string> = {
+  half: 'col-span-1 md:col-span-2 lg:col-span-2',
+  full: 'col-span-1 md:col-span-2 lg:col-span-4',
+};
+---
+
+<div class:list={['bento-cell flex flex-col', SPAN[span], className]}>
+  <slot />
+</div>

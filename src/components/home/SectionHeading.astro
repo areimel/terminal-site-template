@@ -1,0 +1,29 @@
+---
+/**
+ * SectionHeading - the repeated "file-name heading + view all link" row used by the home
+ * page's Projects and Blog bento cells. Keeps the heading and its trailing link on one row,
+ * wrapping on narrow screens.
+ */
+import { Heading, Button } from '~/components/core';
+
+export interface Props {
+  title: string;
+  href?: string;
+  linkLabel?: string;
+  level?: 2 | 3 | 4;
+  class?: string;
+}
+
+const { title, href, linkLabel = 'View all', level = 2, class: className } = Astro.props;
+---
+
+<div class:list={['flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1', className]}>
+  <Heading level={level}>{title}</Heading>
+  {
+    href && (
+      <Button href={href} variant="link" size="sm">
+        {linkLabel}
+      </Button>
+    )
+  }
+</div>
