@@ -1,14 +1,20 @@
 ---
+/** Google Tag Manager noscript fallback. Renders nothing unless `template.integrations.gtm.id` is set. */
 import { TEMPLATE } from 'astrowind:config';
 
 const gtmId = TEMPLATE.integrations.gtm.id;
 ---
 
-{gtmId && (
-  <>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
-      height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
-  </>
-)}
+{
+  gtmId && (
+    <noscript>
+      <iframe
+        src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
+        height="0"
+        width="0"
+        style="display:none;visibility:hidden"
+        title="Google Tag Manager"
+      />
+    </noscript>
+  )
+}

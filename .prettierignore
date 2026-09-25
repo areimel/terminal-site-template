@@ -1,4 +1,7 @@
 dist
 node_modules
 .github
-.changeset
+.changeset.claude
+playwright-report
+test-results
+pnpm-lock.yaml

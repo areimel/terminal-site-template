@@ -18,11 +18,4 @@ const _image = await findImage(src);
 const imageSrc = typeof _image === 'string' ? _image : _image?.src || src;
 ---
 
-<img 
-  src={imageSrc} 
-  alt={alt} 
-  class={className}
-  loading={loading}
-  decoding={decoding}
-  {...rest}
-/>
+<img src={imageSrc} alt={alt} class={className} loading={loading} decoding={decoding} {...rest} />

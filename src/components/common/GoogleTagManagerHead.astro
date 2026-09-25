@@ -1,17 +1,15 @@
 ---
+/** Google Tag Manager loader. Renders nothing unless `template.integrations.gtm.id` is set in config. */
 import { TEMPLATE } from 'astrowind:config';
 
 const gtmId = TEMPLATE.integrations.gtm.id;
+
+const snippet = gtmId
+  ? `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});` +
+    `const f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';` +
+    `j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);` +
+    `})(window,document,'script','dataLayer',${JSON.stringify(gtmId)});`
+  : '';
 ---
 
-{gtmId && (
-  <>
-    <!-- Google Tag Manager -->
-    <script define:vars={{ gtmId }}>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-      })(window,document,'script','dataLayer',gtmId);</script>
-    <!-- End Google Tag Manager -->
-  </>
-)}
+{gtmId && <script is:inline set:html={snippet} />}

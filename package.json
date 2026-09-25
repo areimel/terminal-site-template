@@ -22,10 +22,6 @@
     "fix": "npm run fix:eslint && npm run fix:prettier",
     "fix:eslint": "eslint --fix .",
     "fix:prettier": "prettier -w .",
-    "optimize:preview": "node scripts/optimize-images.js preview",
-    "optimize:images": "node scripts/optimize-images.js all",
-    "optimize:og": "node scripts/optimize-images.js og",
-    "optimize:file": "node scripts/optimize-images.js file",
     "test": "vitest run",
     "test:e2e": "playwright test"
   },

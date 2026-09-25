@@ -42,7 +42,7 @@ export interface Post {
 
   /**  */
   readingTime?: number;
-  
+
   // Project specific fields
   /** URL to the live project */
   projectUrl?: string;

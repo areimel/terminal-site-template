@@ -3,9 +3,11 @@
 Spec: `docs/superpowers/specs/2026-09-25-terminal-template-design.md`
 
 ## Step 0 — Lead
+
 - [x] Save spec + TODO, commit
 
 ## Wave 0 — Foundation
+
 - [x] F1 Theme & effects core (Sonnet)
 - [x] F2 Config, nav, core primitives (Sonnet)
 - [x] Merge F1 + F2, build green
@@ -13,6 +15,7 @@ Spec: `docs/superpowers/specs/2026-09-25-terminal-template-design.md`
 - [x] Merge F3, build + personal-data sweep green
 
 ## Wave 1 — Kit, engines, content
+
 - [ ] A1 content/ typography (Sonnet)
 - [ ] A2 content/ boxes (Sonnet)
 - [ ] A3 media/ (Haiku)
@@ -30,6 +33,7 @@ Spec: `docs/superpowers/specs/2026-09-25-terminal-template-design.md`
 - [ ] Merge Wave 1, build green
 
 ## Wave 2 — Sections & pages
+
 - [ ] P1 home, /now, /uses
 - [ ] P2 sections/ + /landing + /pricing
 - [ ] P3 /contact, /404, /privacy, /terms, /terminal, MDX embeds
@@ -38,6 +42,7 @@ Spec: `docs/superpowers/specs/2026-09-25-terminal-template-design.md`
 - [ ] Merge Wave 2, build green
 
 ## Wave 3 — Integration & verification
+
 - [ ] V1 e2e run + fixes + screenshots
 - [ ] V2 DRY/quality review
 - [ ] V3 README, CUSTOMIZING, CLAUDE.md
