@@ -1,0 +1,176 @@
+---
+/**
+ * Toaster - mounts the toast stack once (the lead places this in `Layout`).
+ *
+ * Listens for `terminal:toast` window events (dispatched by `toast()` from
+ * `~/lib/toast`, or fired directly per the cross-team contract) and renders
+ * a stack of system messages: `[ OK ] Message sent.` Stacks bottom-right on
+ * desktop, full-width along the bottom on mobile. At most 4 are visible at
+ * once; more queue and appear as earlier ones are dismissed or time out.
+ *
+ * Implemented as a custom element (`<terminal-toaster>`) so it keeps
+ * working across Astro ClientRouter navigations without re-init, and so a
+ * second instance mounted elsewhere (e.g. a demo previewed on its own)
+ * detects an already-active toaster and stays inert instead of duplicating
+ * every message.
+ */
+---
+
+<terminal-toaster
+  class="pointer-events-none fixed inset-x-0 bottom-0 z-[70] flex flex-col-reverse gap-2 p-3 sm:inset-x-auto sm:right-4 sm:bottom-4 sm:w-80"
+  role="presentation"
+>
+  <template>
+    <div
+      class="core-toast pointer-events-auto flex items-start gap-2 border bg-terminal-bg-secondary px-3 py-2 font-kode text-t-sm shadow-md opacity-0 translate-y-2 transition-all duration-200 motion-reduce:transition-none motion-reduce:translate-y-0 motion-reduce:opacity-100"
+    >
+      <span class="core-toast-glyph shrink-0 font-bold" aria-hidden="true"></span>
+      <p class="core-toast-message flex-1 text-terminal-500"></p>
+      <button
+        type="button"
+        class="core-toast-dismiss shrink-0 text-terminal-400 hover:text-terminal-bright"
+        aria-label="Dismiss"
+      >
+        <span aria-hidden="true">[x]</span>
+      </button>
+    </div>
+  </template>
+</terminal-toaster>
+
+<script>
+  type ToastTone = 'default' | 'ok' | 'warn' | 'err';
+
+  interface ToastDetail {
+    message: string;
+    tone?: ToastTone;
+    timeout?: number;
+  }
+
+  const TOAST_EVENT = 'terminal:toast';
+  const MAX_VISIBLE = 4;
+  const DEFAULT_TIMEOUT = 5000;
+  const ACTIVE_FLAG = '__terminalToasterActive';
+
+  const TONE_LABEL: Record<ToastTone, string> = {
+    default: 'MSG',
+    ok: 'OK',
+    warn: 'WARN',
+    err: 'ERR',
+  };
+
+  const TONE_CLASS: Record<ToastTone, string[]> = {
+    default: ['border-terminal-400', 'text-terminal-bright'],
+    ok: ['border-emerald-500', 'text-emerald-400'],
+    warn: ['border-amber-500', 'text-amber-400'],
+    err: ['border-rose-500', 'text-rose-400'],
+  };
+
+  class TerminalToaster extends HTMLElement {
+    #queue: ToastDetail[] = [];
+    #visible = 0;
+    #active = false;
+
+    connectedCallback(): void {
+      const w = window as unknown as Record<string, boolean>;
+      if (w[ACTIVE_FLAG]) {
+        // Another toaster is already live on this page (e.g. the one in
+        // Layout, while this instance is inside a standalone demo). Stay
+        // inert so messages aren't duplicated.
+        return;
+      }
+      w[ACTIVE_FLAG] = true;
+      this.#active = true;
+      window.addEventListener(TOAST_EVENT, this.#onToast as EventListener);
+    }
+
+    disconnectedCallback(): void {
+      if (!this.#active) return;
+      window.removeEventListener(TOAST_EVENT, this.#onToast as EventListener);
+      (window as unknown as Record<string, boolean>)[ACTIVE_FLAG] = false;
+      this.#active = false;
+    }
+
+    #onToast = (event: Event): void => {
+      const detail = (event as CustomEvent<ToastDetail>).detail;
+      if (!detail?.message) return;
+      if (this.#visible >= MAX_VISIBLE) {
+        this.#queue.push(detail);
+        return;
+      }
+      this.#show(detail);
+    };
+
+    #show(detail: ToastDetail): void {
+      const template = this.querySelector('template');
+      const fragment = template?.content.cloneNode(true) as DocumentFragment | undefined;
+      const item = fragment?.querySelector<HTMLElement>('.core-toast');
+      if (!item) return;
+
+      const tone = detail.tone ?? 'default';
+      const timeout = detail.timeout ?? DEFAULT_TIMEOUT;
+
+      item.classList.add(...TONE_CLASS[tone]);
+      item.setAttribute('role', tone === 'err' ? 'alert' : 'status');
+      item.setAttribute('aria-atomic', 'true');
+
+      const glyph = item.querySelector('.core-toast-glyph');
+      if (glyph) glyph.textContent = `[ ${TONE_LABEL[tone]} ]`;
+
+      const message = item.querySelector('.core-toast-message');
+      if (message) message.textContent = detail.message;
+
+      this.#visible++;
+      this.prepend(item);
+
+      // Kick off the entry transition on the next frame so the initial
+      // opacity-0/translate state has a chance to paint first.
+      requestAnimationFrame(() => {
+        item.classList.remove('opacity-0', 'translate-y-2');
+      });
+
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      let finished = false;
+
+      const finish = (): void => {
+        if (finished) return;
+        finished = true;
+        item.remove();
+        this.#visible--;
+        const next = this.#queue.shift();
+        if (next) this.#show(next);
+      };
+
+      const remove = (): void => {
+        if (timer) clearTimeout(timer);
+        item.classList.add('opacity-0');
+        item.addEventListener('transitionend', finish, { once: true });
+        // Fallback in case transitions are disabled (reduced motion) or
+        // never fire for some other reason.
+        setTimeout(finish, 250);
+      };
+
+      const arm = (): void => {
+        if (timeout <= 0) return;
+        timer = setTimeout(remove, timeout);
+      };
+      const disarm = (): void => {
+        if (timer) clearTimeout(timer);
+      };
+
+      const dismiss = item.querySelector('.core-toast-dismiss');
+      dismiss?.addEventListener('click', remove);
+      // `focusin`/`focusout` bubble (unlike `focus`/`blur`), so listening
+      // here also catches focus landing on the dismiss button.
+      item.addEventListener('mouseenter', disarm);
+      item.addEventListener('mouseleave', arm);
+      item.addEventListener('focusin', disarm);
+      item.addEventListener('focusout', arm);
+
+      arm();
+    }
+  }
+
+  if (!customElements.get('terminal-toaster')) {
+    customElements.define('terminal-toaster', TerminalToaster);
+  }
+</script>

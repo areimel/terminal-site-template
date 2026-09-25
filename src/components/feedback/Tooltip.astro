@@ -1,0 +1,77 @@
+---
+/**
+ * Tooltip - a CSS-first tooltip. Wrap a single trigger element in the
+ * default slot (e.g. an icon or a `Button`):
+ *
+ * ```astro
+ * <Tooltip text="Copies the command to your clipboard">
+ *   <Button variant="ghost" size="sm">Copy</Button>
+ * </Tooltip>
+ * ```
+ *
+ * Shown on hover and on keyboard focus (`:focus-within`, so it also appears
+ * when the trigger itself receives focus) - no JS is needed to show or hide
+ * it. A small script only wires `aria-describedby` onto the trigger and
+ * lets Esc dismiss it (by blurring the trigger, which drops `:focus-within`).
+ */
+export interface Props {
+  text: string;
+  position?: 'top' | 'bottom' | 'left' | 'right';
+  class?: string;
+}
+
+const { text, position = 'top', class: className } = Astro.props;
+
+// Unique per instance so `aria-describedby` on the trigger points at the
+// right bubble even with several tooltips on one page.
+const tooltipId = `tooltip-${Math.random().toString(36).slice(2, 9)}`;
+
+const POSITION: Record<NonNullable<Props['position']>, string> = {
+  top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
+  bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
+  left: 'right-full top-1/2 -translate-y-1/2 mr-2',
+  right: 'left-full top-1/2 -translate-y-1/2 ml-2',
+};
+---
+
+<span class:list={['core-tooltip group relative inline-flex', className]} data-tooltip-wrapper>
+  <span class="inline-flex" data-tooltip-trigger>
+    <slot />
+  </span>
+  <span
+    id={tooltipId}
+    role="tooltip"
+    class:list={[
+      'core-tooltip-bubble pointer-events-none invisible absolute z-50 whitespace-nowrap border border-terminal-400 bg-terminal-bg-primary px-2 py-1 font-kode text-t-sm text-terminal-bright opacity-0 shadow-md transition-opacity duration-150 motion-reduce:transition-none',
+      'group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100',
+      POSITION[position],
+    ]}
+  >
+    {text}
+  </span>
+</span>
+
+<script>
+  function wireTooltips(): void {
+    document.querySelectorAll<HTMLElement>('[data-tooltip-wrapper]:not([data-tooltip-wired])').forEach((wrapper) => {
+      wrapper.setAttribute('data-tooltip-wired', 'true');
+
+      const bubble = wrapper.querySelector('[role="tooltip"]');
+      const trigger = wrapper.querySelector('[data-tooltip-trigger]')?.firstElementChild;
+
+      if (bubble?.id && trigger instanceof HTMLElement) {
+        const existing = trigger.getAttribute('aria-describedby');
+        trigger.setAttribute('aria-describedby', existing ? `${existing} ${bubble.id}` : bubble.id);
+      }
+
+      wrapper.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && trigger instanceof HTMLElement) {
+          trigger.blur();
+        }
+      });
+    });
+  }
+
+  wireTooltips();
+  document.addEventListener('astro:page-load', wireTooltips);
+</script>
