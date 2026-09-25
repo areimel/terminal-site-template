@@ -78,6 +78,7 @@ export default defineConfig({
   markdown: {
     remarkPlugins: [readingTimeRemarkPlugin],
     rehypePlugins: [responsiveTablesRehypePlugin, lazyImagesRehypePlugin],
+    shikiConfig: { theme: 'css-variables' },
   },
 
   vite: {
