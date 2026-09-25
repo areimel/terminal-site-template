@@ -1,0 +1,28 @@
+---
+import { findImage } from '~/utils/images';
+
+type Props = {
+  src: string;
+  alt: string;
+  class?: string;
+  width?: number | string;
+  height?: number | string;
+  loading?: 'lazy' | 'eager';
+  decoding?: 'async' | 'sync' | 'auto';
+} & Record<string, unknown>;
+
+const { src, alt, class: className, loading = 'lazy', decoding = 'async', ...rest } = Astro.props;
+
+// Find the image and handle both string paths and ImageMetadata objects
+const _image = await findImage(src);
+const imageSrc = typeof _image === 'string' ? _image : _image?.src || src;
+---
+
+<img 
+  src={imageSrc} 
+  alt={alt} 
+  class={className}
+  loading={loading}
+  decoding={decoding}
+  {...rest}
+/>

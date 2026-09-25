@@ -1,0 +1,217 @@
+---
+import { Icon } from 'astro-icon/components';
+import Logo from '~/components/Logo.astro';
+import ThemeSwitcher from '~/components/ThemeSwitcher.astro';
+import ToggleMenu from '~/components/common/ToggleMenu.astro';
+import Button from '~/components/ui/Button.astro';
+
+import { getHomePermalink } from '~/utils/permalinks';
+import { trimSlash, getAsset } from '~/utils/permalinks';
+import type { CallToAction } from '~/types';
+
+interface Link {
+  text?: string;
+  href?: string;
+  ariaLabel?: string;
+  icon?: string;
+}
+
+interface MenuLink extends Link {
+  links?: Array<MenuLink>;
+}
+
+export interface Props {
+  id?: string;
+  links?: Array<MenuLink>;
+  actions?: Array<CallToAction>;
+  isSticky?: boolean;
+  isDark?: boolean;
+  isFullWidth?: boolean;
+  showToggleTheme?: boolean;
+  showRssFeed?: boolean;
+  position?: string;
+}
+
+const {
+  id = 'header',
+  links = [],
+  actions = [],
+  isSticky = false,
+  isDark = false,
+  isFullWidth = false,
+  showToggleTheme = false,
+  showRssFeed = false,
+  position = 'center',
+} = Astro.props;
+
+const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
+---
+
+<header
+  class:list={[
+    { sticky: isSticky, relative: !isSticky, dark: isDark },
+    'top-0 z-40 flex-none mx-auto w-full border-b border-terminal-300/20 transition-[opacity] ease-in-out bg-terminal-bg-primary',
+  ]}
+  {...isSticky ? { 'data-aw-sticky-header': true } : {}}
+  {...id ? { id } : {}}
+>
+  <div class="absolute inset-0"></div>
+  <div
+    class:list={[
+      'relative text-terminal-500 py-3 px-3 md:px-6 mx-auto w-full',
+      {
+        'md:flex md:justify-between': position !== 'center',
+      },
+      {
+        'md:grid md:grid-cols-3 md:items-center': position === 'center',
+      },
+      {
+        'max-w-7xl': !isFullWidth,
+      },
+    ]}
+  >
+    <div class:list={[{ 'mr-auto rtl:mr-0 rtl:ml-auto': position === 'right' }, 'flex justify-between']}>
+      <a class="flex items-center" href={getHomePermalink()}>
+        <Logo />
+      </a>
+      <div class="flex items-center md:hidden">
+        <ToggleMenu />
+      </div>
+    </div>
+    <nav
+      class="items-center w-full md:w-auto hidden md:flex md:mx-5 text-terminal-500 overflow-y-auto overflow-x-hidden md:overflow-y-visible md:overflow-x-auto md:justify-self-center"
+      aria-label="Main navigation"
+    >
+      <ul
+        class="flex flex-col md:flex-row md:self-center w-full md:w-auto text-xl md:text-[0.9375rem] tracking-[0.01rem] font-medium md:justify-center font-kode"
+      >
+        {
+          links.map(({ text, href, links }) => (
+            <li class={links?.length ? 'dropdown' : ''}>
+              {links?.length ? (
+                <>
+                  <button
+                    type="button"
+                    class="hover:text-terminal-bright text-terminal-500 px-4 py-3 flex items-center whitespace-nowrap transition-colors"
+                  >
+                    {text}{' '}
+                    <Icon name="tabler:chevron-down" class="w-3.5 h-3.5 ml-0.5 rtl:ml-0 rtl:mr-0.5 hidden md:inline" />
+                  </button>
+                  <ul class="dropdown-menu rounded md:absolute pl-4 md:pl-0 md:hidden font-medium md:bg-terminal-bg-secondary md:min-w-[200px] drop-shadow-xl border border-terminal-300/20">
+                    {links.map(({ text: text2, href: href2 }) => (
+                      <li>
+                        <a
+                          class:list={[
+                            'first:rounded-t last:rounded-b md:hover:bg-terminal-bg-primary hover:text-terminal-bright text-terminal-400 py-2 px-5 block whitespace-no-wrap transition-colors',
+                            { 'text-terminal-bright': href2 === currentPath },
+                          ]}
+                          href={href2}
+                        >
+                          {text2}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <a
+                  class:list={[
+                    'hover:text-terminal-bright text-terminal-500 px-4 py-3 flex items-center whitespace-nowrap transition-colors',
+                    { 'text-terminal-bright': href === currentPath },
+                  ]}
+                  href={href}
+                >
+                  {text}
+                </a>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <div
+      class:list={[
+        { 'ml-auto rtl:ml-0 rtl:mr-auto': position === 'left' },
+        'hidden md:self-center md:flex items-center md:mb-0 fixed w-full md:w-auto md:static justify-end left-0 rtl:left-auto rtl:right-0 bottom-0 p-3 md:p-0 md:justify-self-end',
+      ]}
+    >
+      <div class="items-center flex justify-between w-full md:w-auto">
+        <div class="flex">
+          {showToggleTheme && (
+            <div class="relative dropdown-container">
+              <button
+                class="text-terminal-500 bg-terminal-bg-primary hover:bg-terminal-bg-secondary focus:outline-none focus:ring-2 focus:ring-terminal-400 rounded-lg text-sm px-3 py-2 inline-flex items-center gap-2 transition-colors"
+                aria-label="Theme Options"
+              >
+                <Icon name="tabler:palette" class="w-5 h-5" />
+                <span class="font-medium">Color Palette</span>
+              </button>
+              <div class="absolute right-0 top-full mt-0 hidden z-50 dropdown-menu">
+                <div class="bg-terminal-bg-secondary border border-terminal-300/20 rounded-lg p-2">
+                  <ThemeSwitcher isDropdown={true} />
+                </div>
+              </div>
+            </div>
+          )}
+          {
+            showRssFeed && (
+              <a
+                class="text-terminal-400 hover:text-terminal-bright hover:bg-terminal-bg-secondary focus:outline-none focus:ring-2 focus:ring-terminal-400 rounded-lg text-sm p-2.5 inline-flex items-center transition-colors"
+                aria-label="RSS Feed"
+                href={getAsset('/rss.xml')}
+              >
+                <Icon name="tabler:rss" class="w-5 h-5" />
+              </a>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+  .dropdown-container {
+    @apply h-auto pb-[5px] -mb-[5px];
+  }
+  
+  .dropdown-container .dropdown-menu {
+    @apply translate-y-0;
+  }
+  
+  /* Add glow effect to the palette icon */
+  .dropdown-container button {
+    @apply relative;
+  }
+  
+  .dropdown-container button svg {
+    @apply text-terminal-bright;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const dropdownContainers = document.querySelectorAll('.dropdown-container');
+    
+    dropdownContainers.forEach(container => {
+      const menu = container.querySelector('.dropdown-menu');
+      let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
+      
+      if (menu) {
+        container.addEventListener('mouseenter', () => {
+          if (timeoutId !== undefined) {
+            clearTimeout(timeoutId);
+            timeoutId = undefined;
+          }
+          menu.classList.remove('hidden');
+        });
+        
+        container.addEventListener('mouseleave', () => {
+          timeoutId = setTimeout(() => {
+            menu.classList.add('hidden');
+          }, 100);
+        });
+      }
+    });
+  });
+</script>

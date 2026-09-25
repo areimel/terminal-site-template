@@ -1,0 +1,128 @@
+---
+import ThemeOptions from './ThemeOptions.astro';
+import { Icon } from 'astro-icon/components';
+
+interface NavItem {
+  href: string;
+  text: string;
+  icon: string;
+  match?: string[]; // Additional paths that should match this nav item
+}
+
+interface Props {
+  class?: string;
+  style?: string;
+}
+
+const { 
+  class: className, 
+  style
+} = Astro.props;
+
+// Get current path for active link detection
+const currentPath = new URL(Astro.request.url).pathname;
+
+// Navigation items array
+const navItems: NavItem[] = [
+  { href: '/', text: 'Home', icon: 'tabler:home', match: ['/'] },
+  { href: '/projects', text: 'Projects', icon: 'tabler:briefcase', match: ['/projects', '/project/'] },
+  { href: '/blog', text: 'Blog', icon: 'tabler:article', match: ['/blog', '/post/'] },
+  /*{ href: '/styleguide', text: 'Styleguide', icon: 'tabler:color-swatch' }, */
+  { href: '/contact', text: 'Contact', icon: 'tabler:mail' }
+];
+
+// Helper function to check if a nav item is current
+function isCurrent(item: NavItem): boolean {
+  if (item.href === currentPath) return true;
+  if (item.match) {
+    return item.match.some(path => {
+      // Special handling for home page - only match exact path
+      if (path === '/') {
+        return currentPath === '/';
+      }
+      // For other paths, use startsWith logic
+      return currentPath.startsWith(path);
+    });
+  }
+  return false;
+}
+---
+
+<div id="sidebar-container" class:list={["sidebar-nav-container h-full", className]} style={style}>
+  <!-- Sidebar Navigation -->
+  <nav
+    id="sidebar-nav"
+    class="h-full w-full bg-terminal-bg-secondary border-r border-terminal-400 transition-all duration-300 ease-in-out overflow-hidden flex flex-col"
+  >
+    <div class="relative flex-1">
+      <ul class="space-y-0 font-kode divide-y divide-terminal-400 border-b border-terminal-400">
+        {navItems.map((item) => (
+          <li>
+            <a 
+              href={item.href} 
+              class:list={[
+                "nav-link flex items-center justify-center w-full",
+                { current: isCurrent(item) }
+              ]}
+            >
+              <div class="icon-container flex flex-col items-center justify-center p-2">
+                <Icon name={item.icon} class="w-5 h-5 md:w-8 md:h-8 mb-1 md:mb-2" />
+                <span class="text-[6px] md:text-[10px] font-uav-mono">{item.text}</span>
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+    
+    <!-- Settings button at the bottom -->
+    <div class="border-t border-terminal-400 mt-auto">
+      <button 
+        id="theme-settings-btn"
+        class="flex flex-col items-center justify-center w-full h-[50px] md:h-[100px] p-2 text-terminal-500 hover:text-terminal-bg-primary hover:bg-terminal-500 transition-colors"
+        aria-label="Theme Settings"
+      >
+        <Icon name="tabler:adjustments" class="w-5 h-5 md:w-8 md:h-8 mb-1 md:mb-2" />
+        <span class="text-[6px] md:text-[10px] font-uav-mono">Theme</span>
+      </button>
+    </div>
+  </nav>
+</div>
+
+<!-- Include ThemeOptions modal -->
+<ThemeOptions />
+
+<script>
+  function setupSidebar() {
+    const settingsBtn = document.getElementById('theme-settings-btn');
+    
+    // Setup settings button
+    settingsBtn?.addEventListener('click', () => {
+      // Check if the openThemeOptionsModal function exists (it should be defined in ThemeOptions.astro)
+      if (typeof window.openThemeOptionsModal === 'function') {
+        window.openThemeOptionsModal();
+      }
+    });
+  }
+
+  // Handle both initial load and subsequent navigation
+  document.addEventListener('astro:page-load', setupSidebar);
+</script>
+
+<style>
+  
+  /* Navigation link styling */
+  :global(.nav-link) {
+    @apply text-terminal-500 hover:text-terminal-bg-primary transition-colors hover:bg-terminal-500 h-[50px] md:h-[100px];
+  }
+
+  /* Add glow effect to navigation links on hover */
+  :global(.nav-link:hover) {
+    text-shadow: var(--theme-glow);
+  }
+
+  /* Current navigation link */
+  :global(.nav-link.current) {
+    @apply text-terminal-bg-primary bg-terminal-500;
+  }
+</style> 

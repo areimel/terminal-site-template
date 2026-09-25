@@ -1,0 +1,43 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import Note from '~/components/widgets/Note.astro';
+import PersonalFacts from '~/components/ContentComponents/PersonalFacts.astro';
+import Skills from '~/components/ContentComponents/Skills.astro';
+
+import HomeHero from '~/components/ContentComponents/HomeHero.astro';
+
+const metadata = {
+  title: 'Alec Reimel | Developer Portfolio',
+  ignoreTitleTemplate: true,
+  openGraph: {
+    images: [
+      {
+        url: '/preview.png',
+        width: 1200,
+        height: 628
+      }
+    ]
+  }
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- Hero Widget ******************* -->
+
+  <HomeHero />
+
+  <!-- Note Widget ******************* -->
+
+ <!--  <Note /> -->
+
+  <!-- Skills Widget *************** -->
+
+  <Skills />
+
+  <!-- Personal Facts Widget *************** -->
+  <PersonalFacts />
+
+  <!-- Content Widget **************** -->
+
+  
+</Layout>
