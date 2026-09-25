@@ -1,0 +1,83 @@
+---
+/**
+ * DocsLayout - renders one `docs` collection entry.
+ *
+ * Desktop: three columns - a file-tree sidebar (left), the doc content (center, `prose
+ * prose-terminal`), and an "on this page" TOC (right). Mobile: single column, with the sidebar
+ * and TOC each collapsing into a `<details>` disclosure.
+ *
+ * The caller (src/pages/docs/[...slug].astro) renders the doc's `<Content />` into the default
+ * slot and passes the collection entry plus its `render()`-time headings.
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import Heading from '~/components/core/Heading.astro';
+import DocsSidebar from '~/components/docs/DocsSidebar.astro';
+import DocsToc from '~/components/docs/DocsToc.astro';
+import DocsPrevNext from '~/components/docs/DocsPrevNext.astro';
+import { groupDocsBySection, getPrevNext } from '~/utils/docs';
+import type { DocEntry } from '~/utils/docs';
+import type { MarkdownHeading } from 'astro';
+import type { MetaData } from '~/types';
+
+export interface Props {
+  doc: DocEntry;
+  /** Full heading list from `render(doc)`; this layout filters it down to h2/h3 for the TOC. */
+  headings: MarkdownHeading[];
+  class?: string;
+}
+
+const { doc, headings, class: className } = Astro.props;
+const { title, description } = doc.data;
+
+const groups = await groupDocsBySection();
+const { prev, next } = await getPrevNext(doc.id);
+
+const tocHeadings = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+
+// TODO(lead): swap this inline path line for the shared Breadcrumb component once navigation
+// team ships it - it should read from the same docs collection ordering.
+const path = doc.id === 'index' ? '~/docs' : `~/docs/${doc.id}.md`;
+
+const metadata: MetaData = {
+  title: `${title} | Docs`,
+  ignoreTitleTemplate: true,
+  description,
+};
+---
+
+<PageLayout metadata={metadata}>
+  <div class:list={['mx-auto max-w-7xl px-4 py-8 lg:px-8 lg:py-12', className]}>
+    <div
+      class="grid grid-cols-1 gap-8 lg:grid-cols-[14rem_minmax(0,1fr)_14rem] lg:gap-10 xl:grid-cols-[16rem_minmax(0,1fr)_16rem]"
+    >
+      <aside aria-label="Docs navigation" class="lg:sticky lg:top-6 lg:self-start">
+        <DocsSidebar groups={groups} currentId={doc.id} />
+      </aside>
+
+      <div class="min-w-0">
+        <p class="mb-4 font-kode text-t-sm text-terminal-300" aria-label="Location">
+          <span aria-hidden="true">{path}</span>
+        </p>
+
+        <Heading level={1} class="mb-2">
+          {title}
+        </Heading>
+        {description && <p class="mb-8 max-w-[72ch] text-terminal-300">{description}</p>}
+
+        <div class="prose prose-terminal max-w-[72ch]">
+          <slot />
+        </div>
+
+        <DocsPrevNext prev={prev} next={next} class="mt-12" />
+      </div>
+
+      {
+        tocHeadings.length > 0 && (
+          <aside aria-label="On this page" class="lg:sticky lg:top-6 lg:self-start">
+            <DocsToc headings={tocHeadings} />
+          </aside>
+        )
+      }
+    </div>
+  </div>
+</PageLayout>

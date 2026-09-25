@@ -1,0 +1,111 @@
+---
+/**
+ * DocsToc - "on this page" table of contents built from a doc's h2/h3 headings.
+ *
+ * Scroll-spy highlighting is handled client-side by the `<terminal-docs-toc>` custom element
+ * below (an `IntersectionObserver`, guarded against double-`define`, re-initialized on every
+ * connect so it survives Astro's `ClientRouter` navigation). Clicking a link scrolls smoothly
+ * unless the user prefers reduced motion, in which case the jump is instant.
+ *
+ * Wrapped in a native `<details>` so it collapses on mobile, same as DocsSidebar.
+ */
+import Panel from '~/components/core/Panel.astro';
+import type { MarkdownHeading } from 'astro';
+
+export interface Props {
+  /** Pre-filtered to h2/h3 by the caller (DocsLayout). */
+  headings: MarkdownHeading[];
+  class?: string;
+}
+
+const { headings, class: className } = Astro.props;
+---
+
+<details open class:list={['docs-toc', className]}>
+  <summary
+    class="mb-3 cursor-pointer font-uav-mono text-t-sm text-terminal-400 hover:text-terminal-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terminal-bright lg:hidden"
+  >
+    On this page
+  </summary>
+
+  <Panel variant="line" tone="muted" padding="sm" title="on-this-page.log" class="mt-2 lg:mt-0">
+    <terminal-docs-toc>
+      <nav aria-label="On this page">
+        <ul class="space-y-1 font-kode text-t-sm">
+          {
+            headings.map((heading) => (
+              <li class:list={[heading.depth === 3 && 'ml-3']}>
+                <a
+                  href={`#${heading.slug}`}
+                  data-toc-link
+                  class="block truncate rounded-sm text-terminal-300 hover:text-terminal-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terminal-bright [&[aria-current]]:text-glow-subtle [&[aria-current]]:text-terminal-bright [&[aria-current]]:font-semibold"
+                >
+                  {heading.text}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </terminal-docs-toc>
+  </Panel>
+</details>
+
+<script>
+  class DocsToc extends HTMLElement {
+    private observer: IntersectionObserver | null = null;
+
+    connectedCallback() {
+      const links = Array.from(this.querySelectorAll<HTMLAnchorElement>('a[data-toc-link]'));
+      if (links.length === 0) return;
+
+      const linksById = new Map<string, HTMLAnchorElement>();
+      links.forEach((link) => {
+        const id = link.getAttribute('href')?.slice(1);
+        if (id) linksById.set(id, link);
+      });
+
+      const setActive = (id: string | null) => {
+        links.forEach((link) => link.removeAttribute('aria-current'));
+        if (id) linksById.get(id)?.setAttribute('aria-current', 'true');
+      };
+
+      this.observer?.disconnect();
+      this.observer = new IntersectionObserver(
+        (entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+          if (visible[0]) setActive(visible[0].target.id);
+        },
+        { rootMargin: '-96px 0px -70% 0px', threshold: [0, 1] }
+      );
+
+      linksById.forEach((_link, id) => {
+        const target = document.getElementById(id);
+        if (target) this.observer?.observe(target);
+      });
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      links.forEach((link) => {
+        link.addEventListener('click', (event) => {
+          const id = link.getAttribute('href')?.slice(1);
+          const target = id ? document.getElementById(id) : null;
+          if (!target) return;
+          event.preventDefault();
+          target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+          history.replaceState(null, '', `#${id}`);
+        });
+      });
+    }
+
+    disconnectedCallback() {
+      this.observer?.disconnect();
+      this.observer = null;
+    }
+  }
+
+  if (!customElements.get('terminal-docs-toc')) {
+    customElements.define('terminal-docs-toc', DocsToc);
+  }
+</script>

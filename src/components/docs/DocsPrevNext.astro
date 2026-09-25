@@ -1,0 +1,41 @@
+---
+/**
+ * DocsPrevNext - bottom-of-page links to the adjacent docs in reading order (section order,
+ * then `order` within a section). Either side is omitted at the start/end of the list.
+ */
+import Button from '~/components/core/Button.astro';
+import { docHref } from '~/utils/docs';
+import type { DocEntry } from '~/utils/docs';
+
+export interface Props {
+  prev: DocEntry | null;
+  next: DocEntry | null;
+  class?: string;
+}
+
+const { prev, next, class: className } = Astro.props;
+---
+
+{
+  (prev || next) && (
+    <nav
+      aria-label="Doc navigation"
+      class:list={['flex items-stretch justify-between gap-4 border-t border-terminal-300/40 pt-6', className]}
+    >
+      <div>
+        {prev && (
+          <Button href={docHref(prev.id)} variant="outline">
+            <span aria-hidden="true">&lt;</span> prev: {prev.data.title}
+          </Button>
+        )}
+      </div>
+      <div>
+        {next && (
+          <Button href={docHref(next.id)} variant="outline">
+            next: {next.data.title} <span aria-hidden="true">&gt;</span>
+          </Button>
+        )}
+      </div>
+    </nav>
+  )
+}
