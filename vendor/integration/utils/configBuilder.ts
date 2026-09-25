@@ -10,8 +10,6 @@ export type Config = {
     blog?: AppBlogConfig;
     projects?: AppProjectsConfig;
   };
-  /** @deprecated AstroWind's light/dark UI setting. Kept only for components that still import it. */
-  ui?: unknown;
   analytics?: unknown;
   template?: TemplateConfigInput;
 };
@@ -118,11 +116,6 @@ export interface AnalyticsConfig {
       partytown?: boolean;
     };
   };
-}
-
-/** @deprecated AstroWind's light/dark UI setting; the `ui:` key has been removed from config.yaml. Kept because ApplyColorMode/BasicScripts/ToggleTheme still import it. */
-export interface UIConfig {
-  theme: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -331,15 +324,6 @@ const getAppProjects = (config: Config) => {
   return merge({}, _default, config?.apps?.projects ?? {}) as AppProjectsConfig;
 };
 
-/** @deprecated see UIConfig */
-const getUI = (config: Config) => {
-  const _default = {
-    theme: 'system',
-  };
-
-  return merge({}, _default, config?.ui ?? {});
-};
-
 const getAnalytics = (config: Config) => {
   const _default = {
     vendors: {
@@ -398,8 +382,6 @@ export default (config: Config) => ({
   METADATA: getMetadata(config),
   APP_BLOG: getAppBlog(config),
   APP_PROJECTS: getAppProjects(config),
-  /** @deprecated see UIConfig */
-  UI: getUI(config),
   ANALYTICS: getAnalytics(config),
   TEMPLATE: getTemplate(config),
 });

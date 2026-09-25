@@ -39,36 +39,3 @@ export const socialLinks: NavItem[] = (TEMPLATE?.social ?? []).map(
     icon: link.icon,
   })
 );
-
-/**
- * @deprecated AstroWind demo header data. Nothing in the template design reads this anymore;
- * it remains only because `widgets/Header.astro` (via `LandingLayout.astro`) still imports it.
- * Safe to delete once those files are removed/reskinned.
- */
-export const headerData = {
-  links: [
-    {
-      text: 'Pages',
-      links: [
-        { text: 'Projects', href: getPermalink('/projects') },
-        { text: 'Blog', href: getPermalink('/blog') },
-        { text: 'Contact', href: getPermalink('/contact') },
-      ],
-    },
-  ],
-  actions: [],
-};
-
-/**
- * @deprecated AstroWind demo footer data. Footer.astro now reads `footerNav`/`socialLinks` instead.
- * Kept only because `widgets/Footer.astro` still imports it.
- */
-export const footerData = {
-  links: [],
-  secondaryLinks: [
-    { text: 'Terms', href: getPermalink('/terms') },
-    { text: 'Privacy Policy', href: getPermalink('/privacy') },
-  ],
-  socialLinks: socialLinks.map((link: NavItem) => ({ ariaLabel: link.label, icon: link.icon, href: link.href })),
-  footNote: '',
-};
