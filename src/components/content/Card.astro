@@ -1,0 +1,181 @@
+---
+/**
+ * Card - a content card built on Panel.
+ *
+ * Replaces the card style that used to be hand-rolled 4 different ways across the old
+ * portfolio (project cards, post cards, bento cells). When `href` is set the whole card
+ * becomes a single link target: only the title itself is an `<a>`, but a stretched
+ * `::after` overlay extends its hit area over the full card, so there is exactly one tab
+ * stop per card. Hover/focus brightens the border and adds a subtle glow - no lift or
+ * scale, per the design rules.
+ *
+ * The optional `image` gets a CRT-ish treatment (desaturated, then tinted with the active
+ * theme color and a faint scanline overlay) so images don't clash with the terminal palette.
+ */
+import Panel from '~/components/core/Panel.astro';
+import Heading from '~/components/core/Heading.astro';
+import Badge from '~/components/core/Badge.astro';
+
+export interface Props {
+  title: string;
+  /** When set, the card becomes a single link target pointing here. */
+  href?: string;
+  excerpt?: string;
+  /** Small line above/near the title, e.g. a date or category. */
+  meta?: string;
+  tags?: string[];
+  image?: string;
+  imageAlt?: string;
+  /** Heading level for the title. Defaults to 3. */
+  headingLevel?: 2 | 3 | 4;
+  class?: string;
+}
+
+const { title, href, excerpt, meta, tags, image, imageAlt, headingLevel = 3, class: className } = Astro.props;
+
+const hasExtra = Astro.slots.has('default');
+---
+
+<Panel
+  as="article"
+  variant="line"
+  tone="default"
+  padding="none"
+  class:list={['core-card', { 'core-card--linked': Boolean(href) }, className]}
+>
+  {
+    image && (
+      <div class="core-card-image">
+        <img
+          src={image}
+          alt={imageAlt ?? ''}
+          loading="lazy"
+          decoding="async"
+          class="grayscale contrast-125 brightness-90"
+        />
+      </div>
+    )
+  }
+
+  <div class="core-card-body flex flex-col gap-2 p-5">
+    <Heading level={headingLevel} class="core-card-title">
+      {
+        href ? (
+          <a href={href} class="core-card-link">
+            {title}
+          </a>
+        ) : (
+          title
+        )
+      }
+    </Heading>
+
+    {meta && <p class="font-kode text-t-sm text-terminal-300">{meta}</p>}
+
+    {excerpt && <p class="font-kode text-t-base text-terminal-400">{excerpt}</p>}
+
+    {
+      tags && tags.length > 0 && (
+        <ul class="core-card-tags flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <li>
+              <Badge variant="outline">{tag}</Badge>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    {
+      hasExtra && (
+        <div class="core-card-extra">
+          <slot />
+        </div>
+      )
+    }
+  </div>
+</Panel>
+
+<style>
+  .core-card-image {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    border-bottom: 1px solid var(--theme-300);
+  }
+
+  .core-card-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Faint scanlines over the image. */
+  .core-card-image::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.22) 0,
+      rgba(0, 0, 0, 0.22) 1px,
+      transparent 2px,
+      transparent 4px
+    );
+    mix-blend-mode: multiply;
+    pointer-events: none;
+  }
+
+  /* Tints the desaturated image with the active theme color. */
+  .core-card-image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--theme-500);
+    mix-blend-mode: color;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .core-card-title {
+    margin: 0;
+  }
+
+  .core-card-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .core-card-link:hover {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+  }
+
+  /* Stretched link: the anchor's own box is just the title text, but this pseudo-element
+     fills the nearest positioned ancestor (Panel's root, which is `position: relative`),
+     making the whole card clickable while keeping a single tab stop. */
+  .core-card-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  /* Keep any interactive slot content clickable above the stretched-link overlay. */
+  .core-card-extra {
+    position: relative;
+    z-index: 1;
+  }
+
+  :global(.core-card--linked) {
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+
+  :global(.core-card--linked:hover),
+  :global(.core-card--linked:focus-within) {
+    border-color: var(--theme-bright);
+    box-shadow: var(--theme-glow-subtle);
+  }
+</style>

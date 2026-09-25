@@ -1,0 +1,78 @@
+---
+/**
+ * FactGrid - label/value rows in a bordered grid. Generalizes the old `PersonalFacts` and
+ * `ProjectStats` layouts (and their duplicated grid CSS) into one data-driven component.
+ *
+ * Built on Panel for the shared background/border; a single `<dl>` inside it holds one
+ * bordered cell per item, with hairline borders collapsed via a negative-margin grid trick
+ * so the whole thing reads as one bordered table rather than stacked cards. Responsive:
+ * always 1 column below `sm`.
+ *
+ * `value` renders as plain text by default. Only set `html: true` on an item for trusted,
+ * static markup - it goes through `set:html`.
+ */
+import Panel from '~/components/core/Panel.astro';
+
+export interface FactGridItem {
+  label: string;
+  value: string;
+  href?: string;
+  /** Render `value` as HTML via `set:html` instead of plain text. Trusted content only. */
+  html?: boolean;
+}
+
+export interface Props {
+  items: FactGridItem[];
+  columns?: 1 | 2 | 3 | 4;
+  /** Tighter padding and smaller value text. */
+  dense?: boolean;
+  class?: string;
+}
+
+const { items, columns = 2, dense = false, class: className } = Astro.props;
+
+const COLUMNS: Record<NonNullable<Props['columns']>, string> = {
+  1: 'sm:grid-cols-1',
+  2: 'sm:grid-cols-2',
+  3: 'sm:grid-cols-2 lg:grid-cols-3',
+  4: 'sm:grid-cols-2 lg:grid-cols-4',
+};
+---
+
+<Panel variant="line" tone="default" padding="none" class:list={['core-factgrid', className]}>
+  <dl class:list={['grid grid-cols-1', COLUMNS[columns]]}>
+    {
+      items.map(({ label, value, href, html }) => (
+        <div class:list={['core-factgrid-cell', dense ? 'p-3' : 'p-5']}>
+          <dt class="font-kode text-t-sm uppercase tracking-wide text-terminal-300">{label}</dt>
+          {href ? (
+            <dd class:list={['mt-1 font-kode text-terminal-500', dense ? 'text-t-sm' : 'text-t-base']}>
+              <a
+                href={href}
+                class="text-terminal-400 underline decoration-dotted underline-offset-4 hover:text-terminal-bright"
+              >
+                {value}
+              </a>
+            </dd>
+          ) : html ? (
+            <dd
+              class:list={['mt-1 font-kode text-terminal-500', dense ? 'text-t-sm' : 'text-t-base']}
+              set:html={value}
+            />
+          ) : (
+            <dd class:list={['mt-1 font-kode text-terminal-500', dense ? 'text-t-sm' : 'text-t-base']}>{value}</dd>
+          )}
+        </div>
+      ))
+    }
+  </dl>
+</Panel>
+
+<style>
+  /* Collapses adjacent 1px cell borders into shared lines, and lines the outer edge up
+     with Panel's own border (the grid sits flush against it, at `padding="none"`). */
+  .core-factgrid-cell {
+    border: 1px solid var(--theme-300);
+    margin: -1px 0 0 -1px;
+  }
+</style>
