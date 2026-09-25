@@ -6,11 +6,11 @@ Spec: `docs/superpowers/specs/2026-09-25-terminal-template-design.md`
 - [x] Save spec + TODO, commit
 
 ## Wave 0 — Foundation
-- [ ] F1 Theme & effects core (Sonnet)
-- [ ] F2 Config, nav, core primitives (Sonnet)
-- [ ] Merge F1 + F2, build green
-- [ ] F3 De-personalize & prune (Haiku)
-- [ ] Merge F3, build + personal-data sweep green
+- [x] F1 Theme & effects core (Sonnet)
+- [x] F2 Config, nav, core primitives (Sonnet)
+- [x] Merge F1 + F2, build green
+- [x] F3 De-personalize & prune (Haiku)
+- [x] Merge F3, build + personal-data sweep green
 
 ## Wave 1 — Kit, engines, content
 - [ ] A1 content/ typography (Sonnet)
