@@ -1,0 +1,33 @@
+---
+/**
+ * Container - the page content wrapper. Every page uses it so gutters and max widths stay
+ * consistent: `prose` for reading pages, `default` for most pages, `wide` for app screens.
+ */
+export interface Props {
+  as?: string;
+  size?: 'prose' | 'default' | 'wide' | 'full';
+  /** Vertical padding. */
+  spacing?: 'none' | 'sm' | 'md' | 'lg';
+  class?: string;
+}
+
+const { as: Tag = 'div', size = 'default', spacing = 'md', class: className } = Astro.props;
+
+const SIZE: Record<NonNullable<Props['size']>, string> = {
+  prose: 'max-w-3xl',
+  default: 'max-w-6xl',
+  wide: 'max-w-[96rem]',
+  full: 'max-w-none',
+};
+
+const SPACING: Record<NonNullable<Props['spacing']>, string> = {
+  none: '',
+  sm: 'py-4 md:py-6',
+  md: 'py-8 lg:py-12',
+  lg: 'py-12 lg:py-20',
+};
+---
+
+<Tag class:list={['mx-auto w-full px-4 lg:px-8', SIZE[size], SPACING[spacing], className]}>
+  <slot />
+</Tag>

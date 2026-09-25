@@ -6,3 +6,4 @@ export { default as Divider } from './Divider.astro';
 export { default as Badge } from './Badge.astro';
 export { default as Kbd } from './Kbd.astro';
 export { default as Icon } from './Icon.astro';
+export { default as Container } from './Container.astro';
