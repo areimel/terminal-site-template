@@ -135,7 +135,9 @@ export interface ShellEngine {
 - `changelog` (`src/data/changelog/*.md`): `{ version: string, date: date, summary?: string, draft?: boolean }`.
 
 ## Wave 2 (pages) — what exists on main now
+
 Import from barrels: `import { Panel, Button, Heading, Container, Prompt, Divider, Badge, Kbd, Icon } from '~/components/core'`, and likewise `~/components/{content,media,effects,forms,feedback,data,navigation,shell}`. **Read a component's Props before using it** — don't guess.
+
 - core: Panel, Button (passes through extra attrs), Heading, Prompt, Divider, Badge, Kbd, Icon, **Container** `{as?, size?: prose|default|wide|full, spacing?: none|sm|md|lg}` — use it for every page's content width.
 - content: Prose, CodeBlock, Blockquote, Card, TextBox, Callout, FactGrid
 - media: Figure, CrtImage, AsciiFrame, Embed, Gallery
@@ -149,6 +151,7 @@ Import from barrels: `import { Panel, Button, Heading, Container, Prompt, Divide
 - Every group has `_demo/<Group>Demo.astro`.
 
 ## Page rules
+
 - Wrap every page in `~/layouts/PageLayout.astro` with `metadata={{ title, description }}`. PageLayout already renders `<main id="main-content">` — **don't add another `<main>`**.
 - Exactly **one `<h1>`** per page. Headings in order.
 - Content width via `Container`. Mobile first; test 360px.
