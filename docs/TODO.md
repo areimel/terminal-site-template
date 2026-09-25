@@ -16,21 +16,21 @@ Spec: `docs/superpowers/specs/2026-09-25-terminal-template-design.md`
 
 ## Wave 1 — Kit, engines, content
 
-- [ ] A1 content/ typography (Sonnet)
-- [ ] A2 content/ boxes (Sonnet)
-- [ ] A3 media/ (Haiku)
-- [ ] A4 effects/ (Sonnet)
-- [ ] B1 forms/ + lib/forms.ts (Sonnet)
-- [ ] B2 feedback/ + lib/toast.ts (Sonnet)
-- [ ] B3 navigation/ (Sonnet)
-- [ ] B4 data/ (Sonnet)
-- [ ] C1 lib/shell engine + vitest (Sonnet)
-- [ ] C2 TerminalShell element (Sonnet)
-- [ ] D1 blog/ + projects/ reskin (Sonnet)
-- [ ] D2 docs + changelog collections (Sonnet)
-- [ ] D3 demo content (Haiku)
-- [ ] E1 Playwright + axe harness (Sonnet)
-- [ ] Merge Wave 1, build green
+- [x] A1 content/ typography (Sonnet)
+- [x] A2 content/ boxes (Sonnet)
+- [x] A3 media/ (Haiku)
+- [x] A4 effects/ (Sonnet)
+- [x] B1 forms/ + lib/forms.ts (Sonnet)
+- [x] B2 feedback/ + lib/toast.ts (Sonnet)
+- [x] B3 navigation/ (Sonnet)
+- [x] B4 data/ (Sonnet)
+- [x] C1 lib/shell engine + vitest (Sonnet)
+- [x] C2 TerminalShell element (Sonnet)
+- [x] D1 blog/ + projects/ reskin (Sonnet)
+- [x] D2 docs + changelog collections (Sonnet)
+- [x] D3 demo content (Haiku)
+- [x] E1 Playwright + axe harness (Sonnet)
+- [x] Merge Wave 1, build green
 
 ## Wave 2 — Sections & pages
 
