@@ -1,0 +1,64 @@
+---
+/**
+ * AccordionItem - one collapsible section, built on native `<details>`/`<summary>`. Renders
+ * `<details>` as its own root element (no wrapping div) so `Accordion`'s exclusive-mode script can
+ * select its direct `<details>` children.
+ */
+export interface Props {
+  title: string;
+  open?: boolean;
+  class?: string;
+}
+
+const { title, open = false, class: className } = Astro.props;
+---
+
+<details class:list={['accordion-item border-b border-terminal-300 last:border-b-0', className]} open={open}>
+  <summary class="accordion-summary">
+    <span class="font-kode text-sm text-terminal-400">{title}</span>
+    <span class="accordion-glyph font-uav-mono text-terminal-bright" aria-hidden="true">
+      <span class="glyph-closed">+</span>
+      <span class="glyph-open">-</span>
+    </span>
+  </summary>
+  <div class="accordion-body px-3 pb-3 font-kode text-sm text-terminal-500">
+    <slot />
+  </div>
+</details>
+
+<style>
+  .accordion-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+  }
+
+  .accordion-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .accordion-summary::marker {
+    content: '';
+  }
+
+  .accordion-item:hover > .accordion-summary span:first-child {
+    color: var(--terminal-bright);
+  }
+
+  .glyph-open {
+    display: none;
+  }
+
+  .accordion-item[open] .glyph-closed {
+    display: none;
+  }
+
+  .accordion-item[open] .glyph-open {
+    display: inline;
+  }
+</style>

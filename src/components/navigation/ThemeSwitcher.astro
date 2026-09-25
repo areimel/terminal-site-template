@@ -1,0 +1,123 @@
+---
+/**
+ * ThemeSwitcher - lists every theme in the registry as a radiogroup (one radio per theme, arrow
+ * keys move focus and apply the theme immediately, like a native radio button group). Each option
+ * shows a color swatch drawn from that theme's own palette plus its label.
+ *
+ * Reflects the current theme on load and whenever `terminal:theme-change` fires (e.g. from
+ * another ThemeSwitcher instance, or the shell's `theme` command).
+ */
+import { themes } from '~/lib/themes';
+
+export interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<div class:list={['theme-switcher', className]} role="radiogroup" aria-label="Terminal theme">
+  <div class="flex flex-col gap-2">
+    {
+      themes.map((theme, index) => (
+        <button
+          type="button"
+          role="radio"
+          aria-checked="false"
+          tabindex={index === 0 ? 0 : -1}
+          data-theme={theme.id}
+          class="theme-option flex items-center gap-2 border-2 border-terminal-300 bg-terminal-bg-secondary px-4 py-2 font-uav-mono text-xs text-terminal-500 transition-colors hover:border-terminal-bright hover:text-terminal-bright"
+        >
+          <span
+            class="theme-swatch h-4 w-4 shrink-0 rounded-full border border-terminal-400"
+            style={`background-color: ${theme.colors[500]}`}
+            aria-hidden="true"
+          />
+          <span>{theme.label}</span>
+        </button>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  import { themes } from '~/lib/themes';
+  import { applyTheme, getTheme } from '~/lib/theme-runtime';
+
+  function options(root: ParentNode): HTMLButtonElement[] {
+    return Array.from(root.querySelectorAll<HTMLButtonElement>('.theme-option'));
+  }
+
+  function reflect(root: ParentNode, id: string): void {
+    options(root).forEach((option) => {
+      const isActive = option.dataset.theme === id;
+      option.setAttribute('aria-checked', isActive ? 'true' : 'false');
+      option.tabIndex = isActive ? 0 : -1;
+      option.classList.toggle('is-active', isActive);
+    });
+  }
+
+  function selectAndFocus(root: ParentNode, index: number): void {
+    const opts = options(root);
+    if (opts.length === 0) return;
+    const target = opts[(index + opts.length) % opts.length];
+    const id = target?.dataset.theme;
+    if (id && themes.some((theme) => theme.id === id)) applyTheme(id);
+    target?.focus();
+  }
+
+  function setup(): void {
+    document.querySelectorAll<HTMLElement>('.theme-switcher').forEach((switcher) => {
+      reflect(switcher, getTheme());
+
+      options(switcher).forEach((option, index) => {
+        option.addEventListener('click', () => {
+          const id = option.dataset.theme;
+          if (id && themes.some((theme) => theme.id === id)) applyTheme(id);
+        });
+
+        option.addEventListener('keydown', (event) => {
+          switch (event.key) {
+            case 'ArrowDown':
+            case 'ArrowRight':
+              event.preventDefault();
+              selectAndFocus(switcher, index + 1);
+              break;
+            case 'ArrowUp':
+            case 'ArrowLeft':
+              event.preventDefault();
+              selectAndFocus(switcher, index - 1);
+              break;
+            case 'Home':
+              event.preventDefault();
+              selectAndFocus(switcher, 0);
+              break;
+            case 'End':
+              event.preventDefault();
+              selectAndFocus(switcher, options(switcher).length - 1);
+              break;
+            default:
+              break;
+          }
+        });
+      });
+    });
+  }
+
+  setup();
+  document.addEventListener('astro:page-load', setup);
+  document.addEventListener('terminal:theme-change', (event) => {
+    const { id } = (event as CustomEvent<{ id: string }>).detail;
+    document.querySelectorAll<HTMLElement>('.theme-switcher').forEach((switcher) => reflect(switcher, id));
+  });
+</script>
+
+<style>
+  .theme-option.is-active {
+    @apply border-terminal-bright bg-terminal-bg-accent text-terminal-bright;
+  }
+
+  .theme-option.is-active .theme-swatch {
+    box-shadow: 0 0 6px var(--terminal-bright);
+  }
+</style>

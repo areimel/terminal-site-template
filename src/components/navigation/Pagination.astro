@@ -1,0 +1,66 @@
+---
+/**
+ * Pagination - prev/next controls between pages of a list. Same props as the old
+ * `blog/Pagination.astro` (`prevUrl`, `nextUrl`, `prevText?`, `nextText?`) so it's a drop-in swap,
+ * plus an optional `current`/`total` pair that renders a `page 2/5` readout between the buttons.
+ */
+import { getPermalink } from '~/utils/permalinks';
+import { Button, Icon } from '~/components/core';
+
+export interface Props {
+  prevUrl?: string;
+  nextUrl?: string;
+  prevText?: string;
+  nextText?: string;
+  /** Current page number, 1-based. Shown as `page {current}/{total}` when both are set. */
+  current?: number;
+  total?: number;
+  class?: string;
+}
+
+const {
+  prevUrl,
+  nextUrl,
+  prevText = 'Newer posts',
+  nextText = 'Older posts',
+  current,
+  total,
+  class: className,
+} = Astro.props;
+
+const hasCount = typeof current === 'number' && typeof total === 'number';
+---
+
+{
+  (prevUrl || nextUrl) && (
+    <nav aria-label="Pagination" class:list={['pagination flex items-center justify-between gap-4', className]}>
+      <div>
+        {prevUrl ? (
+          <Button href={getPermalink(prevUrl)} variant="outline" size="sm">
+            <Icon name="tabler:chevron-left" size={16} />
+            {prevText}
+          </Button>
+        ) : (
+          <span aria-hidden="true" />
+        )}
+      </div>
+
+      {hasCount && (
+        <p class="whitespace-nowrap font-kode text-sm text-terminal-400">
+          page {current}/{total}
+        </p>
+      )}
+
+      <div>
+        {nextUrl ? (
+          <Button href={getPermalink(nextUrl)} variant="outline" size="sm">
+            {nextText}
+            <Icon name="tabler:chevron-right" size={16} />
+          </Button>
+        ) : (
+          <span aria-hidden="true" />
+        )}
+      </div>
+    </nav>
+  )
+}
