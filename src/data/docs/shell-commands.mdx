@@ -5,7 +5,15 @@ section: Guides
 order: 3
 ---
 
+import { TerminalShell } from '~/components/shell';
+
 The template includes a full-featured terminal shell accessible at `/terminal` or embedded in panels. Commands are typed and extensible, and can be added by users.
+
+Here's the same shell, embedded inline and running `help` on load:
+
+<div class="not-prose my-6">
+  <TerminalShell mode="inline" height="16rem" initialCommands={['help']} />
+</div>
 
 ## Built-in commands
 

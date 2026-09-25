@@ -1,24 +1,44 @@
 ---
-import Layout from '~/layouts/Layout.astro';
-import { getHomePermalink } from '~/utils/permalinks';
+import PageLayout from '~/layouts/PageLayout.astro';
+import { Container, Heading, Button, Panel } from '~/components/core';
 
-const title = `Error 404`;
+const metadata = {
+  title: 'Page not found',
+  description: "The page you requested doesn't exist on this server.",
+};
 ---
 
-<Layout metadata={{ title }}>
-  <section class="flex items-center h-full p-16">
-    <div class="container flex flex-col items-center justify-center px-5 mx-auto my-8">
-      <div class="max-w-md text-center">
-        <h2 class="mb-8 font-bold text-9xl">
-          <span class="sr-only">Error</span>
-          <span class="text-primary">404</span>
-        </h2>
-        <p class="text-3xl font-semibold md:text-3xl">Sorry, we couldn't find this page.</p>
-        <p class="mt-4 mb-8 text-lg text-muted dark:text-slate-400">
-          But dont worry, you can find plenty of other things on our homepage.
-        </p>
-        <a rel="noopener noreferrer" href={getHomePermalink()} class="btn ml-4">Back to homepage</a>
-      </div>
+<PageLayout metadata={metadata}>
+  <Container size="prose" spacing="lg">
+    <Heading level={1} class="mb-6"> Page not found </Heading>
+
+    <Panel title="core.dump" variant="line" padding="none">
+      <pre
+        class="overflow-x-auto p-4 font-kode text-t-sm leading-relaxed text-terminal-400"
+        tabindex="0"
+        role="group"
+        aria-label="Core dump"><code>Segmentation fault (core dumped)
+
+Process terminated while resolving route
+  path: <span data-requested-path>/404</span>
+
+#0  0x5620a3c91d40 in resolve_route (path=<span data-requested-path>/404</span>) at router.c:404
+#1  0x5620a3c8f112 in dispatch_request () at server.c:117
+#2  0x5620a3c8e0a1 in main () at init.c:1
+</code></pre>
+    </Panel>
+
+    <div class="mt-8 flex flex-wrap items-center gap-3">
+      <Button href="/" variant="solid" prompt>cd ~</Button>
+      <Button href="/docs" variant="outline">Go to docs</Button>
     </div>
-  </section>
-</Layout>
+  </Container>
+</PageLayout>
+
+<script>
+  // /404 is prerendered, so the server-rendered path above always reads "/404". Fill in the
+  // actual requested path client-side once the real URL is available.
+  document.querySelectorAll<HTMLElement>('[data-requested-path]').forEach((el) => {
+    el.textContent = location.pathname + location.search;
+  });
+</script>

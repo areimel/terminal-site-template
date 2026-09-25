@@ -1,17 +1,43 @@
 ---
-import Layout from '~/layouts/PageLayout.astro';
-import ContactForm from '~/components/forms/ContactForm.astro';
-import { Heading } from '@components/core';
+import { TEMPLATE } from 'astrowind:config';
+import PageLayout from '~/layouts/PageLayout.astro';
+import { Container, Heading, Panel } from '~/components/core';
+import { ContactForm } from '~/components/forms';
+import { KeyValue } from '~/components/data';
+import { socialLinks } from '~/navigation';
+import type { KeyValueItem } from '~/components/data/KeyValue.astro';
 
 const metadata = {
   title: 'Contact',
+  description: `Send a message to ${TEMPLATE.identity.name}, ${TEMPLATE.identity.role} at ${TEMPLATE.identity.org}.`,
 };
+
+const socialItems: KeyValueItem[] = socialLinks.map((link) => ({
+  key: link.label,
+  value: link.href.replace(/^https?:\/\//, ''),
+}));
 ---
 
-<Layout metadata={metadata}>
-  <div class="w-full max-w-4xl mx-auto py-12 px-4">
-    <Heading level={1} class="mb-6">Get in touch</Heading>
-    <p class="text-terminal-400 font-kode text-base mb-8">Send us a message and we'll respond as soon as possible.</p>
-    <ContactForm variant="full" />
-  </div>
-</Layout>
+<PageLayout metadata={metadata}>
+  <Container size="prose">
+    <Heading level={1} class="mb-4">Contact</Heading>
+    <p class="mb-8 font-kode text-t-base text-terminal-400">
+      Reach {TEMPLATE.identity.name} ({TEMPLATE.identity.handle}), {TEMPLATE.identity.role} at {TEMPLATE.identity.org}.
+    </p>
+
+    <Panel title="~/mail/new" variant="double">
+      <ContactForm variant="full" />
+    </Panel>
+
+    {
+      socialItems.length > 0 && (
+        <div class="mt-10">
+          <Heading level={2} class="mb-3">
+            Elsewhere
+          </Heading>
+          <KeyValue items={socialItems} />
+        </div>
+      )
+    }
+  </Container>
+</PageLayout>
