@@ -14,7 +14,8 @@ import Heading from '~/components/core/Heading.astro';
 import DocsSidebar from '~/components/docs/DocsSidebar.astro';
 import DocsToc from '~/components/docs/DocsToc.astro';
 import DocsPrevNext from '~/components/docs/DocsPrevNext.astro';
-import { groupDocsBySection, getPrevNext } from '~/utils/docs';
+import Breadcrumb from '~/components/navigation/Breadcrumb.astro';
+import { groupDocsBySection, getPrevNext, docHref } from '~/utils/docs';
 import type { DocEntry } from '~/utils/docs';
 import type { MarkdownHeading } from 'astro';
 import type { MetaData } from '~/types';
@@ -34,9 +35,7 @@ const { prev, next } = await getPrevNext(doc.id);
 
 const tocHeadings = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 
-// TODO(lead): swap this inline path line for the shared Breadcrumb component once navigation
-// team ships it - it should read from the same docs collection ordering.
-const path = doc.id === 'index' ? '~/docs' : `~/docs/${doc.id}.md`;
+const crumbs = [{ label: 'docs', href: docHref('index') }, ...(doc.id === 'index' ? [] : [{ label: `${doc.id}.md` }])];
 
 const metadata: MetaData = {
   title: `${title} | Docs`,
@@ -55,9 +54,7 @@ const metadata: MetaData = {
       </aside>
 
       <div class="min-w-0">
-        <p class="mb-4 font-kode text-t-sm text-terminal-300" aria-label="Location">
-          <span aria-hidden="true">{path}</span>
-        </p>
+        <Breadcrumb items={crumbs} class="mb-4" />
 
         <Heading level={1} class="mb-2">
           {title}
