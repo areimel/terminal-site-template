@@ -1,0 +1,125 @@
+---
+/**
+ * SidebarNav - fixed left icon rail, driven by `mainNav`.
+ *
+ * Evolves the old `SidebarNavV2`: same visual language (an icon rail with labels), but every row
+ * is now a uniform, compact height. That fixes the known overflow bug: the old rail used 100px
+ * rows at `md+` for 8 nav items plus the settings button (9 x 100px = 900px), which overflowed
+ * any viewport shorter than ~900px and forced scrollbars. Here every row is 48px (9 x 48px =
+ * 432px total), so all 9 targets stay reachable with no scrollbar chrome down to a 600px-tall
+ * viewport, and each target still clears the 44px minimum touch size.
+ *
+ * Mobile decision: kept as a slim vertical rail rather than switching to a bottom tab bar below
+ * 768px. The compact row height already satisfies the 44px touch-target minimum at every
+ * breakpoint, so a single layout covers both mobile and desktop with one less responsive variant
+ * to maintain. Labels are visually hidden below `md` (icons only) but stay in the accessible name
+ * via a `sr-only` span, so screen reader users always get the label regardless of breakpoint.
+ */
+import { Icon } from '~/components/core';
+import { mainNav } from '~/navigation';
+
+export interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+
+const currentPath = Astro.url.pathname;
+
+/** A nav item is current if the path matches exactly, or (for non-home items) is a subpath of it. */
+function isCurrent(href: string): boolean {
+  if (href === '/') return currentPath === '/';
+  return currentPath === href || currentPath.startsWith(`${href}/`);
+}
+---
+
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<nav
+  aria-label="Primary"
+  class:list={[
+    'sidebar-nav flex h-full w-full flex-col bg-terminal-bg-secondary border-r border-terminal-400',
+    className,
+  ]}
+>
+  <ul class="sidebar-nav-list flex flex-1 flex-col overflow-y-auto">
+    {
+      mainNav.map((item) => (
+        <li>
+          <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined} class="nav-link">
+            <Icon name={item.icon} size={18} />
+            <span class="nav-label">{item.label}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+
+  <div class="border-t border-terminal-400">
+    <button type="button" data-modal-open="settings" aria-label="Settings" class="nav-link">
+      <Icon name="tabler:adjustments" size={18} />
+      <span class="nav-label">Settings</span>
+    </button>
+  </div>
+</nav>
+
+<style>
+  .skip-link {
+    position: fixed;
+    top: -100%;
+    left: 0.5rem;
+    z-index: 100;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--terminal-bg-primary);
+    color: var(--terminal-bright);
+    font-family: 'Kode Mono', monospace;
+    font-size: 0.875rem;
+    border: 1px solid var(--terminal-bright);
+  }
+
+  .skip-link:focus {
+    top: 0.5rem;
+  }
+
+  /* Belt-and-suspenders: content fits without scrolling at any realistic viewport height, but
+     if a host ever shrinks the rail below ~432px tall, allow scrolling without scrollbar chrome. */
+  .sidebar-nav-list {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .sidebar-nav-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-link {
+    @apply flex h-12 w-full flex-col items-center justify-center gap-0.5 px-1 text-terminal-500 transition-colors hover:bg-terminal-500 hover:text-terminal-bg-primary;
+  }
+
+  .nav-link:hover {
+    text-shadow: var(--theme-glow);
+  }
+
+  .nav-link[aria-current='page'] {
+    @apply bg-terminal-500 text-terminal-bg-primary;
+  }
+
+  .nav-label {
+    @apply whitespace-nowrap font-uav-mono text-[9px] leading-none;
+  }
+
+  /* Icons only below `md`; the label stays in the accessible name via `sr-only`. */
+  @media (max-width: 767px) {
+    .nav-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  }
+</style>

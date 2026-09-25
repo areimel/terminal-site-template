@@ -1,0 +1,44 @@
+---
+/**
+ * Accordion - a group of `AccordionItem`s, composed via the default slot (there is no `items`
+ * array prop; children author their own titles/content through `AccordionItem`).
+ *
+ * `exclusive` makes only one section open at a time. It's implemented the native way: every
+ * direct `<details>` child gets the same `name` attribute, which the browser then treats as a
+ * mutually-exclusive group with no extra ARIA bookkeeping. Setting `name` requires a tiny script
+ * (Astro slot content can't be told apart at the component-prop level), so without JavaScript the
+ * items degrade gracefully to independently toggleable - never a design a fork must rely on JS to
+ * use correctly, just a nicety when it's available.
+ */
+export interface Props {
+  /** When true, opening one item closes the others (native `<details name>` behavior). */
+  exclusive?: boolean;
+  class?: string;
+}
+
+const { exclusive = false, class: className } = Astro.props;
+---
+
+<div
+  class:list={['accordion flex flex-col border border-terminal-300', className]}
+  data-exclusive={exclusive ? '' : undefined}
+>
+  <slot />
+</div>
+
+<script>
+  function applyExclusive(): void {
+    document.querySelectorAll<HTMLElement>('.accordion[data-exclusive]').forEach((accordion, index) => {
+      if (!accordion.dataset.groupName) {
+        accordion.dataset.groupName = `accordion-group-${index}-${Math.random().toString(36).slice(2, 8)}`;
+      }
+      const groupName = accordion.dataset.groupName;
+      accordion.querySelectorAll<HTMLDetailsElement>(':scope > details').forEach((details) => {
+        details.name = groupName;
+      });
+    });
+  }
+
+  applyExclusive();
+  document.addEventListener('astro:page-load', applyExclusive);
+</script>

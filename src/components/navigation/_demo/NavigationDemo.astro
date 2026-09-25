@@ -1,0 +1,81 @@
+---
+/**
+ * NavigationDemo - renders every `navigation/` component except `SidebarNav` and `Footer`, which
+ * are global site chrome rendered once by the page layout rather than something to demo inline.
+ */
+import { Panel } from '~/components/core';
+import Tabs from '../Tabs.astro';
+import Accordion from '../Accordion.astro';
+import AccordionItem from '../AccordionItem.astro';
+import Breadcrumb from '../Breadcrumb.astro';
+import Pagination from '../Pagination.astro';
+import SettingsPanel from '../SettingsPanel.astro';
+---
+
+<div class="flex flex-col gap-8">
+  <Panel title="navigation/SidebarNav.astro + Footer.astro">
+    <p class="font-kode text-sm">
+      Global site chrome, rendered once by the page layout: the icon rail on the left and the page footer are them - not
+      demoed here.
+    </p>
+  </Panel>
+
+  <Panel title="navigation/Tabs.astro">
+    <p class="mb-4 font-kode text-sm">Switches between related panels; arrow keys, Home and End move focus.</p>
+    <Tabs
+      tabs={[
+        { id: 'readme', label: 'readme.txt' },
+        { id: 'changelog', label: 'changelog.txt' },
+        { id: 'license', label: 'license.txt' },
+      ]}
+    >
+      <div slot="readme">
+        <p class="font-kode text-sm">A terminal-native starter for building sites and small apps.</p>
+      </div>
+      <div slot="changelog">
+        <p class="font-kode text-sm">0.3.0 - added the component gallery and the docs collection.</p>
+      </div>
+      <div slot="license">
+        <p class="font-kode text-sm">MIT. Fork it, rebrand it, ship it.</p>
+      </div>
+    </Tabs>
+  </Panel>
+
+  <Panel title="navigation/Accordion.astro + AccordionItem.astro">
+    <p class="mb-4 font-kode text-sm">
+      Collapsible sections built on native details/summary; exclusive mode keeps only one section open at a time.
+    </p>
+    <Accordion exclusive>
+      <AccordionItem title="What is this template for?" open>
+        <p>Building terminal-styled sites and small web apps without a UI framework.</p>
+      </AccordionItem>
+      <AccordionItem title="Can I change the theme?">
+        <p>Yes - set `template.themes.default` in config.yaml, or let visitors switch it from Settings.</p>
+      </AccordionItem>
+      <AccordionItem title="Does it work without JavaScript?">
+        <p>Content and navigation do; effects, the shell and theme switching need it.</p>
+      </AccordionItem>
+    </Accordion>
+  </Panel>
+
+  <Panel title="navigation/Breadcrumb.astro">
+    <p class="mb-4 font-kode text-sm">Shows the current location as a path; the last segment marks the current page.</p>
+    <Breadcrumb items={[{ label: 'Docs', href: '/docs' }, { label: 'Theming' }]} />
+  </Panel>
+
+  <Panel title="navigation/Pagination.astro">
+    <p class="mb-4 font-kode text-sm">Moves between pages of a list, with an optional page count.</p>
+    <div class="flex flex-col gap-4">
+      <Pagination prevUrl="/blog/page/1" nextUrl="/blog/page/3" current={2} total={5} />
+      <Pagination nextUrl="/blog/page/2" />
+    </div>
+  </Panel>
+
+  <Panel title="navigation/SettingsPanel.astro (ThemeSwitcher + EffectsControls)">
+    <p class="mb-4 font-kode text-sm">
+      Lets a visitor pick a color theme and toggle terminal effects; this is what opens from the sidebar's Settings
+      button.
+    </p>
+    <SettingsPanel />
+  </Panel>
+</div>

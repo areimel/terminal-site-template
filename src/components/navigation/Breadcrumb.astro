@@ -1,0 +1,74 @@
+---
+/**
+ * Breadcrumb - renders the current location like a path (`~/docs/theming`), each segment a link
+ * except the last, which marks the current page with `aria-current="page"`.
+ *
+ * When `items` is omitted, the trail is derived from `Astro.url.pathname` by title-casing each
+ * path segment.
+ */
+export interface Props {
+  items?: { label: string; href?: string }[];
+  class?: string;
+}
+
+const { items, class: className } = Astro.props;
+
+function titleCase(segment: string): string {
+  return segment
+    .split('-')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function deriveFromPath(pathname: string): { label: string; href?: string }[] {
+  const segments = pathname.split('/').filter(Boolean);
+  let acc = '';
+  return segments.map((segment, index) => {
+    acc += `/${segment}`;
+    const isLast = index === segments.length - 1;
+    return { label: titleCase(segment), href: isLast ? undefined : acc };
+  });
+}
+
+const crumbs = items && items.length > 0 ? items : deriveFromPath(Astro.url.pathname);
+---
+
+{
+  crumbs.length > 0 && (
+    <nav aria-label="Breadcrumb" class:list={['breadcrumb font-kode text-sm', className]}>
+      <ol class="flex flex-wrap items-center gap-1 text-terminal-400">
+        <li aria-hidden="true" class="text-terminal-300">
+          ~
+        </li>
+        {crumbs.map((crumb, index) => {
+          const isLast = index === crumbs.length - 1;
+          return (
+            <>
+              <li aria-hidden="true" class="text-terminal-300">
+                /
+              </li>
+              <li>
+                {!isLast && crumb.href ? (
+                  <a href={crumb.href} class="breadcrumb-link">
+                    {crumb.label}
+                  </a>
+                ) : (
+                  <span aria-current={isLast ? 'page' : undefined} class="text-terminal-bright">
+                    {crumb.label}
+                  </span>
+                )}
+              </li>
+            </>
+          );
+        })}
+      </ol>
+    </nav>
+  )
+}
+
+<style>
+  .breadcrumb-link {
+    @apply text-terminal-400 transition-colors hover:text-terminal-bright hover:underline underline-offset-4 decoration-dotted;
+  }
+</style>

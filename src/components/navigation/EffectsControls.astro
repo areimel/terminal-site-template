@@ -1,0 +1,179 @@
+---
+/**
+ * EffectsControls - a master "All effects" switch plus one switch per `effectNames` entry, backed
+ * by `~/lib/effects`. Reflects state on load and on `terminal:effects-change`, and shows a note
+ * when the OS's reduced-motion preference is forcing every effect off (the switches are disabled
+ * in that state, since toggling them would have no visible effect).
+ *
+ * TODO(lead): swap the hand-rolled switch markup below for `~/components/forms/Toggle.astro`
+ * once it lands from Wave 1 (B1) - it isn't in this worktree yet, so the structure here matches
+ * its contract (`<input type="checkbox" role="switch">`) by hand.
+ */
+import { effectNames } from '~/lib/effects';
+
+export interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+
+const effectLabels: Record<(typeof effectNames)[number], string> = {
+  boot: 'Boot screen',
+  noise: 'CRT noise',
+  scanline: 'Scanlines',
+  overlay: 'CRT overlay',
+  decoder: 'Decoder text',
+};
+
+const effectDescriptions: Record<(typeof effectNames)[number], string> = {
+  boot: 'Plays the startup sequence once per visit.',
+  noise: 'Adds a faint film-grain flicker over the page.',
+  scanline: 'Overlays horizontal CRT scanlines.',
+  overlay: 'Adds the CRT vignette and curvature overlay.',
+  decoder: 'Animates headings and text marked for the decode effect.',
+};
+---
+
+<div class:list={['effects-controls flex flex-col gap-3', className]}>
+  <p
+    role="status"
+    data-reduced-motion-note
+    hidden
+    class="border border-terminal-300 bg-terminal-bg-secondary px-3 py-2 font-kode text-xs text-terminal-400"
+  >
+    Effects are off because your system has reduced motion enabled. Turn that off in your OS settings to re-enable them
+    here.
+  </p>
+
+  <div
+    class="effect-toggle-row flex items-start gap-3 border-2 border-terminal-bright bg-terminal-bg-secondary px-3 py-2"
+  >
+    <input type="checkbox" role="switch" id="effect-all" class="effect-switch" data-effect-all checked />
+    <label for="effect-all" class="flex cursor-pointer select-none flex-col">
+      <span class="font-uav-mono text-xs text-terminal-bright">All effects</span>
+      <span class="font-kode text-xs text-terminal-400">Master switch for every effect below.</span>
+    </label>
+  </div>
+
+  {
+    effectNames.map((name) => (
+      <div class="effect-toggle-row flex items-start gap-3 border border-terminal-300 bg-terminal-bg-secondary px-3 py-2">
+        <input type="checkbox" role="switch" id={`effect-${name}`} class="effect-switch" data-effect={name} checked />
+        <label for={`effect-${name}`} class="flex cursor-pointer select-none flex-col">
+          <span class="font-uav-mono text-xs text-terminal-500">{effectLabels[name]}</span>
+          <span class="font-kode text-xs text-terminal-400">{effectDescriptions[name]}</span>
+        </label>
+      </div>
+    ))
+  }
+</div>
+
+<script>
+  import { effectNames, getEffects, setEffect, setAllEffects, type EffectsState } from '~/lib/effects';
+
+  function prefersReducedMotion(): boolean {
+    try {
+      return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    } catch {
+      return false;
+    }
+  }
+
+  function render(root: ParentNode, state: EffectsState): void {
+    const reduced = prefersReducedMotion();
+
+    const note = root.querySelector<HTMLElement>('[data-reduced-motion-note]');
+    if (note) note.hidden = !reduced;
+
+    const allToggle = root.querySelector<HTMLInputElement>('[data-effect-all]');
+    if (allToggle) {
+      allToggle.checked = state.all;
+      allToggle.disabled = reduced;
+    }
+
+    effectNames.forEach((name) => {
+      const toggle = root.querySelector<HTMLInputElement>(`[data-effect="${name}"]`);
+      if (!toggle) return;
+      toggle.checked = state[name];
+      toggle.disabled = reduced || !state.all;
+    });
+  }
+
+  function setup(): void {
+    document.querySelectorAll<HTMLElement>('.effects-controls').forEach((controls) => {
+      render(controls, getEffects());
+
+      controls.querySelector<HTMLInputElement>('[data-effect-all]')?.addEventListener('change', (event) => {
+        const checked = (event.target as HTMLInputElement).checked;
+        render(controls, setAllEffects(checked));
+      });
+
+      effectNames.forEach((name) => {
+        controls.querySelector<HTMLInputElement>(`[data-effect="${name}"]`)?.addEventListener('change', (event) => {
+          const checked = (event.target as HTMLInputElement).checked;
+          render(controls, setEffect(name, checked));
+        });
+      });
+    });
+  }
+
+  setup();
+  document.addEventListener('astro:page-load', setup);
+  document.addEventListener('terminal:effects-change', (event) => {
+    const state = (event as CustomEvent<EffectsState>).detail;
+    document.querySelectorAll<HTMLElement>('.effects-controls').forEach((controls) => render(controls, state));
+  });
+</script>
+
+<style>
+  .effect-switch {
+    appearance: none;
+    -webkit-appearance: none;
+    position: relative;
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 1.25rem;
+    margin-top: 0.15rem;
+    border: 1px solid var(--terminal-400);
+    border-radius: 9999px;
+    background-color: var(--terminal-bg-primary);
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  .effect-switch::before {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background-color: var(--terminal-400);
+    transition:
+      transform 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  .effect-switch:checked {
+    background-color: var(--terminal-bg-accent);
+    border-color: var(--terminal-bright);
+  }
+
+  .effect-switch:checked::before {
+    transform: translateX(1rem);
+    background-color: var(--terminal-bright);
+  }
+
+  .effect-switch:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .effect-switch:focus-visible {
+    outline: 2px solid var(--theme-bright, currentColor);
+    outline-offset: 2px;
+  }
+</style>

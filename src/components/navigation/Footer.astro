@@ -1,0 +1,59 @@
+---
+/**
+ * Footer - global site footer: secondary/legal nav, social links, and a single quiet
+ * copyright line. Evolves the old `Footer.astro`; drops the "No Rights Reserved" flavor
+ * text so the persona reads entirely from `TEMPLATE.identity`.
+ */
+import { TEMPLATE } from 'astrowind:config';
+import { Icon } from '~/components/core';
+import { footerNav, socialLinks } from '~/navigation';
+
+export interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+const year = new Date().getFullYear();
+---
+
+<footer
+  class:list={['site-footer border-t border-terminal-400 bg-terminal-bg-secondary px-4 py-8 text-center', className]}
+>
+  {
+    footerNav.length > 0 && (
+      <nav aria-label="Footer" class="mb-4">
+        <ul class="flex flex-wrap justify-center gap-x-6 gap-y-2 font-kode text-sm">
+          {footerNav.map((item) => (
+            <li>
+              <a href={item.href} class="footer-link">
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )
+  }
+
+  {
+    socialLinks.length > 0 && (
+      <ul class="mb-4 flex justify-center gap-4">
+        {socialLinks.map((link) => (
+          <li>
+            <a href={link.href} class="footer-link" aria-label={link.label} target="_blank" rel="noopener noreferrer">
+              <Icon name={link.icon} size={20} />
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  <p class="font-kode text-sm text-terminal-400 text-glow-subtle">&copy; {year} {TEMPLATE.identity.name}</p>
+</footer>
+
+<style>
+  .footer-link {
+    @apply text-terminal-400 transition-colors hover:text-terminal-bright hover:underline underline-offset-4;
+  }
+</style>
