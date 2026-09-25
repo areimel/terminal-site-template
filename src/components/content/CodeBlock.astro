@@ -4,9 +4,8 @@
  *
  * The Panel title bar shows `filename` (falling back to `lang`). Highlighting uses Astro's
  * built-in `<Code>` (from `astro:components`) with the `css-variables` Shiki theme, which emits
- * `--astro-code-*` custom properties instead of hard-coded colors. This file maps those to the
- * template's `--theme-*` variables (see the `<style>` block below), so highlighting re-themes
- * live across all 5 terminal themes without a rebuild.
+ * `--astro-code-*` custom properties instead of hard-coded colors. `common/ThemeHead.astro` maps
+ * those to the template's `--theme-*` variables, so highlighting re-themes live.
  *
  * The copy button is a small custom element, `<terminal-copy>`: it reads the rendered code from
  * its own Panel, copies it to the clipboard, announces "Copied" via `aria-live`, and changes its
@@ -68,20 +67,9 @@ const scrollLabel = `Code sample${title ? `: ${title}` : ''}, ${lineCount} line$
 </Panel>
 
 <style>
-  /* Map Shiki's `css-variables` theme output to the template's live theme vars, so highlighted
-     tokens re-theme with everything else instead of staying pinned to one palette. */
+  /* Token colors come from the global --astro-code-* mapping in ThemeHead; only the background differs. */
   .codeblock {
-    --astro-code-foreground: var(--theme-500);
     --astro-code-background: transparent;
-    --astro-code-token-constant: var(--theme-bright);
-    --astro-code-token-string: var(--theme-400);
-    --astro-code-token-comment: var(--theme-300);
-    --astro-code-token-keyword: var(--theme-accent-bright);
-    --astro-code-token-parameter: var(--theme-500);
-    --astro-code-token-function: var(--theme-bright);
-    --astro-code-token-string-expression: var(--theme-400);
-    --astro-code-token-punctuation: var(--theme-400);
-    --astro-code-token-link: var(--theme-accent);
   }
 
   .codeblock-scroll {

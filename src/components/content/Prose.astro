@@ -6,10 +6,8 @@
  *
  * Also carries the CSS that makes Markdown's own fenced code blocks (rendered by Astro's
  * markdown pipeline, not `CodeBlock.astro`) look consistent with `CodeBlock`: a themed panel-like
- * `pre`, matching font/size, and the same `--astro-code-*` -> `--theme-*` variable mapping. That
- * mapping only takes effect once Shiki is configured to emit CSS variables for the color values;
- * see the comment above the mapping below and the "Requests" note in this component group's
- * report.
+ * `pre` and matching font/size. Token colors come from the global `--astro-code-*` mapping in
+ * `common/ThemeHead.astro` (Shiki runs with the `css-variables` theme).
  */
 export interface Props {
   /** Tag to render the wrapper as. Defaults to `div`. */
@@ -58,24 +56,6 @@ const SIZE: Record<NonNullable<Props['size']>, string> = {
     font-weight: 400;
   }
 
-  /* Color consistency with `CodeBlock`: maps Shiki's `css-variables` theme output to the live
-     theme. Markdown code currently ships with Shiki's default theme (hard-coded colors that win
-     over these variables) - see this group's "Requests" note to flip
-     `markdown.shikiConfig.theme` to `'css-variables'` in astro.config.ts, which needs no change
-     here once it lands. */
-  :global(.prose-terminal) {
-    --astro-code-foreground: var(--theme-500);
-    --astro-code-background: var(--theme-bg-secondary);
-    --astro-code-token-constant: var(--theme-bright);
-    --astro-code-token-string: var(--theme-400);
-    --astro-code-token-comment: var(--theme-300);
-    --astro-code-token-keyword: var(--theme-accent-bright);
-    --astro-code-token-parameter: var(--theme-500);
-    --astro-code-token-function: var(--theme-bright);
-    --astro-code-token-string-expression: var(--theme-400);
-    --astro-code-token-punctuation: var(--theme-400);
-    --astro-code-token-link: var(--theme-accent);
-  }
 </style>
 
 <script>
