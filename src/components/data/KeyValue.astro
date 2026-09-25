@@ -1,0 +1,60 @@
+---
+/**
+ * KeyValue - a `<dl>` of label/value pairs.
+ *
+ * `layout="rows"` (default) renders `key ........ value` dot-leader rows: the leader is a
+ * `border-b border-dotted` on the `<dt>` itself (flex-grown to fill the row), with the key
+ * text masking the border directly under it via a matching background color, so the dots
+ * visually start right after the key. That assumes it's placed over `bg-terminal-bg-secondary`
+ * (a `Panel`'s body, the usual home for this component) - pass `class` to override the mask
+ * color if used elsewhere.
+ *
+ * `layout="inline"` renders compact `key: value` chips instead, wrapping as needed.
+ */
+import { TONE_TEXT_CLASS, type DataTone } from './tone';
+
+export interface KeyValueItem {
+  key: string;
+  value: string;
+  tone?: DataTone;
+}
+
+export interface Props {
+  items: KeyValueItem[];
+  layout?: 'rows' | 'inline';
+  class?: string;
+}
+
+const { items, layout = 'rows', class: className } = Astro.props;
+---
+
+{
+  layout === 'inline' ? (
+    <dl class:list={['key-value flex flex-wrap gap-x-6 gap-y-2 font-kode text-t-sm', className]}>
+      {items.map((item) => (
+        <div class="inline-flex items-baseline gap-1.5">
+          <dt class="text-terminal-400">{item.key}</dt>
+          <dd class:list={['font-semibold tabular-nums', TONE_TEXT_CLASS[item.tone ?? 'default']]}>{item.value}</dd>
+        </div>
+      ))}
+    </dl>
+  ) : (
+    <dl class:list={['key-value flex flex-col gap-1.5 font-kode text-t-sm', className]}>
+      {items.map((item) => (
+        <div class="flex items-baseline gap-2">
+          <dt class="key-value-key min-w-0 flex-1 border-b border-dotted border-terminal-300 pb-0.5 text-terminal-400">
+            <span class="bg-terminal-bg-secondary pr-1">{item.key}</span>
+          </dt>
+          <dd
+            class:list={[
+              'key-value-value shrink-0 pb-0.5 font-semibold tabular-nums',
+              TONE_TEXT_CLASS[item.tone ?? 'default'],
+            ]}
+          >
+            {item.value}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  )
+}

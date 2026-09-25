@@ -1,0 +1,50 @@
+---
+/**
+ * StatReadout - a big numeric readout for a dashboard (display font, tabular numbers),
+ * with its label in muted small text below it in plain sentence case - no uppercase
+ * eyebrow label.
+ *
+ * `delta` follows the common up-is-green/down-is-red ticker convention (independent of
+ * whether the underlying metric going up is actually "good" - that's domain-specific and
+ * left to `status`, which colors the main value instead). The arrow glyph is
+ * `aria-hidden`; an sr-only "up"/"down"/"unchanged" word carries the same meaning to
+ * screen readers.
+ */
+import { TONE_TEXT_CLASS, type DataTone } from './tone';
+
+export interface Props {
+  label: string;
+  value: string | number;
+  unit?: string;
+  delta?: number;
+  deltaLabel?: string;
+  status?: Extract<DataTone, 'ok' | 'warn' | 'err'>;
+  class?: string;
+}
+
+const { label, value, unit, delta, deltaLabel, status, class: className } = Astro.props;
+
+const valueToneClass = status ? TONE_TEXT_CLASS[status] : 'text-terminal-bright';
+
+const deltaTone: DataTone = delta == null || delta === 0 ? 'default' : delta > 0 ? 'ok' : 'err';
+const deltaGlyph = delta == null || delta === 0 ? '▬' : delta > 0 ? '▲' : '▼';
+const deltaWord = delta == null || delta === 0 ? 'unchanged' : delta > 0 ? 'up' : 'down';
+---
+
+<div class:list={['stat-readout flex flex-col gap-1', className]}>
+  <div class="flex items-baseline gap-1.5">
+    <span class:list={['font-uav-mono text-t-3xl tabular-nums md:text-t-4xl', valueToneClass]}>{value}</span>
+    {unit && <span class="font-uav-mono text-t-lg text-terminal-400">{unit}</span>}
+  </div>
+  {
+    delta != null && (
+      <div class:list={['flex items-center gap-1 font-kode text-t-sm', TONE_TEXT_CLASS[deltaTone]]}>
+        <span aria-hidden="true">{deltaGlyph}</span>
+        <span class="sr-only">{deltaWord}</span>
+        <span class="tabular-nums">{Math.abs(delta)}%</span>
+        {deltaLabel && <span class="text-terminal-400">{deltaLabel}</span>}
+      </div>
+    )
+  }
+  <span class="font-kode text-t-sm text-terminal-300">{label}</span>
+</div>

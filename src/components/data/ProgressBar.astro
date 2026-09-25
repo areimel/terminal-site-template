@@ -1,0 +1,101 @@
+---
+/**
+ * ProgressBar - a labeled `role="progressbar"` for a running operation.
+ *
+ * Determinate mode (`indeterminate` unset/false) wraps `AsciiBar` with `aria-valuenow`/
+ * `min`/`max` and turns `ok` once it reaches `max`.
+ *
+ * Indeterminate mode (no known percentage) swaps in a small block bouncing between the
+ * brackets instead, with no `aria-valuenow` (per the ARIA progressbar pattern) and
+ * `aria-valuetext="Working"`. Under `prefers-reduced-motion` the animation can't be
+ * meaningfully paused (there's no state to freeze it at), so it's replaced outright by a
+ * static `[ working... ]` string.
+ */
+import AsciiBar from './AsciiBar.astro';
+import { clampValue, DEFAULT_BAR_WIDTH } from './ascii-bar';
+
+export interface Props {
+  value?: number;
+  max?: number;
+  label: string;
+  indeterminate?: boolean;
+  class?: string;
+}
+
+const { value = 0, max = 100, label, indeterminate = false, class: className } = Astro.props;
+
+const clamped = clampValue(value, 0, max);
+const tone = clamped >= max ? 'ok' : 'default';
+---
+
+<div
+  class:list={['progressbar flex flex-col gap-1', className]}
+  role="progressbar"
+  aria-label={label}
+  aria-valuenow={indeterminate ? undefined : clamped}
+  aria-valuemin={indeterminate ? undefined : 0}
+  aria-valuemax={indeterminate ? undefined : max}
+  aria-valuetext={indeterminate ? 'Working' : undefined}
+>
+  <span class="font-kode text-t-sm text-terminal-400">{label}</span>
+  {
+    indeterminate ? (
+      <span
+        class="progressbar-indeterminate inline-flex items-center gap-2 font-kode text-t-sm text-terminal-400"
+        aria-hidden="true"
+        style={`--pb-width:${DEFAULT_BAR_WIDTH}`}
+      >
+        <span class="progressbar-indeterminate-track inline-flex items-center tabular-nums">
+          <span>[</span>
+          <span class="progressbar-indeterminate-slot">
+            <span class="progressbar-indeterminate-block">#</span>
+          </span>
+          <span>]</span>
+        </span>
+        <span class="progressbar-indeterminate-fallback">[ working&hellip; ]</span>
+      </span>
+    ) : (
+      <AsciiBar value={clamped} max={max} tone={tone} class="w-full" />
+    )
+  }
+</div>
+
+<style>
+  .progressbar-indeterminate-slot {
+    position: relative;
+    display: inline-block;
+    width: calc(var(--pb-width) * 1ch);
+    height: 1em;
+    vertical-align: -0.15em;
+  }
+
+  .progressbar-indeterminate-block {
+    position: absolute;
+    top: 0;
+    left: 0;
+    animation: progressbar-bounce 1.4s ease-in-out infinite alternate;
+  }
+
+  .progressbar-indeterminate-fallback {
+    display: none;
+  }
+
+  @keyframes progressbar-bounce {
+    from {
+      left: 0;
+    }
+    to {
+      left: calc(100% - 1ch);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .progressbar-indeterminate-track {
+      display: none;
+    }
+
+    .progressbar-indeterminate-fallback {
+      display: inline;
+    }
+  }
+</style>
