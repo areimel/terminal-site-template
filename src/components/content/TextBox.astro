@@ -1,0 +1,96 @@
+---
+/**
+ * TextBox - a small "retro terminal dialog" box.
+ *
+ * Built on Panel for the shared background/border/title-bar mechanics; adds corner glyphs
+ * so the straight CSS border reads as real box-drawing characters (┌─┐│└┘ for `single`,
+ * ╔═╗ for `double`) without giving up a responsive layout. `rounded` skips the corner
+ * glyphs (they'd clash with a curved corner) and softens the box with `border-radius`
+ * instead.
+ */
+import Panel from '~/components/core/Panel.astro';
+
+export interface Props {
+  title?: string;
+  style?: 'single' | 'double' | 'rounded';
+  class?: string;
+}
+
+const { title, style = 'single', class: className } = Astro.props;
+
+const PANEL_VARIANT: Record<NonNullable<Props['style']>, 'line' | 'double'> = {
+  single: 'line',
+  double: 'double',
+  rounded: 'line',
+};
+
+const CORNER_GLYPHS: Record<'single' | 'double', { tl: string; tr: string; bl: string; br: string }> = {
+  single: { tl: '┌', tr: '┐', bl: '└', br: '┘' },
+  double: { tl: '╔', tr: '╗', bl: '╚', br: '╝' },
+};
+
+// Only `single`/`double` get corner glyphs; keep the narrowed lookup out of the template
+// so it doesn't need to be re-checked there.
+const corners = style === 'rounded' ? null : CORNER_GLYPHS[style];
+---
+
+<Panel
+  title={title}
+  variant={PANEL_VARIANT[style]}
+  tone="default"
+  class:list={['core-textbox', `core-textbox-${style}`, className]}
+>
+  {
+    corners && (
+      <>
+        <span class="core-textbox-corner core-textbox-corner-tl" aria-hidden="true">
+          {corners.tl}
+        </span>
+        <span class="core-textbox-corner core-textbox-corner-tr" aria-hidden="true">
+          {corners.tr}
+        </span>
+        <span class="core-textbox-corner core-textbox-corner-bl" aria-hidden="true">
+          {corners.bl}
+        </span>
+        <span class="core-textbox-corner core-textbox-corner-br" aria-hidden="true">
+          {corners.br}
+        </span>
+      </>
+    )
+  }
+  <slot />
+</Panel>
+
+<style>
+  .core-textbox-corner {
+    position: absolute;
+    line-height: 1;
+    font-family: 'Kode Mono', monospace;
+    color: var(--theme-400);
+    pointer-events: none;
+  }
+
+  .core-textbox-corner-tl {
+    top: -0.65em;
+    left: -0.5em;
+  }
+  .core-textbox-corner-tr {
+    top: -0.65em;
+    right: -0.5em;
+  }
+  .core-textbox-corner-bl {
+    bottom: -0.65em;
+    left: -0.5em;
+  }
+  .core-textbox-corner-br {
+    bottom: -0.65em;
+    right: -0.5em;
+  }
+
+  /* Targets Panel's own root element (rendered outside this file), so it needs to opt out
+     of Astro's style scoping. */
+  :global(.core-textbox-rounded) {
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+</style>

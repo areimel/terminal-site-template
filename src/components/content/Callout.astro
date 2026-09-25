@@ -1,0 +1,67 @@
+---
+/**
+ * Callout - a status-tagged aside, built on Panel's `ascii` variant plus a Badge in the
+ * title bar's `actions` slot for the status label. `tone` picks the default title, the
+ * status label text and the Badge's color (the fixed status colors live on Badge only -
+ * Panel itself always stays on theme-relative border tones).
+ *
+ * Renders with `role="note"` (not `role="alert"`, even for `err` - this is static
+ * documentation-style content, not a live alert).
+ */
+import Panel from '~/components/core/Panel.astro';
+import Badge from '~/components/core/Badge.astro';
+
+export type CalloutTone = 'note' | 'tip' | 'warn' | 'err';
+
+export interface Props {
+  tone?: CalloutTone;
+  title?: string;
+  class?: string;
+}
+
+const { tone = 'note', title, class: className } = Astro.props;
+
+const DEFAULT_TITLE: Record<CalloutTone, string> = {
+  note: 'Note',
+  tip: 'Tip',
+  warn: 'Warning',
+  err: 'Error',
+};
+
+// All-caps is reserved for system status strings - this is that one place it belongs.
+const STATUS_LABEL: Record<CalloutTone, string> = {
+  note: 'NOTE',
+  tip: 'TIP',
+  warn: 'WARN',
+  err: 'ERR',
+};
+
+const BADGE_TONE: Record<CalloutTone, 'default' | 'ok' | 'warn' | 'err'> = {
+  note: 'default',
+  tip: 'ok',
+  warn: 'warn',
+  err: 'err',
+};
+
+const PANEL_TONE: Record<CalloutTone, 'default' | 'accent' | 'muted'> = {
+  note: 'muted',
+  tip: 'accent',
+  warn: 'accent',
+  err: 'accent',
+};
+
+const resolvedTitle = title ?? DEFAULT_TITLE[tone];
+---
+
+<div role="note" class:list={['core-callout', className]}>
+  <Panel title={resolvedTitle} variant="ascii" tone={PANEL_TONE[tone]}>
+    <Fragment slot="actions">
+      <Badge tone={BADGE_TONE[tone]} variant="outline">
+        {STATUS_LABEL[tone]}
+      </Badge>
+    </Fragment>
+    <div class="font-kode text-t-base text-terminal-400">
+      <slot />
+    </div>
+  </Panel>
+</div>

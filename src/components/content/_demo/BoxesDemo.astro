@@ -1,0 +1,90 @@
+---
+/**
+ * BoxesDemo - renders Card, TextBox, Callout and FactGrid with persona-neutral sample
+ * content (a fictional "MAINFRAME-7" system context). Embedded in the `/components`
+ * gallery (built in a later wave).
+ */
+import { Panel } from '~/components/core';
+import Card from '../Card.astro';
+import TextBox from '../TextBox.astro';
+import Callout from '../Callout.astro';
+import FactGrid from '../FactGrid.astro';
+---
+
+<div class="flex flex-col gap-8">
+  <Panel title="Card" variant="line">
+    <p class="mb-4 font-kode text-t-sm text-terminal-300">
+      A content card built on Panel; the whole card is one link target when `href` is set.
+    </p>
+    <div class="grid gap-4 md:grid-cols-3">
+      <Card
+        title="Signal relay uplink restored"
+        href="#"
+        meta="LOG-0417 . uplink"
+        excerpt="Restores the relay between MAINFRAME-7 and the outer grid nodes after a cold boot."
+        tags={['systems', 'networking']}
+      />
+      <Card
+        title="Core temperature audit"
+        meta="LOG-0418 . diagnostics"
+        excerpt="A static reference card with no `href` - the title renders as plain text, not a link."
+        tags={['diagnostics']}
+      />
+      <Card
+        title="Grid node survey"
+        href="#"
+        image="/images/blog/photo-1517245386807-bb43f82c33c4.webp"
+        imageAlt="Rows of server racks in a dim data hall"
+        meta="LOG-0419 . field report"
+        excerpt="An image card, desaturated and tinted with the active theme, plus a scanline overlay."
+        tags={['field-report']}
+      />
+    </div>
+  </Panel>
+
+  <Panel title="TextBox" variant="line">
+    <p class="mb-4 font-kode text-t-sm text-terminal-300">
+      A small dialog box whose corners read as real box-drawing characters.
+    </p>
+    <div class="grid gap-4 md:grid-cols-3">
+      <TextBox title="~/dialog/single.txt" style="single">
+        <p class="font-kode text-t-sm text-terminal-400">Standard single-line border, the default.</p>
+      </TextBox>
+      <TextBox title="~/dialog/double.txt" style="double">
+        <p class="font-kode text-t-sm text-terminal-400">Double-line border for an emphasized dialog.</p>
+      </TextBox>
+      <TextBox title="~/dialog/rounded.txt" style="rounded">
+        <p class="font-kode text-t-sm text-terminal-400">Rounded corners for a softer dialog.</p>
+      </TextBox>
+    </div>
+  </Panel>
+
+  <Panel title="Callout" variant="line">
+    <p class="mb-4 font-kode text-t-sm text-terminal-300">
+      A status-tagged aside for notes, tips, warnings and errors.
+    </p>
+    <div class="flex flex-col gap-4">
+      <Callout tone="note">MAINFRAME-7 caches command history locally; clear it any time from Settings.</Callout>
+      <Callout tone="tip">Tab-complete works in every shell prompt across the site.</Callout>
+      <Callout tone="warn">Effects are forced off when the OS requests reduced motion.</Callout>
+      <Callout tone="err" title="Uplink dropped">Reconnect from the settings panel, then retry the command.</Callout>
+    </div>
+  </Panel>
+
+  <Panel title="FactGrid" variant="line">
+    <p class="mb-4 font-kode text-t-sm text-terminal-300">
+      Label/value rows in a bordered grid - generalizes the old facts and project-stats layouts.
+    </p>
+    <FactGrid
+      columns={3}
+      items={[
+        { label: 'Uptime', value: '412 days' },
+        { label: 'Sector', value: '7, Grid North' },
+        { label: 'Status', value: 'Nominal' },
+        { label: 'Operator', value: 'ADA-01', href: '#' },
+        { label: 'Load average', value: '0.42, 0.38, 0.31' },
+        { label: 'Last sync', value: '04:17 UTC' },
+      ]}
+    />
+  </Panel>
+</div>
