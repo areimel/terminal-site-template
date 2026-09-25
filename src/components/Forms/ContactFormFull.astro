@@ -2,12 +2,15 @@
 import TerminalPrefix from '../TerminalComponents/TerminalPrefix.astro';
 import FormMessage from './FormMessage.astro';
 import { Icon } from 'astro-icon/components';
+import { TEMPLATE } from 'astrowind:config';
+
+const accessKey = TEMPLATE.integrations.forms.accessKey ?? '';
 ---
 
 <form id="contact-form-full" class="w-full space-y-4">
 
-    <!-- Replace with your Access Key -->
-    <input type="hidden" name="access_key" value="75f8b211-81aa-45c2-9c7b-c11f447d30a0">
+    <!-- Web3Forms Access Key -->
+    <input type="hidden" name="access_key" value={accessKey}>
 
     <!-- Name and Email Input Row -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
