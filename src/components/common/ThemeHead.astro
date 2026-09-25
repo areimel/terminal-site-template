@@ -41,8 +41,9 @@ const css = `
 
 ${perThemeCss}
 
-/* Shared mapping: every theme resolves the same terminal-*/aw-color-*
-   aliases, fonts and derived glow variants from its --theme-* base. */
+/* Shared mapping: every theme resolves the same --terminal-NNN and --aw-color-NAME
+   aliases, fonts and derived glow variants from its --theme-NNN base. */
+:root,
 [class*="theme-"] {
   --aw-font-sans: 'Kode Mono';
   --aw-font-serif: 'Kode Mono';
