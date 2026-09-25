@@ -1,0 +1,152 @@
+---
+title: Shell commands
+description: Build and extend the terminal shell.
+section: Guides
+order: 3
+---
+
+The template includes a full-featured terminal shell accessible at `/terminal` or embedded in panels. Commands are typed and extensible, and can be added by users.
+
+## Built-in commands
+
+The shell comes with these commands:
+
+- **help** — Show all available commands and their descriptions
+- **ls** — List navigation links; `ls projects` shows project routes
+- **cd** — Navigate to a page; `cd projects` goes to `/projects`
+- **open** — Open a URL in a new tab; `open https://example.com`
+- **theme** — List available themes or switch themes; `theme amber`
+- **effects** — Toggle effects on/off; `effects decoder on`
+- **clear** — Clear the terminal output
+- **whoami** — Show current identity (name, role, org)
+- **echo** — Print a message; `echo hello world`
+- **date** — Show current date and time
+- **history** — Show command history
+
+Try `help` to see the full list.
+
+## Keybindings
+
+- **Up/Down arrows** — Navigate command history
+- **Tab** — Auto-complete command or argument
+- **Ctrl+L** — Clear terminal
+- **Ctrl+C** — Cancel current input
+- **Enter** — Execute command
+
+## Adding a custom command
+
+Commands are defined in `src/lib/shell/commands.ts`. Here's the interface:
+
+```typescript
+export interface ShellCommand {
+  name: string;
+  aliases?: string[];
+  description: string;
+  usage?: string;
+  hidden?: boolean;
+  run(ctx: ShellContext, args: string[]): void | Promise<void>;
+  complete?(args: string[]): string[];
+}
+```
+
+### Example: A greeting command
+
+```typescript
+import { ShellCommand, ShellContext } from './types';
+
+export const greetCommand: ShellCommand = {
+  name: 'greet',
+  aliases: ['hello'],
+  description: 'Send a greeting',
+  usage: 'greet [name]',
+  run(ctx: ShellContext, args: string[]) {
+    const name = args[0] || 'friend';
+    ctx.print(`Hello, ${name}!`);
+  },
+  complete() {
+    return ['Alice', 'Bob', 'Charlie'];
+  },
+};
+```
+
+Then add it to the command list in `commands.ts`:
+
+```typescript
+const commands: ShellCommand[] = [
+  // ... existing commands ...
+  greetCommand,
+];
+
+export default commands;
+```
+
+Rebuild and try `greet Alice`. Tab completion will suggest names.
+
+### Context API
+
+The `ShellContext` object gives your command access to:
+
+```typescript
+interface ShellContext {
+  print(out: string | string[], tone?: ShellTone): void;
+  clear(): void;
+  navigate(href: string): void;
+  setTheme(id: string): void;
+  setEffect(name: string, on: boolean): void;
+  getEffects(): Record<string, boolean>;
+  history: string[];
+  commands: ShellCommand[];
+  routes: ShellRoute[];
+  themes: { id: string; label: string }[];
+  currentTheme(): string;
+  identity: { name: string; handle: string; role: string; org: string };
+}
+```
+
+Print output in different tones:
+
+```typescript
+ctx.print('Success', 'ok'); // Green text
+ctx.print('Warning', 'warn'); // Yellow text
+ctx.print('Error', 'err'); // Red text
+ctx.print('Default', 'default'); // Normal text
+```
+
+Navigate or set theme:
+
+```typescript
+ctx.navigate('/projects');
+ctx.setTheme('amber');
+```
+
+## Modes
+
+The shell runs in two modes:
+
+**Inline** — Embedded in a `<Panel>` for demos or dashboards. Output is scrollable, limited height.
+
+**Fullscreen** — At `/terminal`, takes up the entire screen. Output is unlimited.
+
+Both modes share the same engine and command set. The difference is UI styling.
+
+## Testing commands
+
+Commands are pure TypeScript with no DOM access, so they're easy to test with Vitest:
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { greetCommand } from './commands';
+
+describe('greet', () => {
+  it('greets the user', () => {
+    const output: string[] = [];
+    const ctx = { print: (msg) => output.push(msg) };
+
+    greetCommand.run(ctx, ['Alice']);
+
+    expect(output[0]).toContain('Alice');
+  });
+});
+```
+
+Refer to `src/lib/shell/__tests__/` for examples.
