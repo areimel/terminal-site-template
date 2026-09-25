@@ -1,0 +1,108 @@
+---
+/**
+ * GalleryNav - sticky "jump to section" index for the `/components` page.
+ *
+ * Desktop (`lg:`): a left-column list of anchor links, always expanded and sticky. Mobile: a
+ * collapsible `<details>` disclosure, same pattern as `docs/DocsToc.astro`. The `<terminal-
+ * gallery-nav>` custom element below drives scroll-spy highlighting via `IntersectionObserver`
+ * and sets `aria-current="true"` on the link for whichever section is in view; it never
+ * smooth-scrolls when the visitor prefers reduced motion.
+ */
+import Panel from '~/components/core/Panel.astro';
+
+export interface Props {
+  items: { id: string; label: string }[];
+  class?: string;
+}
+
+const { items, class: className } = Astro.props;
+---
+
+<details open class:list={['gallery-nav', className]}>
+  <summary
+    class="mb-3 cursor-pointer font-uav-mono text-t-sm text-terminal-400 hover:text-terminal-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terminal-bright lg:hidden"
+  >
+    Jump to group
+  </summary>
+
+  <Panel variant="line" tone="muted" padding="sm" title="components.log" class="mt-2 lg:mt-0">
+    <terminal-gallery-nav>
+      <nav aria-label="Component groups">
+        <ul class="space-y-1 font-kode text-t-sm">
+          {
+            items.map((item) => (
+              <li>
+                <a
+                  href={`#${item.id}`}
+                  data-gallery-nav-link
+                  class="block truncate rounded-sm text-terminal-300 hover:text-terminal-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terminal-bright [&[aria-current]]:font-semibold [&[aria-current]]:text-terminal-bright [&[aria-current]]:text-glow-subtle"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </terminal-gallery-nav>
+  </Panel>
+</details>
+
+<script>
+  class GalleryNav extends HTMLElement {
+    private observer: IntersectionObserver | null = null;
+
+    connectedCallback() {
+      const links = Array.from(this.querySelectorAll<HTMLAnchorElement>('a[data-gallery-nav-link]'));
+      if (links.length === 0) return;
+
+      const linksById = new Map<string, HTMLAnchorElement>();
+      links.forEach((link) => {
+        const id = link.getAttribute('href')?.slice(1);
+        if (id) linksById.set(id, link);
+      });
+
+      const setActive = (id: string | null) => {
+        links.forEach((link) => link.removeAttribute('aria-current'));
+        if (id) linksById.get(id)?.setAttribute('aria-current', 'true');
+      };
+
+      this.observer?.disconnect();
+      this.observer = new IntersectionObserver(
+        (entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+          if (visible[0]) setActive(visible[0].target.id);
+        },
+        { rootMargin: '-96px 0px -70% 0px', threshold: [0, 1] }
+      );
+
+      linksById.forEach((_link, id) => {
+        const target = document.getElementById(id);
+        if (target) this.observer?.observe(target);
+      });
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      links.forEach((link) => {
+        link.addEventListener('click', (event) => {
+          const id = link.getAttribute('href')?.slice(1);
+          const target = id ? document.getElementById(id) : null;
+          if (!target) return;
+          event.preventDefault();
+          target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+          history.replaceState(null, '', `#${id}`);
+        });
+      });
+    }
+
+    disconnectedCallback() {
+      this.observer?.disconnect();
+      this.observer = null;
+    }
+  }
+
+  if (!customElements.get('terminal-gallery-nav')) {
+    customElements.define('terminal-gallery-nav', GalleryNav);
+  }
+</script>

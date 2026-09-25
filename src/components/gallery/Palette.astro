@@ -1,0 +1,106 @@
+---
+/**
+ * Palette - the `/components` gallery's top section: swatches for the current theme's
+ * `--theme-*` tokens, the type scale, and a compact theme switcher.
+ *
+ * Every swatch reads its color from `var(--theme-*)` via an inline style, not from the theme
+ * registry's literal values, so it re-themes live the instant `ThemeSwitcher` (below) changes the
+ * `theme-*` class on `<html>` - no client script needed here.
+ */
+import Heading from '~/components/core/Heading.astro';
+import Panel from '~/components/core/Panel.astro';
+import ThemeSwitcher from '~/components/navigation/ThemeSwitcher.astro';
+
+export interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+
+interface Swatch {
+  /** Short label under the CSS var name, e.g. "500". */
+  token: string;
+  cssVar: string;
+  /** The Tailwind utility that resolves to this token, or `null` when none exists. */
+  twClass: string | null;
+}
+
+// Step scale + `bright`: the alpha ramp used for text and glow. Tailwind exposes each step as
+// `text-terminal-<step>` (and `bg-`/`border-` variants of the same token).
+const steps: Swatch[] = [
+  { token: '100', cssVar: '--theme-100', twClass: 'text-terminal-100' },
+  { token: '200', cssVar: '--theme-200', twClass: 'text-terminal-200' },
+  { token: '300', cssVar: '--theme-300', twClass: 'text-terminal-300' },
+  { token: '400', cssVar: '--theme-400', twClass: 'text-terminal-400' },
+  { token: '500', cssVar: '--theme-500', twClass: 'text-terminal-500' },
+  { token: '600', cssVar: '--theme-600', twClass: 'text-terminal-600' },
+  { token: '700', cssVar: '--theme-700', twClass: 'text-terminal-700' },
+  { token: 'bright', cssVar: '--theme-bright', twClass: 'text-terminal-bright' },
+];
+
+// Surface colors + the accent hue. `accent` has no Tailwind utility (it isn't wired into
+// tailwind.config.js as a `terminal-*` color) so it's used via the CSS var directly.
+const surfaces: Swatch[] = [
+  { token: 'bg-primary', cssVar: '--theme-bg-primary', twClass: 'bg-terminal-bg-primary' },
+  { token: 'bg-secondary', cssVar: '--theme-bg-secondary', twClass: 'bg-terminal-bg-secondary' },
+  { token: 'bg-accent', cssVar: '--theme-bg-accent', twClass: 'bg-terminal-bg-accent' },
+  { token: 'accent', cssVar: '--theme-accent', twClass: null },
+];
+
+const scale: { token: string; class: string }[] = [
+  { token: 't-sm', class: 'text-t-sm' },
+  { token: 't-base', class: 'text-t-base' },
+  { token: 't-lg', class: 'text-t-lg' },
+  { token: 't-xl', class: 'text-t-xl' },
+  { token: 't-2xl', class: 'text-t-2xl' },
+  { token: 't-3xl', class: 'text-t-3xl' },
+  { token: 't-4xl', class: 'text-t-4xl' },
+  { token: 't-5xl', class: 'text-t-5xl' },
+];
+---
+
+<section id="palette" class:list={['gallery-palette', className]}>
+  <Heading level={2} class="mb-2"> Palette </Heading>
+  <p class="mb-6 max-w-[72ch] font-kode text-t-sm text-terminal-300">
+    Every swatch below reads the live <code>--theme-*</code> variable for whichever theme is active, so switching themes with
+    the control on the right re-colors the swatches - and the rest of this page - instantly.
+  </p>
+
+  <div class="mb-8 flex flex-wrap items-start gap-10">
+    <div class="flex flex-wrap gap-4">
+      {
+        [...steps, ...surfaces].map((swatch) => (
+          <div class="flex flex-col items-start gap-1">
+            <span
+              class="block h-12 w-12 rounded-sm border border-terminal-300"
+              style={`background-color: var(${swatch.cssVar})`}
+              aria-hidden="true"
+            />
+            <span class="font-kode text-t-sm text-terminal-400">{swatch.cssVar}</span>
+            <span class="font-kode text-t-sm text-terminal-300">{swatch.twClass ?? 'no Tailwind class'}</span>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="min-w-[14rem] shrink-0">
+      <p class="mb-2 font-uav-mono text-t-sm text-terminal-400">Theme</p>
+      <ThemeSwitcher />
+    </div>
+  </div>
+
+  <Panel title="~/palette/type-scale.txt" variant="line" tone="muted">
+    <div class="flex flex-col gap-3">
+      {
+        scale.map(({ token, class: sizeClass }) => (
+          <div class="flex flex-wrap items-baseline gap-3">
+            <span class:list={['font-uav-mono text-terminal-500', sizeClass]}>Terminal aesthetic</span>
+            <span class="font-kode text-t-sm text-terminal-300">
+              text-{token} {'·'} {sizeClass}
+            </span>
+          </div>
+        ))
+      }
+    </div>
+  </Panel>
+</section>

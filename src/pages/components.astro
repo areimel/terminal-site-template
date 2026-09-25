@@ -1,0 +1,97 @@
+---
+/**
+ * /components - the living styleguide for the component kit. Replaces the old `/styleguide`.
+ *
+ * Every group under `src/components/<group>/` that ships a `_demo/<Group>Demo.astro` file is
+ * discovered automatically via `import.meta.glob(..., { eager: true })` - add a new group with its
+ * own demo and it appears here with no changes to this page. The group's barrel (`index.ts`) is
+ * read as raw text to derive the sample `import { ... }` line, so that line can never drift from
+ * what the barrel actually exports.
+ *
+ * `sections/` (page-level building blocks) is being built in parallel by another team; its demo
+ * doesn't exist in this worktree yet, but the glob picks it up automatically the moment it lands -
+ * no registry entry to remember to flip on.
+ */
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
+import PageLayout from '~/layouts/PageLayout.astro';
+import Container from '~/components/core/Container.astro';
+import Heading from '~/components/core/Heading.astro';
+import Palette from '~/components/gallery/Palette.astro';
+import GalleryNav from '~/components/gallery/GalleryNav.astro';
+import GroupSection from '~/components/gallery/GroupSection.astro';
+import { sortGroups } from '~/components/gallery/groups';
+import { parseBarrelExports, importLineFor } from '~/components/gallery/barrel';
+import type { MetaData } from '~/types';
+
+const demoModules = import.meta.glob<{ default: AstroComponentFactory }>('../components/*/_demo/*Demo.astro', {
+  eager: true,
+});
+const barrelSources = import.meta.glob('../components/*/index.ts', {
+  eager: true,
+  query: '?raw',
+  import: 'default',
+}) as Record<string, string>;
+
+// Most groups ship exactly one `<Group>Demo.astro`, but a group is free to split its demo across
+// several files (e.g. `content/_demo/BoxesDemo.astro` + `TypographyDemo.astro`) - so every
+// matching file is collected per group, sorted by filename for a stable order, rather than
+// assuming one file per group.
+const demoPathPattern = /\.\.\/components\/([^/]+)\/_demo\/([^/]+)$/;
+const demosByGroup = new Map<string, AstroComponentFactory[]>();
+for (const path of Object.keys(demoModules).sort()) {
+  const match = path.match(demoPathPattern);
+  const group = match?.[1];
+  if (!group) continue;
+  const demos = demosByGroup.get(group) ?? [];
+  demos.push(demoModules[path].default);
+  demosByGroup.set(group, demos);
+}
+
+const orderedGroups = sortGroups([...demosByGroup.keys()]);
+
+const sections = orderedGroups.map((group) => {
+  const barrelPath = `../components/${group}/index.ts`;
+  const barrelSource = barrelSources[barrelPath];
+  const exportNames = barrelSource ? parseBarrelExports(barrelSource) : [];
+  const importLine = importLineFor(group, exportNames);
+
+  return { group, Demos: demosByGroup.get(group) ?? [], importLine };
+});
+
+const navItems = [
+  { id: 'palette', label: 'Palette' },
+  ...orderedGroups.map((group) => ({ id: group, label: group.charAt(0).toUpperCase() + group.slice(1) })),
+];
+
+const metadata: MetaData = {
+  title: 'Components',
+  description: 'The living styleguide for this template’s component kit, generated from its own demos.',
+};
+---
+
+<PageLayout metadata={metadata}>
+  <Container size="wide">
+    <Heading level={1} class="mb-3"> Components </Heading>
+    <p class="mb-10 max-w-[72ch] font-kode text-t-base text-terminal-300">
+      This page is the living reference for every component in the kit, rendered straight from the same demos developers
+      see in the codebase. Each one lives next to its component in a <code>_demo/</code> folder - add one and it shows up
+      here automatically.
+    </p>
+
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-10">
+      <aside aria-label="Component groups" class="lg:sticky lg:top-6 lg:self-start">
+        <GalleryNav items={navItems} />
+      </aside>
+
+      <div class="min-w-0 flex flex-col gap-16">
+        <Palette />
+
+        {
+          sections.map(({ group, Demos, importLine }) => (
+            <GroupSection group={group} Demos={Demos} importLine={importLine} />
+          ))
+        }
+      </div>
+    </div>
+  </Container>
+</PageLayout>

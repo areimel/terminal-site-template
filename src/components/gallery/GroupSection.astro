@@ -1,0 +1,51 @@
+---
+/**
+ * GroupSection - renders one auto-discovered component group on the `/components` gallery: an
+ * `h2` heading (the group name), its one-line description from `gallery/groups.ts`, a `CodeBlock`
+ * showing the import line derived from that group's barrel, and the group's own demo(s).
+ *
+ * Most groups ship a single `_demo/<Group>Demo.astro`, but a group may split its demo across
+ * several files under `_demo/` - every one discovered by the page is rendered here, in order,
+ * separated by a `Divider` when there's more than one.
+ */
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
+import Heading from '~/components/core/Heading.astro';
+import Divider from '~/components/core/Divider.astro';
+import CodeBlock from '~/components/content/CodeBlock.astro';
+import { groupDescription } from './groups';
+
+export interface Props {
+  /** Folder name under `src/components/`, e.g. `core`. */
+  group: string;
+  /** Default exports of every `_demo/*Demo.astro` file found for this group. */
+  Demos: AstroComponentFactory[];
+  /** The sample `import { ... } from '~/components/<group>';` line for this group. */
+  importLine: string;
+  class?: string;
+}
+
+const { group, Demos, importLine, class: className } = Astro.props;
+const label = group.charAt(0).toUpperCase() + group.slice(1);
+---
+
+<section id={group} class:list={['gallery-group scroll-mt-24', className]}>
+  <Heading level={2} class="mb-2">
+    {label}
+  </Heading>
+  <p class="mb-4 max-w-[72ch] font-kode text-t-sm text-terminal-300">
+    {groupDescription(group)}
+  </p>
+
+  <CodeBlock code={importLine} lang="ts" filename={`~/components/${group}`} class="mb-6" />
+
+  <div class="flex flex-col gap-8">
+    {
+      Demos.map((Demo, index) => (
+        <>
+          {index > 0 && <Divider style="dashed" />}
+          <Demo />
+        </>
+      ))
+    }
+  </div>
+</section>
