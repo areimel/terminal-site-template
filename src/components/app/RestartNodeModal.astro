@@ -1,0 +1,72 @@
+---
+/**
+ * RestartNodeModal - the single confirm dialog for every node's "Restart node" action.
+ *
+ * Any `[data-modal-open="restart-node"][data-node-id="<id>"]` trigger (rendered per node by
+ * `NodesPanel`) opens this dialog; its own script fills in the node id before the dialog
+ * shows, so one instance serves every node instead of stamping out a dialog per row.
+ */
+import Modal from '~/components/feedback/Modal.astro';
+import { Button } from '~/components/core';
+---
+
+<Modal id="restart-node" title="~/ops/restart-node.sh" size="sm">
+  <p class="font-kode text-t-sm">
+    Restart <strong class="text-terminal-bright" data-restart-node-name>this node</strong>? Running jobs on it will be
+    requeued.
+  </p>
+  <Fragment slot="footer">
+    <div class="flex justify-end gap-2">
+      <span data-modal-close>
+        <Button variant="ghost" size="sm">Cancel</Button>
+      </span>
+      <span data-modal-close data-restart-confirm>
+        <Button variant="solid" size="sm">Restart node</Button>
+      </span>
+    </div>
+  </Fragment>
+</Modal>
+
+<script>
+  import { toast } from '~/lib/toast';
+
+  const WIRED_FLAG = '__appRestartNodeWired';
+
+  function init(): void {
+    const w = window as unknown as Record<string, boolean>;
+    if (w[WIRED_FLAG]) return;
+    w[WIRED_FLAG] = true;
+
+    let pendingNodeId = '';
+
+    document.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const trigger = target.closest<HTMLElement>('[data-modal-open="restart-node"]');
+      if (trigger) {
+        pendingNodeId = trigger.dataset.nodeId ?? '';
+        document.querySelectorAll<HTMLElement>('[data-restart-node-name]').forEach((el) => {
+          el.textContent = pendingNodeId || 'this node';
+        });
+        return;
+      }
+
+      const confirmTrigger = target.closest<HTMLElement>('[data-restart-confirm]');
+      if (confirmTrigger && pendingNodeId) {
+        toast({ message: `${pendingNodeId} restarting.`, tone: 'ok' });
+        window.dispatchEvent(
+          new CustomEvent('terminal:log', {
+            detail: {
+              time: new Date().toTimeString().slice(0, 8),
+              level: 'warn',
+              text: `ctrl: restart requested for ${pendingNodeId}, running jobs requeued`,
+            },
+          })
+        );
+      }
+    });
+  }
+
+  init();
+</script>

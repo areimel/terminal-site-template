@@ -1,0 +1,19 @@
+---
+/**
+ * SystemInfoPanel - the small KeyValue block that sits under the LogStream in the right
+ * column: cluster/region/kernel/node-count/deploy facts.
+ */
+import { Panel } from '~/components/core';
+import { KeyValue } from '~/components/data';
+
+export interface Props {
+  items: { key: string; value: string }[];
+  class?: string;
+}
+
+const { items, class: className } = Astro.props;
+---
+
+<Panel title="~/etc/system.info" tone="muted" padding="sm" class={className}>
+  <KeyValue items={items} />
+</Panel>

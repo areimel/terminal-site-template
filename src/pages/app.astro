@@ -1,0 +1,71 @@
+---
+/**
+ * /app - the "MAINFRAME-7 operations console" dashboard demo: shows the kit works for web
+ * apps, not just marketing/content sites. Signature moment: the live demo LogStream is the
+ * dominant, always-updating pane; everything around it (stats, tables, meters) stays calm.
+ *
+ * On mobile the two-column layout collapses to one column, with the LogStream ordered
+ * right after the stats row (see the `order-*` classes below) rather than at the bottom.
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import { Container, Panel } from '~/components/core';
+import { LogStream } from '~/components/data';
+import StatusBar from '~/components/app/StatusBar.astro';
+import StatsRow from '~/components/app/StatsRow.astro';
+import AppTabs from '~/components/app/AppTabs.astro';
+import ProcessesTable from '~/components/app/ProcessesTable.astro';
+import JobsPanel from '~/components/app/JobsPanel.astro';
+import NodesPanel from '~/components/app/NodesPanel.astro';
+import SystemInfoPanel from '~/components/app/SystemInfoPanel.astro';
+import RestartNodeModal from '~/components/app/RestartNodeModal.astro';
+import { processes, scheduledJobs, runningJobs, nodes, stats, systemInfo } from '~/components/app/data';
+import type { MetaData } from '~/types';
+
+const metadata: MetaData = {
+  title: 'Operations console',
+  description: 'A live MAINFRAME-7 operations console demo: processes, jobs, nodes and a streaming system log.',
+};
+
+// 14d 06:22:10 of fake uptime at first paint; StatusBar ticks it forward client-side.
+const uptimeSeconds = 14 * 86400 + 6 * 3600 + 22 * 60 + 10;
+---
+
+<PageLayout metadata={metadata}>
+  <Container size="wide" spacing="md">
+    <div class="flex flex-col gap-6">
+      <StatusBar uptimeSeconds={uptimeSeconds} />
+      <StatsRow stats={stats} />
+
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div class="order-1 flex flex-col gap-6 lg:order-2 lg:col-span-1">
+          <LogStream demo title="~/var/log/ops.log" height="28rem" />
+          <SystemInfoPanel items={systemInfo} />
+        </div>
+
+        <div class="order-2 lg:order-1 lg:col-span-2">
+          <Panel title="~/ops/console.sh" variant="double" tone="accent" padding="md">
+            <AppTabs
+              tabs={[
+                { id: 'processes', label: 'Processes' },
+                { id: 'jobs', label: 'Jobs' },
+                { id: 'nodes', label: 'Nodes' },
+              ]}
+            >
+              <Fragment slot="processes">
+                <ProcessesTable processes={processes} />
+              </Fragment>
+              <Fragment slot="jobs">
+                <JobsPanel jobs={scheduledJobs} runningJobs={runningJobs} />
+              </Fragment>
+              <Fragment slot="nodes">
+                <NodesPanel nodes={nodes} />
+              </Fragment>
+            </AppTabs>
+          </Panel>
+        </div>
+      </div>
+    </div>
+  </Container>
+
+  <RestartNodeModal />
+</PageLayout>

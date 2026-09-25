@@ -1,0 +1,182 @@
+---
+/**
+ * NodesPanel - the "Nodes" tab panel: a grid of small per-node Panels (CPU/mem/disk
+ * Meters + a "Restart node" trigger for `RestartNodeModal`), plus a "Run health check"
+ * control above it.
+ *
+ * Wrapped in the `terminal-app-nodes` custom element, which drives two things:
+ * - "Run health check": ~2s Spinner, then nudges every meter and reports the result
+ *   (toast + a `terminal:log` line).
+ * - Ambient drift: every few seconds, nudges every meter slightly via `setBarValue` - but
+ *   only while this panel is actually on screen (`IntersectionObserver`, which also covers
+ *   "Nodes" not being the selected tab, since a hidden `[hidden]` tabpanel has no box to
+ *   intersect) and the document tab itself is visible (`visibilitychange`), and never under
+ *   `prefers-reduced-motion`.
+ */
+import { Panel, Button, Badge } from '~/components/core';
+import { Meter } from '~/components/data';
+import Spinner from '~/components/feedback/Spinner.astro';
+import type { NodeInfo } from './data';
+
+export interface Props {
+  nodes: NodeInfo[];
+  class?: string;
+}
+
+const { nodes, class: className } = Astro.props;
+
+const STATUS_BADGE_TONE: Record<NodeInfo['status'], 'ok' | 'warn' | 'err'> = {
+  OK: 'ok',
+  WARN: 'warn',
+  ERR: 'err',
+};
+---
+
+<terminal-app-nodes class:list={['app-nodes flex flex-col gap-6', className]}>
+  <Panel title="~/ops/health-check.sh" padding="sm">
+    <div class="flex flex-wrap items-center gap-3">
+      <Button variant="outline" size="sm" data-health-check-btn>Run health check</Button>
+      <Spinner label="Running health check" style="dots" class="hidden" data-health-check-spinner />
+      <span class="font-kode text-t-sm text-terminal-400">Refreshes node meters and confirms cluster health.</span>
+    </div>
+  </Panel>
+
+  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-node-grid>
+    {
+      nodes.map((node) => (
+        <Panel title={node.id} padding="sm">
+          <Fragment slot="actions">
+            <Badge tone={STATUS_BADGE_TONE[node.status]}>{node.status}</Badge>
+          </Fragment>
+          <div class="flex flex-col gap-3">
+            <div class="flex flex-col gap-2">
+              <Meter label="CPU" value={node.cpu} unit="%" low={70} high={90} optimum={0} />
+              <Meter label="Mem" value={node.mem} unit="%" low={70} high={90} optimum={0} />
+              <Meter label="Disk" value={node.disk} unit="%" low={80} high={95} optimum={0} />
+            </div>
+            <div class="flex items-center justify-between gap-2 font-kode text-t-sm text-terminal-400">
+              <span>{node.region}</span>
+              <span data-modal-open="restart-node" data-node-id={node.id}>
+                <Button variant="ghost" size="sm">
+                  Restart node
+                </Button>
+              </span>
+            </div>
+          </div>
+        </Panel>
+      ))
+    }
+  </div>
+</terminal-app-nodes>
+
+<script>
+  import { setBarValue } from '~/components/data/ascii-bar';
+  import { toast } from '~/lib/toast';
+  import { drift } from './data';
+
+  const HEALTH_CHECK_DELAY_MS = 2000;
+  const AMBIENT_MIN_DELAY_MS = 3000;
+  const AMBIENT_MAX_DELAY_MS = 6000;
+  const AMBIENT_DRIFT_AMOUNT = 3;
+  const HEALTH_CHECK_DRIFT_AMOUNT = 6;
+
+  class TerminalAppNodes extends HTMLElement {
+    private grid: HTMLElement | null = null;
+    private healthCheckBtn: HTMLButtonElement | null = null;
+    private healthCheckSpinner: HTMLElement | null = null;
+    private observer: IntersectionObserver | null = null;
+    private reduceMotionQuery: MediaQueryList | null = null;
+    private timer: number | null = null;
+    private visible = false;
+    private checkingHealth = false;
+
+    private readonly onVisibilityChange = () => this.manageTimer();
+
+    connectedCallback(): void {
+      this.grid = this.querySelector<HTMLElement>('[data-node-grid]');
+      this.healthCheckBtn = this.querySelector<HTMLButtonElement>('[data-health-check-btn]');
+      this.healthCheckSpinner = this.querySelector<HTMLElement>('[data-health-check-spinner]');
+
+      this.healthCheckBtn?.addEventListener('click', () => this.runHealthCheck());
+
+      this.reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      this.reduceMotionQuery.addEventListener('change', () => this.manageTimer());
+
+      this.observer = new IntersectionObserver(([entry]) => {
+        this.visible = entry?.isIntersecting ?? false;
+        this.manageTimer();
+      });
+      this.observer.observe(this);
+
+      document.addEventListener('visibilitychange', this.onVisibilityChange);
+    }
+
+    disconnectedCallback(): void {
+      this.observer?.disconnect();
+      if (this.timer !== null) window.clearTimeout(this.timer);
+      document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    }
+
+    private driftMeters(amount: number): void {
+      const meters: HTMLElement[] = this.grid
+        ? Array.from(this.grid.querySelectorAll<HTMLElement>('[role="meter"]'))
+        : [];
+      meters.forEach((meter) => {
+        const current = Number(meter.getAttribute('aria-valuenow') ?? 0);
+        setBarValue(meter, drift(current, amount, 0, 100));
+      });
+    }
+
+    private async runHealthCheck(): Promise<void> {
+      if (this.checkingHealth || !this.healthCheckBtn) return;
+      this.checkingHealth = true;
+
+      this.healthCheckBtn.disabled = true;
+      this.healthCheckBtn.setAttribute('aria-busy', 'true');
+      this.healthCheckSpinner?.classList.remove('hidden');
+
+      await new Promise((resolve) => window.setTimeout(resolve, HEALTH_CHECK_DELAY_MS));
+
+      this.driftMeters(HEALTH_CHECK_DRIFT_AMOUNT);
+
+      window.dispatchEvent(
+        new CustomEvent('terminal:log', {
+          detail: {
+            time: new Date().toTimeString().slice(0, 8),
+            level: 'ok',
+            text: 'healthchkd: health check completed, all nodes nominal',
+          },
+        })
+      );
+      toast({ message: 'Health check passed.', tone: 'ok' });
+
+      this.healthCheckSpinner?.classList.add('hidden');
+      this.healthCheckBtn.removeAttribute('aria-busy');
+      this.healthCheckBtn.disabled = false;
+      this.checkingHealth = false;
+    }
+
+    private manageTimer(): void {
+      const shouldRun = this.visible && document.visibilityState === 'visible' && !this.reduceMotionQuery?.matches;
+      if (shouldRun && this.timer === null) {
+        this.scheduleNext();
+      } else if (!shouldRun && this.timer !== null) {
+        window.clearTimeout(this.timer);
+        this.timer = null;
+      }
+    }
+
+    private scheduleNext(): void {
+      const delay = AMBIENT_MIN_DELAY_MS + Math.random() * (AMBIENT_MAX_DELAY_MS - AMBIENT_MIN_DELAY_MS);
+      this.timer = window.setTimeout(() => {
+        this.timer = null;
+        this.driftMeters(AMBIENT_DRIFT_AMOUNT);
+        this.manageTimer();
+      }, delay);
+    }
+  }
+
+  if (!customElements.get('terminal-app-nodes')) {
+    customElements.define('terminal-app-nodes', TerminalAppNodes);
+  }
+</script>
