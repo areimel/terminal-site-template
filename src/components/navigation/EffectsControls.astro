@@ -5,11 +5,10 @@
  * when the OS's reduced-motion preference is forcing every effect off (the switches are disabled
  * in that state, since toggling them would have no visible effect).
  *
- * TODO(lead): swap the hand-rolled switch markup below for `~/components/forms/Toggle.astro`
- * once it lands from Wave 1 (B1) - it isn't in this worktree yet, so the structure here matches
- * its contract (`<input type="checkbox" role="switch">`) by hand.
+ * Switches are the shared `forms/Toggle` primitive.
  */
 import { effectNames } from '~/lib/effects';
+import Toggle from '~/components/forms/Toggle.astro';
 
 export interface Props {
   class?: string;
@@ -45,24 +44,28 @@ const effectDescriptions: Record<(typeof effectNames)[number], string> = {
     here.
   </p>
 
-  <div
-    class="effect-toggle-row flex items-start gap-3 border-2 border-terminal-bright bg-terminal-bg-secondary px-3 py-2"
-  >
-    <input type="checkbox" role="switch" id="effect-all" class="effect-switch" data-effect-all checked />
-    <label for="effect-all" class="flex cursor-pointer select-none flex-col">
-      <span class="font-uav-mono text-xs text-terminal-bright">All effects</span>
-      <span class="font-kode text-xs text-terminal-400">Master switch for every effect below.</span>
-    </label>
+  <div class="effect-toggle-row border-2 border-terminal-bright bg-terminal-bg-secondary px-3 py-2">
+    <Toggle
+      name="effect-all"
+      id="effect-all"
+      label="All effects"
+      description="Master switch for every effect below."
+      checked
+      data-effect-all
+    />
   </div>
 
   {
     effectNames.map((name) => (
-      <div class="effect-toggle-row flex items-start gap-3 border border-terminal-300 bg-terminal-bg-secondary px-3 py-2">
-        <input type="checkbox" role="switch" id={`effect-${name}`} class="effect-switch" data-effect={name} checked />
-        <label for={`effect-${name}`} class="flex cursor-pointer select-none flex-col">
-          <span class="font-uav-mono text-xs text-terminal-500">{effectLabels[name]}</span>
-          <span class="font-kode text-xs text-terminal-400">{effectDescriptions[name]}</span>
-        </label>
+      <div class="effect-toggle-row border border-terminal-300 bg-terminal-bg-secondary px-3 py-2">
+        <Toggle
+          name={`effect-${name}`}
+          id={`effect-${name}`}
+          label={effectLabels[name]}
+          description={effectDescriptions[name]}
+          checked
+          data-effect={name}
+        />
       </div>
     ))
   }
@@ -124,56 +127,3 @@ const effectDescriptions: Record<(typeof effectNames)[number], string> = {
     document.querySelectorAll<HTMLElement>('.effects-controls').forEach((controls) => render(controls, state));
   });
 </script>
-
-<style>
-  .effect-switch {
-    appearance: none;
-    -webkit-appearance: none;
-    position: relative;
-    flex-shrink: 0;
-    width: 2.25rem;
-    height: 1.25rem;
-    margin-top: 0.15rem;
-    border: 1px solid var(--terminal-400);
-    border-radius: 9999px;
-    background-color: var(--terminal-bg-primary);
-    cursor: pointer;
-    transition:
-      background-color 0.15s ease,
-      border-color 0.15s ease;
-  }
-
-  .effect-switch::before {
-    content: '';
-    position: absolute;
-    top: 1px;
-    left: 1px;
-    width: 1rem;
-    height: 1rem;
-    border-radius: 50%;
-    background-color: var(--terminal-400);
-    transition:
-      transform 0.15s ease,
-      background-color 0.15s ease;
-  }
-
-  .effect-switch:checked {
-    background-color: var(--terminal-bg-accent);
-    border-color: var(--terminal-bright);
-  }
-
-  .effect-switch:checked::before {
-    transform: translateX(1rem);
-    background-color: var(--terminal-bright);
-  }
-
-  .effect-switch:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  .effect-switch:focus-visible {
-    outline: 2px solid var(--theme-bright, currentColor);
-    outline-offset: 2px;
-  }
-</style>

@@ -3,7 +3,10 @@
  * Toggle - a `role="switch"` checkbox rendered as `[ON ]` / `[OFF]` (same width, so the label
  * doesn't shift when it flips). Same visually-hidden-but-focusable pattern as Checkbox/Radio.
  */
-export interface Props {
+import type { HTMLAttributes } from 'astro/types';
+
+/** Extra attributes (e.g. `data-*`) are passed through to the underlying `<input>`. */
+export interface Props extends Omit<HTMLAttributes<'input'>, 'type' | 'role' | 'class' | 'name' | 'id'> {
   name: string;
   label: string;
   checked?: boolean;
@@ -13,7 +16,7 @@ export interface Props {
   class?: string;
 }
 
-const { name, label, checked = false, id, description, disabled = false, class: className } = Astro.props;
+const { name, label, checked = false, id, description, disabled = false, class: className, ...rest } = Astro.props;
 
 const toggleId = id ?? `toggle-${name}`;
 const descId = description ? `${toggleId}-desc` : undefined;
@@ -22,7 +25,7 @@ const GLYPH_RING =
   'peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-terminal-bright peer-focus-visible:outline-offset-2 peer-focus-visible:rounded-sm';
 ---
 
-<div class:list={['forms-field flex flex-col gap-1', className]}>
+<div class:list={['forms-field forms-toggle flex flex-col gap-1', className]}>
   <label
     for={toggleId}
     class:list={[
@@ -31,6 +34,7 @@ const GLYPH_RING =
     ]}
   >
     <input
+      {...rest}
       type="checkbox"
       role="switch"
       id={toggleId}
@@ -62,3 +66,11 @@ const GLYPH_RING =
     )
   }
 </div>
+
+<style>
+  /* Reflect runtime disabled changes (e.g. toggled by a script), not just the server-rendered prop. */
+  .forms-toggle:has(input:disabled) label {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
