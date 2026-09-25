@@ -157,7 +157,7 @@ import Badge from '~/components/core/Badge.astro';
       const safeB = Number.isNaN(db) ? -Infinity : db;
       return safeA - safeB;
     }
-    return a.localeCompare(b);
+    return a.localeCompare(b, undefined, { numeric: true });
   }
 
   class TerminalDataTable extends HTMLElement {
