@@ -1,0 +1,143 @@
+---
+/**
+ * AppTabs - a page-local stand-in for `~/components/navigation` Tabs.
+ *
+ * `~/components/navigation/Tabs.astro` (owned by another team) fails `astro build` for
+ * *any* usage: its own template has `<slot name={tab.id} />` inside a `.map()`, and the
+ * Astro compiler requires `slot[name]` to be a static string - see the "Requests" section
+ * of this page's final report. Since that file is outside this page's ownership, this
+ * mirrors the same WAI-ARIA tabs pattern (same markup/behavior/classes as the shared
+ * component) but resolves each named slot server-side via `Astro.slots.render()` instead
+ * of a dynamic `<slot name=...>`, which the compiler is fine with. Delete this file and
+ * switch `~/pages/app.astro` back to the shared `Tabs` once it's fixed upstream.
+ */
+export interface Props {
+  tabs: { id: string; label: string }[];
+  /** Initially selected tab id. Defaults to the first tab. */
+  selected?: string;
+  class?: string;
+}
+
+const { tabs, selected, class: className } = Astro.props;
+
+const initial = selected && tabs.some((tab) => tab.id === selected) ? selected : tabs[0]?.id;
+
+const panels = await Promise.all(
+  tabs.map(async (tab) => ({
+    id: tab.id,
+    html: Astro.slots.has(tab.id) ? await Astro.slots.render(tab.id) : '',
+  }))
+);
+---
+
+<terminal-app-tabs class:list={['app-tabs block', className]} data-selected={initial}>
+  <div role="tablist" aria-label="Tabs" class="tabs-list flex flex-wrap gap-1 font-kode text-sm">
+    {
+      tabs.map((tab) => {
+        const isSelected = tab.id === initial;
+        return (
+          <button
+            type="button"
+            role="tab"
+            id={`app-tab-${tab.id}`}
+            aria-controls={`app-panel-${tab.id}`}
+            aria-selected={isSelected ? 'true' : 'false'}
+            tabindex={isSelected ? 0 : -1}
+            data-tab-id={tab.id}
+            class:list={[
+              'tab-trigger px-1 text-terminal-400 transition-colors hover:text-terminal-bright',
+              { 'is-selected': isSelected },
+            ]}
+          >
+            <span aria-hidden="true">[</span>
+            <span class="px-1">{tab.label}</span>
+            <span aria-hidden="true">]</span>
+          </button>
+        );
+      })
+    }
+  </div>
+
+  {
+    panels.map((panel) => (
+      <div
+        role="tabpanel"
+        id={`app-panel-${panel.id}`}
+        aria-labelledby={`app-tab-${panel.id}`}
+        hidden={panel.id !== initial}
+        tabindex={0}
+        class="tab-panel pt-3"
+        set:html={panel.html}
+      />
+    ))
+  }
+</terminal-app-tabs>
+
+<script>
+  class TerminalAppTabs extends HTMLElement {
+    private tabs: HTMLButtonElement[] = [];
+    private panels: HTMLElement[] = [];
+
+    connectedCallback(): void {
+      this.tabs = Array.from(this.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+      this.panels = Array.from(this.querySelectorAll<HTMLElement>('[role="tabpanel"]'));
+
+      this.tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => {
+          if (tab.dataset.tabId) this.select(tab.dataset.tabId, false);
+        });
+        tab.addEventListener('keydown', (event) => this.onKeydown(event, index));
+      });
+    }
+
+    private onKeydown(event: KeyboardEvent, index: number): void {
+      let target: number | null = null;
+      switch (event.key) {
+        case 'ArrowRight':
+        case 'ArrowDown':
+          target = (index + 1) % this.tabs.length;
+          break;
+        case 'ArrowLeft':
+        case 'ArrowUp':
+          target = (index - 1 + this.tabs.length) % this.tabs.length;
+          break;
+        case 'Home':
+          target = 0;
+          break;
+        case 'End':
+          target = this.tabs.length - 1;
+          break;
+        default:
+          return;
+      }
+      event.preventDefault();
+      const nextTab = target !== null ? this.tabs[target] : undefined;
+      if (nextTab?.dataset.tabId) this.select(nextTab.dataset.tabId, true);
+    }
+
+    private select(id: string, focus: boolean): void {
+      this.tabs.forEach((tab) => {
+        const isSelected = tab.dataset.tabId === id;
+        tab.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+        tab.tabIndex = isSelected ? 0 : -1;
+        if (isSelected && focus) tab.focus();
+      });
+      this.panels.forEach((panel) => {
+        panel.hidden = panel.id !== `app-panel-${id}`;
+      });
+      this.dataset.selected = id;
+      this.dispatchEvent(new CustomEvent('terminal:tabs-change', { detail: { id }, bubbles: true }));
+    }
+  }
+
+  if (!customElements.get('terminal-app-tabs')) {
+    customElements.define('terminal-app-tabs', TerminalAppTabs);
+  }
+</script>
+
+<style>
+  .tab-trigger.is-selected {
+    color: var(--terminal-bright);
+    text-shadow: var(--theme-glow);
+  }
+</style>

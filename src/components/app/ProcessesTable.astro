@@ -1,0 +1,45 @@
+---
+/**
+ * ProcessesTable - the "Processes" tab panel: a DataTable of fake running processes.
+ *
+ * `DataTable` cells are plain text/number/date - it has no per-cell renderer - so `status`
+ * is a plain ALL-CAPS status string (`RUNNING`/`SLEEPING`/`STOPPED`) rather than an actual
+ * `Badge`, per the design rule that ALL-CAPS is reserved for exactly this kind of string.
+ */
+import { DataTable } from '~/components/data';
+import type { ProcessRow } from './data';
+
+export interface Props {
+  processes: ProcessRow[];
+  class?: string;
+}
+
+const { processes, class: className } = Astro.props;
+
+const rows = processes.map((p) => ({
+  pid: p.pid,
+  name: p.name,
+  user: p.user,
+  cpu: p.cpu,
+  mem: p.mem,
+  status: p.status,
+  started: p.started,
+}));
+---
+
+<DataTable
+  class={className}
+  caption="Running processes"
+  dense
+  stickyHeader
+  columns={[
+    { key: 'pid', label: 'PID', align: 'right', sortable: true, format: 'number' },
+    { key: 'name', label: 'Name', sortable: true },
+    { key: 'user', label: 'User', sortable: true },
+    { key: 'cpu', label: 'CPU %', align: 'right', sortable: true, format: 'number' },
+    { key: 'mem', label: 'Mem (MB)', align: 'right', sortable: true, format: 'number' },
+    { key: 'status', label: 'Status', sortable: true },
+    { key: 'started', label: 'Started', sortable: true },
+  ]}
+  rows={rows}
+/>

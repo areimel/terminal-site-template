@@ -1,0 +1,99 @@
+---
+/**
+ * StatusBar - the `/app` page's top strip: the page's one `<h1>`, a system status Badge,
+ * uptime and the current time.
+ *
+ * The clock and uptime tick every second via the `terminal-app-clock` custom element.
+ * That's a plain text swap (`textContent`), never a CSS transition/animation, so there's
+ * nothing to gate behind reduced motion - the value itself is the information, same as a
+ * toast or a toggle (state feedback, not decoration). It's also deliberately not
+ * `aria-live`: announcing a per-second tick would spam screen reader users for a value
+ * that's rarely the reason someone's on this page.
+ */
+import { Heading, Badge } from '~/components/core';
+
+export interface Props {
+  /** Uptime in whole seconds at first paint; the client ticks it forward from here. */
+  uptimeSeconds: number;
+  class?: string;
+}
+
+const { uptimeSeconds, class: className } = Astro.props;
+
+function formatUptime(totalSeconds: number): string {
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+}
+
+const initialUptime = formatUptime(uptimeSeconds);
+---
+
+<terminal-app-clock
+  class:list={[
+    'app-status-bar flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-terminal-300 pb-4',
+    className,
+  ]}
+  data-uptime-seconds={uptimeSeconds}
+>
+  <div class="flex flex-wrap items-center gap-3">
+    <Heading level={1}>Operations console</Heading>
+    <Badge tone="ok" data-status-badge>OK</Badge>
+  </div>
+  <dl class="flex flex-wrap items-center gap-x-6 gap-y-1 font-kode text-t-sm text-terminal-400">
+    <div class="flex items-baseline gap-1.5">
+      <dt>Uptime</dt>
+      <dd class="tabular-nums text-terminal-bright" data-clock-uptime>{initialUptime}</dd>
+    </div>
+    <div class="flex items-baseline gap-1.5">
+      <dt>Local time</dt>
+      <dd class="tabular-nums text-terminal-bright" data-clock-time>--:--:--</dd>
+    </div>
+  </dl>
+</terminal-app-clock>
+
+<script>
+  class TerminalAppClock extends HTMLElement {
+    private timeEl: HTMLElement | null = null;
+    private uptimeEl: HTMLElement | null = null;
+    private timer: number | null = null;
+    private uptimeSeconds = 0;
+
+    connectedCallback(): void {
+      this.timeEl = this.querySelector<HTMLElement>('[data-clock-time]');
+      this.uptimeEl = this.querySelector<HTMLElement>('[data-clock-uptime]');
+      this.uptimeSeconds = Number(this.dataset.uptimeSeconds ?? 0);
+
+      this.tick();
+      this.timer = window.setInterval(() => this.tick(), 1000);
+    }
+
+    disconnectedCallback(): void {
+      if (this.timer !== null) window.clearInterval(this.timer);
+    }
+
+    private tick(): void {
+      const now = new Date();
+      const pad = (n: number) => String(n).padStart(2, '0');
+      if (this.timeEl) {
+        this.timeEl.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      }
+
+      this.uptimeSeconds += 1;
+      if (this.uptimeEl) {
+        const days = Math.floor(this.uptimeSeconds / 86400);
+        const hours = Math.floor((this.uptimeSeconds % 86400) / 3600);
+        const minutes = Math.floor((this.uptimeSeconds % 3600) / 60);
+        const seconds = Math.floor(this.uptimeSeconds % 60);
+        this.uptimeEl.textContent = `${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+      }
+    }
+  }
+
+  if (!customElements.get('terminal-app-clock')) {
+    customElements.define('terminal-app-clock', TerminalAppClock);
+  }
+</script>

@@ -1,0 +1,31 @@
+---
+/**
+ * StatsRow - the `/app` page's row of 4 top-line StatReadouts, framed as one Panel
+ * ("~/proc/stat", the file a real system would keep these counters in).
+ */
+import { Panel } from '~/components/core';
+import { StatReadout } from '~/components/data';
+import type { ConsoleStats } from './data';
+
+export interface Props {
+  stats: ConsoleStats;
+  class?: string;
+}
+
+const { stats, class: className } = Astro.props;
+---
+
+<Panel title="~/proc/stat" padding="md" class={className}>
+  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <StatReadout label="Active jobs" value={stats.activeJobs} />
+    <StatReadout label="Queue depth" value={stats.queueDepth} unit="jobs" />
+    <StatReadout
+      label="Error rate"
+      value={`${stats.errorRate}%`}
+      delta={stats.errorDelta}
+      deltaLabel="vs last hour"
+      status="ok"
+    />
+    <StatReadout label="P95 latency" value={stats.p95Latency} unit="ms" />
+  </div>
+</Panel>

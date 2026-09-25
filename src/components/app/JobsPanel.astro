@@ -1,0 +1,58 @@
+---
+/**
+ * JobsPanel - the "Jobs" tab panel: a DataTable of every scheduled job, plus a ProgressBar
+ * for each one currently running. `DataTable` has no per-cell renderer, so the running
+ * jobs' progress can't live inside a table cell - they're a small list underneath instead.
+ */
+import { Heading } from '~/components/core';
+import { DataTable, ProgressBar } from '~/components/data';
+import type { ScheduledJob, RunningJob } from './data';
+
+export interface Props {
+  jobs: ScheduledJob[];
+  runningJobs: RunningJob[];
+  class?: string;
+}
+
+const { jobs, runningJobs, class: className } = Astro.props;
+
+const rows = jobs.map((job) => ({
+  name: job.name,
+  schedule: job.schedule,
+  lastRun: job.lastRun,
+  nextRun: job.nextRun,
+  status: job.status.toUpperCase(),
+}));
+---
+
+<div class:list={['flex flex-col gap-6', className]}>
+  <DataTable
+    caption="Scheduled jobs"
+    dense
+    columns={[
+      { key: 'name', label: 'Name', sortable: true },
+      { key: 'schedule', label: 'Schedule', sortable: true },
+      { key: 'lastRun', label: 'Last run', sortable: true },
+      { key: 'nextRun', label: 'Next run', sortable: true },
+      { key: 'status', label: 'Status', sortable: true },
+    ]}
+    rows={rows}
+  />
+
+  {
+    runningJobs.length > 0 && (
+      <div class="flex flex-col gap-3">
+        <Heading level={4}>Running now</Heading>
+        <div class="flex flex-col gap-3">
+          {runningJobs.map((job) =>
+            job.progress == null ? (
+              <ProgressBar label={job.name} indeterminate />
+            ) : (
+              <ProgressBar label={job.name} value={job.progress} />
+            )
+          )}
+        </div>
+      </div>
+    )
+  }
+</div>
