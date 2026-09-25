@@ -47,7 +47,7 @@ test('a11y projects-detail: a real project discovered from /projects', async ({ 
 });
 
 test('a11y blog-category: a real category discovered from /blog', async ({ page }, testInfo) => {
-  const href = await discoverCategoryHref(page, '/blog', '/category/');
+  const href = await discoverCategoryHref(page, '/blog', '/blog/category/');
   expect(href, 'expected at least one category link on /blog').toBeTruthy();
   await page.goto(href!);
   await runAxe(page, testInfo);

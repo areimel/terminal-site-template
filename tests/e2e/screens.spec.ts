@@ -41,7 +41,7 @@ test('@screens capture every route at 360px/1280px in green/amber', async ({ bro
   const discoveryPage = await discoveryContext.newPage();
   const blogHref = await discoverDetailHref(discoveryPage, '/blog', '/blog/');
   const projectHref = await discoverDetailHref(discoveryPage, '/projects', '/projects/');
-  const categoryHref = await discoverCategoryHref(discoveryPage, '/blog', '/category/');
+  const categoryHref = await discoverCategoryHref(discoveryPage, '/blog', '/blog/category/');
   await discoveryContext.close();
 
   const dynamicRoutes: ScreenRoute[] = [

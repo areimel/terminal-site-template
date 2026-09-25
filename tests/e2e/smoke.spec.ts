@@ -69,11 +69,16 @@ test('projects-detail: a real project discovered from /projects', async ({ page,
   await assertHtmlPage(page, consoleErrors);
 });
 
-test('blog-category: a real category discovered from /blog', async ({ page, consoleErrors }) => {
-  const href = await discoverCategoryHref(page, '/blog', '/category/');
-  expect(href, 'expected at least one category link on /blog').toBeTruthy();
+for (const [list, prefix] of [
+  ['/blog', '/blog/category/'],
+  ['/projects', '/projects/category/'],
+] as const) {
+  test(`category page discovered from ${list}`, async ({ page, consoleErrors }) => {
+    const href = await discoverCategoryHref(page, list, prefix);
+    expect(href, `expected at least one category link on ${list}`).toBeTruthy();
 
-  const response = await page.goto(href!);
-  expect(response?.status()).toBe(200);
-  await assertHtmlPage(page, consoleErrors);
-});
+    const response = await page.goto(href!);
+    expect(response?.status()).toBe(200);
+    await assertHtmlPage(page, consoleErrors);
+  });
+}

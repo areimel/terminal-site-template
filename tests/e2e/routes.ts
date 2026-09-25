@@ -24,9 +24,9 @@ export const routes: RouteSpec[] = [
   { path: '/projects/:slug', name: 'projects-detail', dynamic: true },
   { path: '/blog', name: 'blog-list' },
   { path: '/blog/:slug', name: 'blog-detail', dynamic: true },
-  // `src/config.yaml`'s `template.blog.category.pathname: category` puts this at the site
-  // root (`/category/<slug>`), not under `/blog/` -- see `CATEGORY_BASE` in permalinks.ts.
-  { path: '/category/:category', name: 'blog-category', dynamic: true },
+  // Category pages are namespaced per collection via `apps.*.category.pathname` in config.yaml.
+  { path: '/blog/category/:category', name: 'blog-category', dynamic: true },
+  { path: '/projects/category/:category', name: 'projects-category', dynamic: true },
   { path: '/docs', name: 'docs' },
   { path: '/docs/getting-started', name: 'docs-slug' },
   { path: '/components', name: 'components' },
