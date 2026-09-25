@@ -133,3 +133,25 @@ export interface ShellEngine {
 
 - `docs` (`src/data/docs/**/*.md|mdx`): `{ title: string, description?: string, section: 'Getting started'|'Guides'|'Components'|'Reference', order: number, draft?: boolean }`. Route: `/docs/<id>`; `index.md` → `/docs`.
 - `changelog` (`src/data/changelog/*.md`): `{ version: string, date: date, summary?: string, draft?: boolean }`.
+
+## Wave 2 (pages) — what exists on main now
+Import from barrels: `import { Panel, Button, Heading, Container, Prompt, Divider, Badge, Kbd, Icon } from '~/components/core'`, and likewise `~/components/{content,media,effects,forms,feedback,data,navigation,shell}`. **Read a component's Props before using it** — don't guess.
+- core: Panel, Button (passes through extra attrs), Heading, Prompt, Divider, Badge, Kbd, Icon, **Container** `{as?, size?: prose|default|wide|full, spacing?: none|sm|md|lg}` — use it for every page's content width.
+- content: Prose, CodeBlock, Blockquote, Card, TextBox, Callout, FactGrid
+- media: Figure, CrtImage, AsciiFrame, Embed, Gallery
+- effects: BootScreen (global), CrtOverlay (global), EffectsRuntime (global), DecoderText, Typewriter
+- forms: Field, Select, Checkbox, Radio, RadioGroup, Toggle, Form, ContactForm
+- feedback: Modal, Toaster (mounted once in PageLayout), Tooltip, Alert, Spinner; `toast()` from `~/lib/toast`; `openModal/closeModal` from `~/lib/modal`
+- data: AsciiBar, Meter, ProgressBar, StatReadout, KeyValue, DataTable, LogStream (custom element exposes `appendLine(line)`; also listens for `terminal:log`), `setBarValue`
+- navigation: SidebarNav, Footer, SettingsPanel (all global via PageLayout), Tabs, Accordion, AccordionItem, Breadcrumb, Pagination, ThemeSwitcher, EffectsControls
+- shell: TerminalShell `{mode?: inline|fullscreen, prompt?, motd?, height?, autofocus?, initialCommands?}`
+- Demo persona data: `~/data/profile.ts` (skills, facts, stack, now, uses). Blog/projects/docs collections are populated.
+- Every group has `_demo/<Group>Demo.astro`.
+
+## Page rules
+- Wrap every page in `~/layouts/PageLayout.astro` with `metadata={{ title, description }}`. PageLayout already renders `<main id="main-content">` — **don't add another `<main>`**.
+- Exactly **one `<h1>`** per page. Headings in order.
+- Content width via `Container`. Mobile first; test 360px.
+- **One signature moment per page** (spec "Design direction"); everything else quiet. No fade-up-on-scroll for every section, no hover lift on every card.
+- Don't edit `tests/**` — V1 updates the e2e route list in Wave 3.
+- If a component is missing a capability you need, **add a prop to it only if your prompt lists it as owned**; otherwise compose around it and put the request in your report.
