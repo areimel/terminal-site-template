@@ -1,5 +1,4 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
-import plugin from 'tailwindcss/plugin';
 import typographyPlugin from '@tailwindcss/typography';
 
 export default {
@@ -53,26 +52,9 @@ export default {
         sans: ['var(--aw-font-sans, ui-sans-serif)', ...defaultTheme.fontFamily.sans],
         serif: ['var(--aw-font-serif, ui-serif)', ...defaultTheme.fontFamily.serif],
         heading: ['var(--aw-font-heading, ui-sans-serif)', ...defaultTheme.fontFamily.sans],
-        'share-tech': ['"Share Tech Mono"', 'monospace'],
         vt323: ['VT323', 'monospace'],
-        cmd: ['"Windows Command Prompt"', 'monospace'],
-        vermin: ['"Vermin Vibes"', 'sans-serif'],
-        nasalization: ['Nasalization', 'sans-serif'],
         kode: ['"Kode Mono"', 'monospace'],
         'uav-mono': ['"UAV OSD Mono"', 'monospace'],
-        'uav-sans': ['"UAV OSD Sans"', 'monospace'],
-        computer: ['Computerfont', 'monospace'],
-      },
-
-      animation: {
-        fade: 'fadeInUp 1s both',
-      },
-
-      keyframes: {
-        fadeInUp: {
-          '0%': { opacity: 0, transform: 'translateY(2rem)' },
-          '100%': { opacity: 1, transform: 'translateY(0)' },
-        },
       },
 
       // `prose prose-terminal` themes @tailwindcss/typography with the
@@ -119,10 +101,5 @@ export default {
       }),
     },
   },
-  plugins: [
-    typographyPlugin,
-    plugin(({ addVariant }) => {
-      addVariant('intersect', '&:not([no-intersect])');
-    }),
-  ],
+  plugins: [typographyPlugin],
 };

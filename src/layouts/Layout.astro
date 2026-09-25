@@ -12,7 +12,6 @@ import Metadata from '~/components/common/Metadata.astro';
 // import Analytics from '~/components/common/Analytics.astro';
 import GoogleTagManagerHead from '~/components/common/GoogleTagManagerHead.astro';
 import GoogleTagManagerBody from '~/components/common/GoogleTagManagerBody.astro';
-import BasicScripts from '~/components/common/BasicScripts.astro';
 import CrtOverlay from '~/components/effects/CrtOverlay.astro';
 import BootScreen from '~/components/effects/BootScreen.astro';
 import EffectsRuntime from '~/components/effects/EffectsRuntime.astro';
@@ -119,8 +118,6 @@ const { language, textDirection } = I18N;
     <EffectsRuntime />
 
     <slot />
-
-    <BasicScripts />
 
     <script>
       import { initThemeRuntime } from '~/lib/theme-runtime';

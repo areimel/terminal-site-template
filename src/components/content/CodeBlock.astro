@@ -207,7 +207,7 @@ const scrollLabel = `Code sample${title ? `: ${title}` : ''}, ${lineCount} line$
             button.textContent = idleLabel;
           }, 2000);
         } catch {
-          status.textContent = 'Copy failed — select and copy manually';
+          status.textContent = "Couldn't copy. Select the code and copy it manually.";
           status.classList.remove('sr-only');
           status.classList.add('codeblock-copy-status--error');
         }
