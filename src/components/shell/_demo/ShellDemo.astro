@@ -1,0 +1,17 @@
+---
+/**
+ * ShellDemo - a live, inline `TerminalShell` for the `/components` gallery.
+ * Runs `help` on start so visitors immediately see the command list.
+ */
+import { Heading } from '~/components/core';
+import TerminalShell from '~/components/shell/TerminalShell.astro';
+---
+
+<section class="flex flex-col gap-3">
+  <Heading level={3}>TerminalShell</Heading>
+  <p class="font-kode text-t-sm text-terminal-400">
+    A live shell. Try <code class="text-terminal-300">theme amber</code> to switch themes, or
+    <code class="text-terminal-300">cd docs</code> to jump to a route.
+  </p>
+  <TerminalShell mode="inline" initialCommands={['help']} />
+</section>

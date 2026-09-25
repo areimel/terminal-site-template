@@ -1,0 +1,390 @@
+---
+/**
+ * TerminalShell - a live, keyboard-operable shell built on `~/lib/shell`.
+ *
+ * Renders a `<terminal-shell>` custom element that implements the `ShellHost` contract
+ * (see `~/lib/shell/types`): it prints command output to an `aria-live="polite"` log,
+ * runs commands through `createShell`, and wires theme/effects/navigation actions back
+ * into the site's runtimes.
+ *
+ * `mode="inline"` sits inside a `core/Panel` (`variant="double"`, titled with the prompt)
+ * at a fixed, internally-scrolling height. `mode="fullscreen"` fills the viewport area of
+ * the page's main content, for `/terminal`.
+ *
+ * Server-side, routes/themes/identity are serialized into a `data-config` attribute so the
+ * custom element can build its `ShellHost` without importing `astrowind:config` itself
+ * (the engine and commands stay DOM- and config-free per the shell contract).
+ */
+import { TEMPLATE } from 'astrowind:config';
+
+import { Panel } from '~/components/core';
+import { mainNav } from '~/navigation';
+import { themes } from '~/lib/themes';
+
+export interface Props {
+  mode?: 'inline' | 'fullscreen';
+  /** Shell prompt string, e.g. `guest@mainframe-7:~$`. Defaults to `TEMPLATE.shell.prompt`. */
+  prompt?: string;
+  /** Message of the day, printed once on start. Defaults to `TEMPLATE.shell.motd`. */
+  motd?: string;
+  /** Fixed height for `mode="inline"` (e.g. `24rem`, `480px`). Ignored in `fullscreen` mode. */
+  height?: string;
+  autofocus?: boolean;
+  /** Command lines run automatically on start, after the motd, as if typed by the user. */
+  initialCommands?: string[];
+  class?: string;
+}
+
+const {
+  mode = 'inline',
+  prompt = TEMPLATE.shell.prompt,
+  motd = TEMPLATE.shell.motd,
+  height,
+  autofocus = false,
+  initialCommands = [],
+  class: className,
+} = Astro.props;
+
+function slugify(label: string): string {
+  return label
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+const routes = mainNav.map((item) => ({
+  alias: item.shellAlias ?? slugify(item.label),
+  label: item.label,
+  href: item.href,
+}));
+
+const themeList = themes.map((theme) => ({ id: theme.id, label: theme.label }));
+
+const identity = {
+  name: TEMPLATE.identity.name,
+  handle: TEMPLATE.identity.handle,
+  role: TEMPLATE.identity.role,
+  org: TEMPLATE.identity.org,
+};
+
+const config = { routes, themes: themeList, identity };
+
+// "title = prompt without $" - the prompt glyph itself is rendered separately on the input line.
+const panelTitle = prompt.replace(/\$+\s*$/, '').trimEnd() || prompt;
+
+const shellClasses = ['terminal-shell flex flex-col gap-2 p-3 font-kode text-t-sm text-terminal-400 cursor-text'];
+---
+
+{
+  mode === 'inline' ? (
+    <Panel as="div" title={panelTitle} variant="double" padding="none" class:list={['terminal-shell-panel', className]}>
+      <terminal-shell
+        class:list={[...shellClasses, height ? undefined : 'h-96']}
+        style={height ? `height: ${height}` : undefined}
+        data-mode={mode}
+        data-config={JSON.stringify(config)}
+        data-prompt={prompt}
+        data-motd={motd}
+        data-autofocus={autofocus ? 'true' : 'false'}
+        data-initial-commands={initialCommands.length ? JSON.stringify(initialCommands) : undefined}
+      >
+        <div
+          class="terminal-shell-output flex-1 min-h-0 overflow-y-auto whitespace-pre-wrap break-words"
+          role="log"
+          aria-live="polite"
+          aria-label="Terminal output"
+        />
+        <div class="terminal-shell-inputline flex flex-none items-center gap-2">
+          <span class="whitespace-pre text-terminal-bright flex-none" aria-hidden="true">
+            {prompt}
+          </span>
+          <span class="relative flex flex-1 min-w-0 items-center">
+            <span
+              class="terminal-shell-cursor absolute top-[0.15em] bottom-[0.15em] left-0 w-[0.6em] bg-terminal-500 pointer-events-none"
+              aria-hidden="true"
+            />
+            <input
+              class="terminal-shell-input flex-1 min-w-0 bg-transparent border-0 outline-none p-0 m-0 font-inherit text-inherit caret-transparent"
+              type="text"
+              aria-label="Command"
+              autocomplete="off"
+              spellcheck="false"
+              autocapitalize="off"
+            />
+          </span>
+        </div>
+      </terminal-shell>
+    </Panel>
+  ) : (
+    <terminal-shell
+      class:list={[...shellClasses, 'h-dvh', className]}
+      data-mode={mode}
+      data-config={JSON.stringify(config)}
+      data-prompt={prompt}
+      data-motd={motd}
+      data-autofocus={autofocus ? 'true' : 'false'}
+      data-initial-commands={initialCommands.length ? JSON.stringify(initialCommands) : undefined}
+    >
+      <div
+        class="terminal-shell-output flex-1 min-h-0 overflow-y-auto whitespace-pre-wrap break-words"
+        role="log"
+        aria-live="polite"
+        aria-label="Terminal output"
+      />
+      <div class="terminal-shell-inputline flex flex-none items-center gap-2">
+        <span class="whitespace-pre text-terminal-bright flex-none" aria-hidden="true">
+          {prompt}
+        </span>
+        <span class="relative flex flex-1 min-w-0 items-center">
+          <span
+            class="terminal-shell-cursor absolute top-[0.15em] bottom-[0.15em] left-0 w-[0.6em] bg-terminal-500 pointer-events-none"
+            aria-hidden="true"
+          />
+          <input
+            class="terminal-shell-input flex-1 min-w-0 bg-transparent border-0 outline-none p-0 m-0 font-inherit text-inherit caret-transparent"
+            type="text"
+            aria-label="Command"
+            autocomplete="off"
+            spellcheck="false"
+            autocapitalize="off"
+          />
+        </span>
+      </div>
+    </terminal-shell>
+  )
+}
+
+<style>
+  .terminal-shell-cursor {
+    animation: terminal-shell-blink 1s steps(1, end) infinite;
+  }
+
+  @keyframes terminal-shell-blink {
+    0%,
+    49% {
+      opacity: 1;
+    }
+    50%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .terminal-shell-cursor {
+      animation: none;
+      opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  import { createShell } from '~/lib/shell/engine';
+  import { userCommands } from '~/lib/shell/commands';
+  import type { ShellHost, ShellRoute, ShellTone } from '~/lib/shell/types';
+  import { navigate } from 'astro:transitions/client';
+  import { applyTheme, getTheme } from '~/lib/theme-runtime';
+  import { setEffect as setEffectRuntime, getEffects as getEffectsRuntime, type EffectName } from '~/lib/effects';
+
+  const TONE_CLASSES: Record<ShellTone, string> = {
+    default: 'text-terminal-400',
+    ok: 'text-emerald-400',
+    warn: 'text-amber-400',
+    err: 'text-rose-400',
+  };
+
+  interface TerminalShellConfig {
+    routes: ShellRoute[];
+    themes: { id: string; label: string }[];
+    identity: { name: string; handle: string; role: string; org: string };
+  }
+
+  class TerminalShellElement extends HTMLElement {
+    private outputEl!: HTMLElement;
+    private inputEl!: HTMLInputElement;
+    private cursorEl!: HTMLElement;
+    private engine!: ReturnType<typeof createShell>;
+    private historyIndex = 0;
+    private draft = '';
+
+    connectedCallback(): void {
+      const output = this.querySelector<HTMLElement>('.terminal-shell-output');
+      const input = this.querySelector<HTMLInputElement>('.terminal-shell-input');
+      const cursor = this.querySelector<HTMLElement>('.terminal-shell-cursor');
+      if (!output || !input || !cursor) return;
+
+      this.outputEl = output;
+      this.inputEl = input;
+      this.cursorEl = cursor;
+
+      const config = this.readConfig();
+      const prompt = this.dataset.prompt ?? '$';
+      const motd = this.dataset.motd ?? '';
+      const autofocus = this.dataset.autofocus === 'true';
+      const initialCommands = this.readInitialCommands();
+
+      const host: ShellHost = {
+        print: (out, tone) => this.print(out, tone),
+        clear: () => this.clearOutput(),
+        navigate: (href) => this.goTo(href),
+        setTheme: (id) => applyTheme(id),
+        setEffect: (name, on) => setEffectRuntime(name as EffectName, on),
+        getEffects: () => getEffectsRuntime(),
+        currentTheme: () => getTheme(),
+        routes: config.routes,
+        themes: config.themes,
+        identity: config.identity,
+      };
+
+      this.engine = createShell(host, userCommands);
+
+      this.inputEl.addEventListener('keydown', (event) => this.onKeydown(event));
+      this.inputEl.addEventListener('input', () => this.updateCursor());
+      this.addEventListener('click', (event) => this.onShellClick(event));
+
+      if (motd) this.print(motd);
+      void this.runInitialCommands(initialCommands, prompt);
+
+      this.updateCursor();
+      if (autofocus) this.inputEl.focus();
+    }
+
+    private readConfig(): TerminalShellConfig {
+      const empty = { routes: [], themes: [], identity: { name: '', handle: '', role: '', org: '' } };
+      try {
+        const raw = this.dataset.config;
+        if (!raw) return empty;
+        return JSON.parse(raw) as TerminalShellConfig;
+      } catch {
+        return empty;
+      }
+    }
+
+    private readInitialCommands(): string[] {
+      try {
+        const raw = this.dataset.initialCommands;
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed.filter((line): line is string => typeof line === 'string') : [];
+      } catch {
+        return [];
+      }
+    }
+
+    private async runInitialCommands(lines: string[], prompt: string): Promise<void> {
+      for (const line of lines) {
+        this.echo(prompt, line);
+        await this.engine.run(line);
+      }
+    }
+
+    private echo(prompt: string, line: string): void {
+      this.appendLine(`${prompt} ${line}`, 'default');
+    }
+
+    private appendLine(text: string, tone: ShellTone = 'default'): void {
+      const line = document.createElement('div');
+      line.className = `terminal-shell-line ${TONE_CLASSES[tone]}`;
+      line.textContent = text;
+      this.outputEl.appendChild(line);
+      this.outputEl.scrollTop = this.outputEl.scrollHeight;
+    }
+
+    private print(out: string | string[], tone: ShellTone = 'default'): void {
+      const lines = Array.isArray(out) ? out : [out];
+      for (const line of lines) this.appendLine(line, tone);
+    }
+
+    private clearOutput(): void {
+      this.outputEl.replaceChildren();
+    }
+
+    private async goTo(href: string): Promise<void> {
+      try {
+        await navigate(href);
+      } catch {
+        window.location.assign(href);
+      }
+    }
+
+    private updateCursor(): void {
+      this.cursorEl.style.left = `${this.inputEl.value.length}ch`;
+    }
+
+    private onShellClick(event: MouseEvent): void {
+      if (event.target === this.inputEl) return;
+      const selection = window.getSelection();
+      if (selection && selection.toString().length > 0) return;
+      this.inputEl.focus();
+    }
+
+    private async onKeydown(event: KeyboardEvent): Promise<void> {
+      const prompt = this.dataset.prompt ?? '$';
+
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        const line = this.inputEl.value;
+        this.echo(prompt, line);
+        this.inputEl.value = '';
+        this.updateCursor();
+        this.historyIndex = this.engine.history.length + 1;
+        this.draft = '';
+        await this.engine.run(line);
+        return;
+      }
+
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        const history = this.engine.history;
+        if (history.length === 0) return;
+        if (this.historyIndex === history.length) this.draft = this.inputEl.value;
+        this.historyIndex = Math.max(0, this.historyIndex - 1);
+        this.inputEl.value = history[this.historyIndex] ?? '';
+        this.updateCursor();
+        return;
+      }
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        const history = this.engine.history;
+        this.historyIndex = Math.min(history.length, this.historyIndex + 1);
+        this.inputEl.value = this.historyIndex === history.length ? this.draft : (history[this.historyIndex] ?? '');
+        this.updateCursor();
+        return;
+      }
+
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        const line = this.inputEl.value;
+        const candidates = this.engine.complete(line);
+        if (candidates.length === 1) {
+          // The engine completes the last word, so keep everything before it.
+          const head = line.slice(0, line.length - (line.match(/\S*$/)?.[0].length ?? 0));
+          this.inputEl.value = `${head}${candidates[0]} `;
+          this.updateCursor();
+        } else if (candidates.length > 1) {
+          this.appendLine(candidates.join('  '));
+        }
+        return;
+      }
+
+      if (event.key === 'l' && event.ctrlKey) {
+        event.preventDefault();
+        this.clearOutput();
+        return;
+      }
+
+      if (event.key === 'c' && event.ctrlKey) {
+        event.preventDefault();
+        this.appendLine('^C');
+        this.inputEl.value = '';
+        this.updateCursor();
+      }
+    }
+  }
+
+  if (!customElements.get('terminal-shell')) {
+    customElements.define('terminal-shell', TerminalShellElement);
+  }
+</script>
