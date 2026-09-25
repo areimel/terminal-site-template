@@ -29,8 +29,9 @@ const Tag = as ?? (`h${level}` as const);
 
 // Sizes use the 1.25 modular type scale tokens from tailwind.config.js.
 const SIZE: Record<Props['level'], string> = {
-  1: 'text-t-4xl md:text-t-5xl font-bold tracking-tight',
-  2: 'text-t-2xl md:text-t-3xl font-bold tracking-tight',
+  // Levels 1-2 scale fluidly on phones: the wide display face can't wrap long single words.
+  1: 'text-[clamp(1.75rem,8vw,3.0518rem)] leading-tight md:text-t-5xl font-bold tracking-tight',
+  2: 'text-[clamp(1.4rem,6.5vw,1.9531rem)] leading-tight md:text-t-3xl font-bold tracking-tight',
   3: 'text-t-xl md:text-t-2xl font-semibold',
   4: 'text-t-lg md:text-t-xl font-semibold',
   5: 'text-t-base md:text-t-lg font-semibold',
@@ -49,7 +50,7 @@ const decodeText = decode ? (await Astro.slots.render('default')).replace(/<[^>]
 ---
 
 <Tag
-  class:list={['font-uav-mono', SIZE[size ?? level], GLOW[glow], className]}
+  class:list={['font-uav-mono [overflow-wrap:anywhere]', SIZE[size ?? level], GLOW[glow], className]}
   data-decode={decode ? '' : undefined}
   data-text={decodeText}
 >

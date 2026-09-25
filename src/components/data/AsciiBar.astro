@@ -53,7 +53,7 @@ const percentText = formatBarPercent(clamped, min, max);
 >
   {label && <span class="ascii-bar-label whitespace-nowrap text-terminal-400">{label}</span>}
   <span
-    class:list={['ascii-bar-track whitespace-pre tabular-nums', TONE_TEXT_CLASS[tone]]}
+    class:list={['ascii-bar-track max-w-full overflow-hidden whitespace-pre tabular-nums', TONE_TEXT_CLASS[tone]]}
     data-ascii-bar-track
     aria-hidden="true">{barText}</span
   >

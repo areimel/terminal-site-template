@@ -80,6 +80,8 @@ export default {
             '--tw-prose-td-borders': 'var(--theme-200)',
             maxWidth: '72ch',
             fontFamily: 'var(--aw-font-sans)',
+            // Long paths/identifiers in headings and inline code wrap instead of widening the page.
+            overflowWrap: 'anywhere',
             color: 'var(--theme-500)',
             h1: { fontFamily: 'var(--aw-font-heading)' },
             h2: { fontFamily: 'var(--aw-font-heading)' },

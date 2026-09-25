@@ -20,7 +20,10 @@ const { prev, next, class: className } = Astro.props;
   (prev || next) && (
     <nav
       aria-label="Doc navigation"
-      class:list={['flex items-stretch justify-between gap-4 border-t border-terminal-300/40 pt-6', className]}
+      class:list={[
+        'flex flex-col gap-4 border-t border-terminal-300/40 pt-6 sm:flex-row sm:items-stretch sm:justify-between',
+        className,
+      ]}
     >
       <div>
         {prev && (
@@ -29,7 +32,7 @@ const { prev, next, class: className } = Astro.props;
           </Button>
         )}
       </div>
-      <div>
+      <div class="sm:text-right">
         {next && (
           <Button href={docHref(next.id)} variant="outline">
             next: {next.data.title} <span aria-hidden="true">&gt;</span>

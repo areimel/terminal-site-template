@@ -94,7 +94,9 @@ const scale: { token: string; class: string }[] = [
       {
         scale.map(({ token, class: sizeClass }) => (
           <div class="flex flex-wrap items-baseline gap-3">
-            <span class:list={['font-uav-mono text-terminal-500', sizeClass]}>Terminal aesthetic</span>
+            <span class:list={['min-w-0 font-uav-mono text-terminal-500 [overflow-wrap:anywhere]', sizeClass]}>
+              Terminal aesthetic
+            </span>
             <span class="font-kode text-t-sm text-terminal-300">
               text-{token} {'·'} {sizeClass}
             </span>

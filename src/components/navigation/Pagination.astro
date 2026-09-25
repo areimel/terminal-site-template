@@ -33,7 +33,10 @@ const hasCount = typeof current === 'number' && typeof total === 'number';
 
 {
   (prevUrl || nextUrl) && (
-    <nav aria-label="Pagination" class:list={['pagination flex items-center justify-between gap-4', className]}>
+    <nav
+      aria-label="Pagination"
+      class:list={['pagination flex flex-wrap items-center justify-between gap-4', className]}
+    >
       <div>
         {prevUrl ? (
           <Button href={getPermalink(prevUrl)} variant="outline" size="sm">
