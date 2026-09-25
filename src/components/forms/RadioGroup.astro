@@ -1,0 +1,62 @@
+---
+/** RadioGroup - a `fieldset`/`legend` wrapping a list of Radio options sharing one `name`. */
+import Radio from './Radio.astro';
+
+export interface Props {
+  name: string;
+  legend: string;
+  options: { value: string; label: string }[];
+  value?: string;
+  required?: boolean;
+  description?: string;
+  error?: string;
+  disabled?: boolean;
+  class?: string;
+}
+
+const {
+  name,
+  legend,
+  options,
+  value,
+  required = false,
+  description,
+  error,
+  disabled = false,
+  class: className,
+} = Astro.props;
+
+const groupId = `radiogroup-${name}`;
+const descId = description ? `${groupId}-desc` : undefined;
+const errId = error ? `${groupId}-err` : undefined;
+const describedBy = [descId, errId].filter(Boolean).join(' ') || undefined;
+---
+
+<fieldset class:list={['forms-field flex flex-col gap-2 border-0 p-0 m-0', className]} aria-describedby={describedBy}>
+  <legend class="font-kode text-t-sm text-terminal-400 p-0">
+    {legend}
+    {required && <span class="text-terminal-300"> (required)</span>}
+  </legend>
+  <div class="flex flex-col gap-2">
+    {
+      options.map((opt) => (
+        <Radio name={name} value={opt.value} label={opt.label} checked={value === opt.value} disabled={disabled} />
+      ))
+    }
+  </div>
+  {
+    description && (
+      <p id={descId} class="font-kode text-t-sm text-terminal-300">
+        {description}
+      </p>
+    )
+  }
+  {
+    error && (
+      <p id={errId} class="font-kode text-t-sm text-rose-400 flex items-start gap-1">
+        <span class="font-bold shrink-0">ERR</span>
+        <span>{error}</span>
+      </p>
+    )
+  }
+</fieldset>

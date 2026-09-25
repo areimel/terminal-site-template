@@ -1,0 +1,75 @@
+---
+/**
+ * Form - a plain `<form>` wrapper with a built-in `aria-live` status region.
+ *
+ * When `provider` is true, the form's access key is stamped on as `data-access-key` (from
+ * `TEMPLATE.integrations.forms.accessKey`) and a client script intercepts submit, hands the
+ * form to `~/lib/forms.ts#submitForm`, and writes the result into the status region as
+ * `OK <message>` / `ERR <message>` (the exact copy comes from `submitForm`, e.g. "Message
+ * sent." or the demo-mode notice). Submission is otherwise left to the browser/`action`.
+ */
+import { TEMPLATE } from 'astrowind:config';
+
+export interface Props {
+  action?: string;
+  method?: string;
+  id?: string;
+  class?: string;
+  /** Submit via `~/lib/forms.ts` (Web3Forms) instead of a plain browser POST. */
+  provider?: boolean;
+}
+
+const { action, method = 'post', id, class: className, provider = false } = Astro.props;
+
+const accessKey = provider ? (TEMPLATE.integrations.forms.accessKey ?? '') : undefined;
+---
+
+<form
+  id={id}
+  action={action}
+  method={method}
+  class:list={['forms-form flex flex-col gap-4', className]}
+  data-provider={provider ? 'true' : undefined}
+  data-access-key={provider ? accessKey : undefined}
+>
+  <slot />
+  <p data-form-status role="status" aria-live="polite" class="font-kode text-t-sm"></p>
+</form>
+
+<script>
+  import { submitForm } from '~/lib/forms';
+
+  function setStatus(el: HTMLElement, ok: boolean, message: string) {
+    el.textContent = `${ok ? 'OK' : 'ERR'} ${message}`;
+    el.classList.toggle('text-emerald-400', ok);
+    el.classList.toggle('text-rose-400', !ok);
+  }
+
+  function setup(form: HTMLFormElement) {
+    if (form.dataset.formsBound === 'true') return;
+    form.dataset.formsBound = 'true';
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const statusEl = form.querySelector<HTMLElement>('[data-form-status]');
+      const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+      submitBtn?.setAttribute('disabled', 'true');
+      try {
+        const result = await submitForm(form);
+        if (statusEl) setStatus(statusEl, result.ok, result.message);
+        if (result.ok) form.reset();
+      } finally {
+        submitBtn?.removeAttribute('disabled');
+      }
+    });
+  }
+
+  function init() {
+    document.querySelectorAll<HTMLFormElement>('form[data-provider="true"]').forEach(setup);
+  }
+
+  init();
+  document.addEventListener('astro:page-load', init);
+</script>

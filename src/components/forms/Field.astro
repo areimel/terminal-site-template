@@ -1,0 +1,113 @@
+---
+/**
+ * Field - the template's text input/textarea primitive.
+ *
+ * Renders as a terminal line: a `>` prompt glyph, then a borderless input with only a bottom
+ * border (block-caret feel via `caret-*`). Required fields get a plain "(required)" marker
+ * instead of a bare asterisk. `description` and `error` are wired to the control via
+ * `aria-describedby`; an `error` also flips the border color and prints an `ERR`-prefixed
+ * message.
+ */
+export interface Props {
+  name: string;
+  label: string;
+  type?: 'text' | 'email' | 'password' | 'url' | 'tel' | 'number' | 'search';
+  as?: 'input' | 'textarea';
+  required?: boolean;
+  placeholder?: string;
+  value?: string;
+  description?: string;
+  error?: string;
+  disabled?: boolean;
+  rows?: number;
+  autocomplete?: string;
+  id?: string;
+  class?: string;
+}
+
+const {
+  name,
+  label,
+  type = 'text',
+  as = 'input',
+  required = false,
+  placeholder,
+  value,
+  description,
+  error,
+  disabled = false,
+  rows = 4,
+  autocomplete,
+  id,
+  class: className,
+} = Astro.props;
+
+const fieldId = id ?? `field-${name}`;
+const descId = description ? `${fieldId}-desc` : undefined;
+const errId = error ? `${fieldId}-err` : undefined;
+const describedBy = [descId, errId].filter(Boolean).join(' ') || undefined;
+
+const controlClasses = [
+  'forms-control w-full bg-transparent border-0 border-b py-1.5 font-kode text-t-base text-terminal-500',
+  'placeholder:text-terminal-300 caret-terminal-bright focus:outline-none',
+  'disabled:opacity-50 disabled:cursor-not-allowed',
+  error ? 'border-rose-500/70' : 'border-terminal-300 focus:border-terminal-bright',
+];
+---
+
+<div class:list={['forms-field flex flex-col gap-1', className]}>
+  <label for={fieldId} class="font-kode text-t-sm text-terminal-400">
+    {label}
+    {required && <span class="text-terminal-300"> (required)</span>}
+  </label>
+  <div class="flex items-baseline gap-2">
+    <span class="font-kode text-terminal-400" aria-hidden="true"> &gt; </span>
+    {
+      as === 'textarea' ? (
+        <textarea
+          id={fieldId}
+          name={name}
+          required={required}
+          disabled={disabled}
+          placeholder={placeholder}
+          rows={rows}
+          autocomplete={autocomplete}
+          aria-describedby={describedBy}
+          aria-invalid={error ? 'true' : undefined}
+          class:list={controlClasses}
+        >
+          {value ?? ''}
+        </textarea>
+      ) : (
+        <input
+          id={fieldId}
+          name={name}
+          type={type}
+          required={required}
+          disabled={disabled}
+          placeholder={placeholder}
+          value={value}
+          autocomplete={autocomplete}
+          aria-describedby={describedBy}
+          aria-invalid={error ? 'true' : undefined}
+          class:list={controlClasses}
+        />
+      )
+    }
+  </div>
+  {
+    description && (
+      <p id={descId} class="font-kode text-t-sm text-terminal-300">
+        {description}
+      </p>
+    )
+  }
+  {
+    error && (
+      <p id={errId} class="font-kode text-t-sm text-rose-400 flex items-start gap-1">
+        <span class="font-bold shrink-0">ERR</span>
+        <span>{error}</span>
+      </p>
+    )
+  }
+</div>

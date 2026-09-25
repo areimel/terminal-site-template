@@ -1,0 +1,97 @@
+---
+/**
+ * FormsDemo - renders every forms/ primitive and its main states (default, error, disabled,
+ * description) plus the compact ContactForm. Embedded in the `/components` gallery.
+ */
+import { Panel, Heading } from '~/components/core';
+import Field from '../Field.astro';
+import Select from '../Select.astro';
+import Checkbox from '../Checkbox.astro';
+import RadioGroup from '../RadioGroup.astro';
+import Toggle from '../Toggle.astro';
+import ContactForm from '../ContactForm.astro';
+
+const subjectOptions = [
+  { value: 'general', label: 'General inquiry' },
+  { value: 'support', label: 'Technical support' },
+];
+
+const priorityOptions = [
+  { value: 'low', label: 'Low' },
+  { value: 'high', label: 'High' },
+];
+---
+
+<div class="flex flex-col gap-8">
+  <Panel title="forms/Field.astro">
+    <p class="font-kode text-t-sm text-terminal-300 mb-4">
+      A terminal-line text input or textarea, with label, description and error states.
+    </p>
+    <div class="grid gap-4 md:grid-cols-2">
+      <Field name="demo-name" label="Name" required placeholder="Your name" />
+      <Field name="demo-email" label="Email" type="email" description="We'll only use this to reply." />
+      <Field name="demo-error" label="Handle" error="This handle is already taken." value="ada" />
+      <Field name="demo-disabled" label="Locked field" value="read-only value" disabled />
+      <Field
+        as="textarea"
+        name="demo-message"
+        label="Message"
+        required
+        rows={3}
+        placeholder="Terminal lines wrap like any other textarea."
+        class="md:col-span-2"
+      />
+    </div>
+  </Panel>
+
+  <Panel title="forms/Select.astro">
+    <p class="font-kode text-t-sm text-terminal-300 mb-4">
+      A native select styled to match Field, with a plain arrow glyph.
+    </p>
+    <div class="grid gap-4 md:grid-cols-2">
+      <Select
+        name="demo-subject"
+        label="Subject"
+        options={subjectOptions}
+        description="Routes your message to the right queue."
+      />
+      <Select name="demo-subject-error" label="Priority" options={priorityOptions} error="Choose a priority." />
+    </div>
+  </Panel>
+
+  <Panel title="forms/Checkbox.astro">
+    <p class="font-kode text-t-sm text-terminal-300 mb-4">A `[x]` / `[ ]` glyph over a native checkbox.</p>
+    <div class="flex flex-col gap-3">
+      <Checkbox name="demo-subscribe" label="Subscribe to updates" description="Roughly one email a month." />
+      <Checkbox name="demo-checked" label="Already agreed" checked />
+      <Checkbox name="demo-checkbox-disabled" label="Disabled option" disabled />
+    </div>
+  </Panel>
+
+  <Panel title="forms/Radio.astro + RadioGroup.astro">
+    <p class="font-kode text-t-sm text-terminal-300 mb-4">A `(*)` / `( )` glyph radio group in a fieldset/legend.</p>
+    <RadioGroup
+      name="demo-contact-method"
+      legend="Preferred contact method"
+      options={[
+        { value: 'email', label: 'Email' },
+        { value: 'phone', label: 'Phone' },
+      ]}
+      value="email"
+      description="We'll use this before any other channel."
+    />
+  </Panel>
+
+  <Panel title="forms/Toggle.astro">
+    <p class="font-kode text-t-sm text-terminal-300 mb-4">A `role=\"switch\"` rendered as `[ON ]` / `[OFF]`.</p>
+    <div class="flex flex-col gap-3">
+      <Toggle name="demo-noise" label="CRT noise" checked description="Purely cosmetic; safe to leave off." />
+      <Toggle name="demo-toggle-disabled" label="Disabled switch" disabled />
+    </div>
+  </Panel>
+
+  <Panel title="forms/ContactForm.astro">
+    <Heading level={4} class="mb-3">variant="compact"</Heading>
+    <ContactForm variant="compact" />
+  </Panel>
+</div>

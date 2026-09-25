@@ -1,0 +1,54 @@
+---
+/**
+ * Radio - a single `(*)` / `( )` glyph radio option, in pure CSS over a native input (see
+ * Checkbox for the same pattern). Used by RadioGroup; import directly for a one-off radio.
+ */
+export interface Props {
+  name: string;
+  value: string;
+  label: string;
+  checked?: boolean;
+  disabled?: boolean;
+  id?: string;
+  class?: string;
+}
+
+const { name, value, label, checked = false, disabled = false, id, class: className } = Astro.props;
+
+const radioId = id ?? `radio-${name}-${value}`;
+
+const GLYPH_RING =
+  'peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-terminal-bright peer-focus-visible:outline-offset-2 peer-focus-visible:rounded-sm';
+---
+
+<label
+  for={radioId}
+  class:list={[
+    'inline-flex items-center gap-2 cursor-pointer font-kode text-t-base text-terminal-400 select-none',
+    { 'opacity-50 cursor-not-allowed': disabled },
+    className,
+  ]}
+>
+  <input
+    type="radio"
+    id={radioId}
+    name={name}
+    value={value}
+    checked={checked}
+    disabled={disabled}
+    class="peer sr-only"
+  />
+  <span
+    aria-hidden="true"
+    class:list={['forms-glyph inline-block w-[3ch] text-terminal-500 peer-checked:hidden', GLYPH_RING]}
+  >
+    ( )
+  </span>
+  <span
+    aria-hidden="true"
+    class:list={['forms-glyph hidden peer-checked:inline-block w-[3ch] text-terminal-bright', GLYPH_RING]}
+  >
+    (*)
+  </span>
+  <span>{label}</span>
+</label>
