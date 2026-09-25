@@ -25,12 +25,23 @@ export interface Props {
   actions?: SectionAction[];
   /** Marks the title for the site-wide decoder-text enhancer. */
   decode?: boolean;
+  /** Semantic level of the title. Defaults to 1 (the page's h1); it always looks like an h1. */
+  headingLevel?: 1 | 2 | 3;
   /** Anchor id for the outer `<section>`. */
   id?: string;
   class?: string;
 }
 
-const { variant = 'minimal', title, subtitle, actions = [], decode = false, id, class: className } = Astro.props;
+const {
+  variant = 'minimal',
+  title,
+  subtitle,
+  actions = [],
+  decode = false,
+  headingLevel = 1,
+  id,
+  class: className,
+} = Astro.props;
 
 const hasAside = Astro.slots.has('aside');
 ---
@@ -45,7 +56,7 @@ const hasAside = Astro.slots.has('aside');
               <Prompt blink={false} />
               <span>cat welcome.sh</span>
             </p>
-            <Heading level={1} decode={decode} glow="subtle">
+            <Heading level={headingLevel} size={1} decode={decode} glow="subtle">
               {title}
             </Heading>
             {subtitle && <p class="max-w-[60ch] font-kode text-t-lg text-terminal-400"># {subtitle}</p>}
@@ -65,7 +76,7 @@ const hasAside = Astro.slots.has('aside');
       <Container size="default" spacing="lg">
         <div class="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <div class="flex flex-col gap-5">
-            <Heading level={1} decode={decode} glow="subtle">
+            <Heading level={headingLevel} size={1} decode={decode} glow="subtle">
               {title}
             </Heading>
             {subtitle && <p class="max-w-[60ch] text-t-lg text-terminal-400">{subtitle}</p>}
@@ -89,7 +100,7 @@ const hasAside = Astro.slots.has('aside');
     ) : (
       <Container size="default" spacing="lg">
         <div class="flex max-w-[60ch] flex-col gap-5">
-          <Heading level={1} decode={decode} glow="subtle">
+          <Heading level={headingLevel} size={1} decode={decode} glow="subtle">
             {title}
           </Heading>
           {subtitle && <p class="text-t-lg text-terminal-400">{subtitle}</p>}
