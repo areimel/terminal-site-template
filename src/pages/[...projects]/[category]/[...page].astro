@@ -5,7 +5,7 @@ import { projectCategoryRobots, getStaticPathsProjectCategory } from '~/utils/pr
 import Layout from '~/layouts/PageLayout.astro';
 import PostList from '~/components/blog/List.astro';
 import { Heading } from '~/components/core';
-import Pagination from '~/components/blog/Pagination.astro';
+import Pagination from '~/components/navigation/Pagination.astro';
 
 export const prerender = true;
 
@@ -34,6 +34,6 @@ const metadata = {
       Projects: {category.title}
     </Heading>
     <PostList posts={page.data} />
-    <Pagination prevUrl={page.url.prev} nextUrl={page.url.next} />
+    <Pagination prevUrl={page.url.prev} nextUrl={page.url.next} current={page.currentPage} total={page.lastPage} />
   </section>
 </Layout>

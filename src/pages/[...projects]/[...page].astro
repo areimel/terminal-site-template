@@ -4,7 +4,7 @@ import type { InferGetStaticPropsType, GetStaticPaths } from 'astro';
 import Layout from '~/layouts/PageLayout.astro';
 import PostList from '~/components/blog/List.astro';
 import { Heading } from '~/components/core';
-import Pagination from '~/components/blog/Pagination.astro';
+import Pagination from '~/components/navigation/Pagination.astro';
 
 import { projectsListRobots, getStaticPathsProjectsList } from '~/utils/projects';
 
@@ -38,6 +38,6 @@ const metadata = {
       <p class="text-terminal-400">Selected work and experiments.</p>
     </header>
     <PostList posts={page.data} />
-    <Pagination prevUrl={page.url.prev} nextUrl={page.url.next} />
+    <Pagination prevUrl={page.url.prev} nextUrl={page.url.next} current={page.currentPage} total={page.lastPage} />
   </section>
 </Layout>

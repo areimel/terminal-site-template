@@ -5,7 +5,7 @@ import { blogCategoryRobots, getStaticPathsBlogCategory } from '~/utils/blog';
 import Layout from '~/layouts/PageLayout.astro';
 import BlogList from '~/components/blog/List.astro';
 import { Heading } from '~/components/core';
-import Pagination from '~/components/blog/Pagination.astro';
+import Pagination from '~/components/navigation/Pagination.astro';
 
 export const prerender = true;
 
@@ -34,6 +34,6 @@ const metadata = {
       {category.title}
     </Heading>
     <BlogList posts={page.data} />
-    <Pagination prevUrl={page.url.prev} nextUrl={page.url.next} />
+    <Pagination prevUrl={page.url.prev} nextUrl={page.url.next} current={page.currentPage} total={page.lastPage} />
   </section>
 </Layout>

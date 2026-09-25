@@ -11,7 +11,7 @@ export interface NavItem {
   shellAlias?: string;
 }
 
-/** Primary site navigation, read by SidebarNavV2 and the shell's `cd`/`ls` commands. */
+/** Primary site navigation, read by navigation/SidebarNav and the shell's `cd`/`ls` commands. */
 export const mainNav: NavItem[] = [
   { label: 'Home', href: getPermalink('/'), icon: 'tabler:home', shellAlias: 'home' },
   { label: 'Projects', href: getPermalink('/projects'), icon: 'tabler:briefcase', shellAlias: 'projects' },

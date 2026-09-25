@@ -1,7 +1,10 @@
 ---
-import Layout from '@layouts/Layout.astro';
-import Footer from '@components/Footer.astro';
-import SidebarNav from '@components/SidebarNavV2.astro';
+import Layout from '~/layouts/Layout.astro';
+import SidebarNav from '~/components/navigation/SidebarNav.astro';
+import Footer from '~/components/navigation/Footer.astro';
+import SettingsPanel from '~/components/navigation/SettingsPanel.astro';
+import Modal from '~/components/feedback/Modal.astro';
+import Toaster from '~/components/feedback/Toaster.astro';
 
 import type { MetaData } from '~/types';
 
@@ -14,17 +17,18 @@ const { metadata } = Astro.props;
 
 <Layout metadata={metadata}>
   <div class="flex min-h-screen">
-    <SidebarNav 
-      class="h-screen fixed top-0 left-0 w-[50px] md:w-[100px]"
-    />
-    <main 
-      id="main-content"
-      class="ml-[50px] md:ml-[100px] w-[calc(100%-50px)] md:w-[calc(100%-100px)]"
-    >
+    <SidebarNav class="h-screen fixed top-0 left-0 w-[50px] md:w-[100px]" />
+    <main id="main-content" class="ml-[50px] md:ml-[100px] w-[calc(100%-50px)] md:w-[calc(100%-100px)]">
       <slot />
     </main>
   </div>
-  <slot name="footer">
-    <Footer />
-  </slot>
+  <div class="ml-[50px] md:ml-[100px]">
+    <slot name="footer">
+      <Footer />
+    </slot>
+  </div>
+  <Modal id="settings" title="Settings">
+    <SettingsPanel />
+  </Modal>
+  <Toaster />
 </Layout>
