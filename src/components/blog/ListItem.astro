@@ -34,7 +34,11 @@ const link = APP_BLOG?.post?.isEnabled ? getPermalink(post.permalink, 'post') : 
       imageSrc && (
         <div class="w-full shrink-0 overflow-hidden border border-terminal-300/40 sm:w-40">
           {link ? (
-            <a href={link} class="block">
+            // aria-hidden + tabindex="-1": this image link is a visual duplicate of the
+            // title link below (same href, same destination) with only an empty-alt image
+            // inside, so it was a focusable link with no accessible name. Hiding it from
+            // the a11y tree/tab order leaves exactly one way to reach the post.
+            <a href={link} class="block" aria-hidden="true" tabindex="-1">
               <img src={imageSrc} alt="" loading="lazy" decoding="async" class="h-32 w-full object-cover sm:h-24" />
             </a>
           ) : (

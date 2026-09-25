@@ -14,6 +14,12 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
+  // `screens.spec.ts` (`@screens`) is a one-off screenshot capture for lead review, not part
+  // of the regular suite: excluded by default. `grepInvert` and the CLI's own `--grep` both
+  // have to match for a test to run, so excluding `@screens` here would make `--grep @screens`
+  // (the way to run it on demand) match nothing; INCLUDE_SCREENS lifts the exclusion instead.
+  // Run it with: `INCLUDE_SCREENS=1 pnpm exec playwright test --grep @screens`.
+  grepInvert: process.env.INCLUDE_SCREENS ? undefined : /@screens/,
   use: {
     baseURL: 'http://localhost:4321',
     reducedMotion: 'reduce',
