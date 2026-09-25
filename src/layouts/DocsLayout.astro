@@ -35,7 +35,10 @@ const { prev, next } = await getPrevNext(doc.id);
 
 const tocHeadings = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 
-const crumbs = [{ label: 'docs', href: docHref('index') }, ...(doc.id === 'index' ? [] : [{ label: `${doc.id}.md` }])];
+const crumbs = [
+  { label: 'docs', href: docHref('index') },
+  ...(doc.id === 'index' ? [] : [{ label: `${doc.id}.${doc.filePath?.split('.').pop() ?? 'md'}` }]),
+];
 
 const metadata: MetaData = {
   title: `${title} | Docs`,
