@@ -106,3 +106,9 @@
 .dd *:first-child {
   margin-top: 0;
 }
+
+/* Themed scrollbars everywhere (Firefox + Chromium). */
+* {
+  scrollbar-color: var(--theme-400) var(--theme-bg-secondary);
+  scrollbar-width: thin;
+}

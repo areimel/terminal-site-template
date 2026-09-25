@@ -17,14 +17,14 @@ const { class: className } = Astro.props;
 
 <div class:list={['settings-panel flex flex-col gap-6', className]}>
   <section>
-    <Heading level={2} class="mb-3">Theme</Heading>
+    <Heading level={2} as="h2" class="mb-3 !text-t-xl">Theme</Heading>
     <ThemeSwitcher />
   </section>
 
   <Divider style="dashed" />
 
   <section>
-    <Heading level={2} class="mb-3">Effects</Heading>
+    <Heading level={2} as="h2" class="mb-3 !text-t-xl">Effects</Heading>
     <EffectsControls />
   </section>
 </div>
