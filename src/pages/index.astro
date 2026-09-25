@@ -1,27 +1,158 @@
 ---
-import Layout from '~/layouts/PageLayout.astro';
 import { TEMPLATE } from 'astrowind:config';
-import { Panel, Heading, Button } from '@components/core';
 
-const metadata = {
+import PageLayout from '~/layouts/PageLayout.astro';
+import { Panel, Heading, Prompt, Container, Badge, Button } from '~/components/core';
+import { Card, FactGrid } from '~/components/content';
+import { Meter } from '~/components/data';
+import { Typewriter } from '~/components/effects';
+import { TerminalShell } from '~/components/shell';
+import BentoCell from '~/components/home/BentoCell.astro';
+import SectionHeading from '~/components/home/SectionHeading.astro';
+
+import { facts, skills, stack } from '~/data/profile';
+import { findLatestProjects } from '~/utils/projects';
+import { findLatestPosts } from '~/utils/blog';
+import { getPermalink } from '~/utils/permalinks';
+import { getFormattedDate } from '~/utils/utils';
+import type { MetaData } from '~/types';
+
+const metadata: MetaData = {
   title: TEMPLATE.identity.name,
   ignoreTitleTemplate: true,
+  description: `${TEMPLATE.identity.role} at ${TEMPLATE.identity.org}. ${TEMPLATE.identity.tagline}`,
 };
+
+const latestProjects = await findLatestProjects({ count: 3 });
+const latestPosts = await findLatestPosts({ count: 3 });
 ---
 
-<Layout metadata={metadata}>
-  <div class="w-full max-w-4xl mx-auto py-12 px-4">
-    <Panel title="~/home">
-      <Heading level={1} class="mb-4">
-        {TEMPLATE.identity.name}
-      </Heading>
-      <p class="text-terminal-400 font-kode text-base mb-6">
-        {TEMPLATE.identity.tagline}
-      </p>
-      <div class="flex gap-3">
-        <Button href="/projects">View Projects</Button>
-        <Button href="/blog">Read Blog</Button>
+<PageLayout metadata={metadata}>
+  <Container size="wide" spacing="lg">
+    <div class="flex flex-col gap-4">
+      <div class="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+        <Prompt symbol=">_" blink class="text-t-3xl text-terminal-bright md:text-t-4xl" />
+        <Heading level={1} decode glow="strong">
+          {TEMPLATE.identity.name}
+        </Heading>
       </div>
-    </Panel>
-  </div>
-</Layout>
+      <Typewriter
+        as="p"
+        text={TEMPLATE.identity.tagline}
+        class="max-w-2xl font-kode text-t-lg text-terminal-300 md:text-t-xl"
+      />
+    </div>
+  </Container>
+
+  <Container size="wide" spacing="none" class="pb-16 lg:pb-24">
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <BentoCell span="half">
+        <Panel title="~/about.txt" variant="line" class="flex-1">
+          <p class="text-terminal-400">
+            {TEMPLATE.identity.role} at {TEMPLATE.identity.org}, based in {TEMPLATE.identity.location}.
+          </p>
+          <p class="mt-3 text-terminal-400">
+            This page is built entirely from the components in this template - the shell below runs on the same engine
+            as the full-screen terminal.
+          </p>
+        </Panel>
+      </BentoCell>
+
+      <BentoCell span="half">
+        <Panel title="~/skills.log" variant="line" class="flex-1">
+          <div class="flex flex-col gap-4">
+            {
+              skills.map((skill) => (
+                <div>
+                  <Meter value={skill.level} label={skill.name} />
+                  <p class="mt-1 text-t-sm text-terminal-300">{skill.summary}</p>
+                </div>
+              ))
+            }
+          </div>
+        </Panel>
+      </BentoCell>
+
+      <BentoCell span="half">
+        <Panel title="~/stack.cfg" variant="line" class="flex-1">
+          <div class="flex flex-col gap-4">
+            {
+              stack.map((group) => (
+                <div>
+                  <p class="mb-2 font-kode text-t-sm uppercase tracking-wide text-terminal-300">{group.group}</p>
+                  <div class="flex flex-wrap gap-2">
+                    {group.items.map((item) => (
+                      <Badge variant="outline">{item}</Badge>
+                    ))}
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        </Panel>
+      </BentoCell>
+
+      <BentoCell span="half">
+        <FactGrid items={facts} columns={2} class="flex-1" />
+      </BentoCell>
+
+      <BentoCell span="full">
+        <SectionHeading title="~/projects/" href={getPermalink('/projects')} linkLabel="View all projects" />
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {
+            latestProjects.map((project) => (
+              <Card
+                title={project.title}
+                href={getPermalink(project.permalink, 'post')}
+                excerpt={project.excerpt}
+                meta={getFormattedDate(project.publishDate)}
+                tags={project.tags?.map((tag) => tag.title)}
+                headingLevel={3}
+              />
+            ))
+          }
+        </div>
+      </BentoCell>
+
+      <BentoCell span="half">
+        <SectionHeading title="~/blog/" href={getPermalink('/blog')} linkLabel="View all" />
+        <Panel variant="line" padding="md" class="mt-4 flex-1">
+          <ul class="flex flex-col divide-y divide-terminal-300/30">
+            {
+              latestPosts.map((post) => (
+                <li class="py-3 first:pt-0 last:pb-0">
+                  <a
+                    href={getPermalink(post.permalink, 'post')}
+                    class="font-kode text-terminal-400 transition-colors hover:text-terminal-bright"
+                  >
+                    {post.title}
+                  </a>
+                  <p class="mt-1 text-t-sm text-terminal-300">{getFormattedDate(post.publishDate)}</p>
+                </li>
+              ))
+            }
+          </ul>
+        </Panel>
+      </BentoCell>
+
+      <BentoCell span="half">
+        <Panel title="~/contact.sh" variant="line" tone="accent" class="flex-1">
+          <div>
+            <p class="text-terminal-400">Have a system to build or a bug to squash?</p>
+            <p class="mt-3 text-terminal-400">Send a message and it lands straight in the inbox.</p>
+          </div>
+          <div class="mt-6">
+            <Button href="/contact">Send a message</Button>
+          </div>
+        </Panel>
+      </BentoCell>
+
+      <BentoCell span="full">
+        <p class="mb-3 font-kode text-t-sm text-terminal-300">
+          This is a live shell. Type <code class="text-terminal-400">help</code> to see what it can do.
+        </p>
+        <TerminalShell mode="inline" height="16rem" initialCommands={['whoami']} />
+      </BentoCell>
+    </div>
+  </Container>
+</PageLayout>
