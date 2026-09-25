@@ -1,4 +1,5 @@
 ---
+import { Badge } from '~/components/core';
 import { getPermalink } from '~/utils/permalinks';
 
 import { APP_BLOG } from 'astrowind:config';
@@ -7,37 +8,33 @@ import type { Post } from '~/types';
 export interface Props {
   tags: Post['tags'];
   class?: string;
-  title?: string | undefined;
+  title?: string;
   isCategory?: boolean;
 }
 
-const { tags, class: className = 'text-sm', title = undefined, isCategory = false } = Astro.props;
+const { tags, class: className, title, isCategory = false } = Astro.props;
 ---
 
 {
-  tags && Array.isArray(tags) && (
-    <>
-      {title !== undefined && (
-        <span class="align-super font-normal underline underline-offset-4 decoration-2 text-terminal-400">
-          {title}
-        </span>
-      )}
-      <ul class={className}>
+  tags && Array.isArray(tags) && tags.length > 0 && (
+    <div class={className}>
+      {title && <p class="mb-2 font-kode text-t-sm text-terminal-400">{title}</p>}
+      <ul class="flex flex-wrap gap-2">
         {tags.map((tag) => (
-          <li class="bg-terminal-bg-secondary border border-terminal-300/20 inline-block mr-2 rtl:mr-0 rtl:ml-2 mb-2 py-0.5 px-2 lowercase font-medium">
-            {!APP_BLOG?.tag?.isEnabled ? (
-              tag.title
-            ) : (
+          <li>
+            {APP_BLOG?.tag?.isEnabled ? (
               <a
                 href={getPermalink(tag.slug, isCategory ? 'category' : 'tag')}
-                class="text-terminal-500 hover:text-terminal-bright transition-colors"
+                class="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terminal-bright"
               >
-                {tag.title}
+                <Badge variant="outline">{tag.title}</Badge>
               </a>
+            ) : (
+              <Badge variant="outline">{tag.title}</Badge>
             )}
           </li>
         ))}
       </ul>
-    </>
+    </div>
   )
 }

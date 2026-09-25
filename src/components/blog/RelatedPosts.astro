@@ -1,10 +1,12 @@
 ---
 import { APP_BLOG } from 'astrowind:config';
 
+import { Button, Heading } from '~/components/core';
+import ListItem from '~/components/blog/ListItem.astro';
+
 import { getRelatedPosts } from '~/utils/blog';
-import BlogHighlightedPosts from '../widgets/BlogHighlightedPosts.astro';
-import type { Post } from '~/types';
 import { getBlogPermalink } from '~/utils/permalinks';
+import type { Post } from '~/types';
 
 export interface Props {
   post: Post;
@@ -12,20 +14,23 @@ export interface Props {
 
 const { post } = Astro.props;
 
-const relatedPosts = post.tags ? await getRelatedPosts(post, 4) : [];
+const relatedPosts = post.tags && post.tags.length > 0 ? await getRelatedPosts(post, 4) : [];
 ---
 
 {
-  APP_BLOG.isRelatedPostsEnabled ? (
-    <BlogHighlightedPosts
-      classes={{
-        container:
-          'pt-0 lg:pt-0 md:pt-0 intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade text-terminal-500',
-      }}
-      title="Related Posts"
-      linkText="View All Posts"
-      linkUrl={getBlogPermalink()}
-      postIds={relatedPosts.map((post) => post.id)}
-    />
-  ) : null
+  APP_BLOG.isRelatedPostsEnabled && relatedPosts.length > 0 && (
+    <section class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+      <div class="mb-6 flex items-center justify-between gap-4">
+        <Heading level={2}>Related posts</Heading>
+        <Button href={getBlogPermalink()} variant="link">
+          View all posts
+        </Button>
+      </div>
+      <ul class="flex flex-col gap-6">
+        {relatedPosts.map((relatedPost) => (
+          <ListItem post={relatedPost} />
+        ))}
+      </ul>
+    </section>
+  )
 }

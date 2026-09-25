@@ -1,0 +1,80 @@
+---
+/**
+ * ProjectHeader - project-specific facts panel rendered inside ArticleShell's `facts` slot.
+ *
+ * Absorbs the old `ProjectQuickFacts`: a technologies list, role/client/duration (when
+ * present) and live + repo links as core `Button`s.
+ */
+import { Badge, Button, Icon, Panel } from '~/components/core';
+
+export interface Props {
+  technologies?: string[];
+  role?: string;
+  client?: string;
+  duration?: string;
+  liveUrl?: string;
+  repoUrl?: string;
+  class?: string;
+}
+
+const { technologies = [], role, client, duration, liveUrl, repoUrl, class: className } = Astro.props;
+
+const facts = [
+  role && { label: 'Role', value: role },
+  client && { label: 'Client', value: client },
+  duration && { label: 'Duration', value: duration },
+].filter(Boolean) as { label: string; value: string }[];
+
+const hasLinks = Boolean(liveUrl || repoUrl);
+---
+
+<Panel title="~/project/facts.txt" variant="line" class:list={className}>
+  <div class="flex flex-col gap-6 sm:flex-row sm:flex-wrap sm:gap-10">
+    {
+      technologies.length > 0 && (
+        <div>
+          <p class="mb-2 font-kode text-t-sm text-terminal-400">Technology</p>
+          <ul class="flex flex-wrap gap-2">
+            {technologies.map((tech) => (
+              <li>
+                <Badge variant="outline">{tech}</Badge>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+
+    {
+      facts.length > 0 && (
+        <dl class="flex flex-wrap gap-x-8 gap-y-3">
+          {facts.map((fact) => (
+            <div>
+              <dt class="font-kode text-t-sm text-terminal-400">{fact.label}</dt>
+              <dd class="text-terminal-500">{fact.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )
+    }
+  </div>
+
+  {
+    hasLinks && (
+      <div class="mt-6 flex flex-wrap gap-3">
+        {liveUrl && (
+          <Button href={liveUrl} target="_blank" variant="outline" size="sm">
+            <Icon name="tabler:world" size={16} />
+            View live site
+          </Button>
+        )}
+        {repoUrl && (
+          <Button href={repoUrl} target="_blank" variant="outline" size="sm">
+            <Icon name="tabler:brand-github" size={16} />
+            View repository
+          </Button>
+        )}
+      </div>
+    )
+  }
+</Panel>

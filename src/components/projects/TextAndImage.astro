@@ -1,0 +1,62 @@
+---
+/**
+ * TextAndImage - a two-column text/image section for embedding inside project MDX content.
+ */
+import { Heading } from '~/components/core';
+
+export interface Props {
+  /** Heading text for the section. */
+  headline: string;
+  /** HTML string rendered as the body. */
+  bodyText: string;
+  imageSrc: string;
+  imageAlt: string;
+  /** `text-first` (default) puts text on the left, image on the right; `image-first` reverses it. */
+  flexDirection?: 'text-first' | 'image-first';
+  /** Applies a 3D tilt + glow to the image. */
+  skew?: boolean;
+  class?: string;
+}
+
+const {
+  headline,
+  bodyText,
+  imageSrc,
+  imageAlt,
+  flexDirection = 'text-first',
+  skew = false,
+  class: className,
+} = Astro.props;
+
+const directionClass = flexDirection === 'image-first' ? 'md:flex-row-reverse' : 'md:flex-row';
+---
+
+<div class:list={['not-prose mb-16 flex flex-col gap-8 md:items-center', directionClass, className]}>
+  <div class="md:w-1/2">
+    <Heading level={2} glow="subtle" class="mb-4">
+      {headline}
+    </Heading>
+    <div class="space-y-4 text-terminal-400">
+      <Fragment set:html={bodyText} />
+    </div>
+  </div>
+
+  <div class="md:w-1/2">
+    <div class:list={['relative aspect-video border border-terminal-300/40', { 'text-and-image-skew': skew }]}>
+      <img src={imageSrc} alt={imageAlt} class="h-full w-full object-cover" loading="lazy" decoding="async" />
+    </div>
+  </div>
+</div>
+
+<style>
+  .text-and-image-skew {
+    transform: perspective(1000px) rotateX(4deg) rotateY(-16deg) rotateZ(4deg);
+    box-shadow: 0 0 15px 5px var(--terminal-500);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .text-and-image-skew {
+      transform: none;
+    }
+  }
+</style>

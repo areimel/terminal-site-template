@@ -1,7 +1,6 @@
 ---
-import { Icon } from 'astro-icon/components';
+import { Button, Icon } from '~/components/core';
 import { getPermalink } from '~/utils/permalinks';
-import Button from '~/components/ui/Button.astro';
 
 export interface Props {
   prevUrl?: string;
@@ -15,22 +14,23 @@ const { prevUrl, nextUrl, prevText = 'Newer posts', nextText = 'Older posts' } =
 
 {
   (prevUrl || nextUrl) && (
-    <div class="container flex">
-      <div class="flex flex-row mx-auto container justify-between">
-        <Button
-          variant="tertiary"
-          class={`md:px-3 px-3 mr-2 ${!prevUrl ? 'invisible' : ''}`}
-          href={getPermalink(prevUrl)}
-        >
-          <Icon name="tabler:chevron-left" class="w-6 h-6" />
-          <p class="ml-2">{prevText}</p>
+    <nav class="mt-10 flex items-center justify-between gap-4" aria-label="Pagination">
+      {prevUrl ? (
+        <Button href={getPermalink(prevUrl)} variant="outline" size="sm">
+          <Icon name="tabler:chevron-left" size={18} />
+          {prevText}
         </Button>
-
-        <Button variant="tertiary" class={`md:px-3 px-3 ${!nextUrl ? 'invisible' : ''}`} href={getPermalink(nextUrl)}>
-          <span class="mr-2">{nextText}</span>
-          <Icon name="tabler:chevron-right" class="w-6 h-6" />
+      ) : (
+        <span aria-hidden="true" />
+      )}
+      {nextUrl ? (
+        <Button href={getPermalink(nextUrl)} variant="outline" size="sm">
+          {nextText}
+          <Icon name="tabler:chevron-right" size={18} />
         </Button>
-      </div>
-    </div>
+      ) : (
+        <span aria-hidden="true" />
+      )}
+    </nav>
   )
 }
