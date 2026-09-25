@@ -25,3 +25,5 @@ pnpm-lock.yaml
 # agent worktrees
 .claude/worktrees/
 .playwright-mcp/
+playwright-report/
+test-results/
