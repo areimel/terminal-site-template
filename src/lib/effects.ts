@@ -9,21 +9,18 @@
  * functions.
  */
 
+import { TEMPLATE } from 'astrowind:config';
+
 export type EffectName = 'boot' | 'noise' | 'scanline' | 'overlay' | 'decoder';
 
 export const effectNames: EffectName[] = ['boot', 'noise', 'scanline', 'overlay', 'decoder'];
 
 export type EffectsState = Record<EffectName, boolean> & { all: boolean };
 
-// TODO(lead): wire to `template.effects` in config.yaml once the config
-// block lands (see docs/superpowers/specs/2026-09-25-terminal-template-design.md).
+/** Effect defaults, set via `template.effects` in src/config.yaml. Users can override them at runtime. */
 export const effectDefaults: EffectsState = {
   all: true,
-  boot: true,
-  noise: true,
-  scanline: true,
-  overlay: true,
-  decoder: true,
+  ...TEMPLATE.effects,
 };
 
 const STORAGE_KEY = 'terminal-effects';

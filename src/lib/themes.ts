@@ -7,6 +7,8 @@
  * `theme-runtime.ts`.
  */
 
+import { TEMPLATE } from 'astrowind:config';
+
 export interface TerminalTheme {
   id: string;
   label: string;
@@ -141,9 +143,10 @@ export const themes: TerminalTheme[] = [
   },
 ];
 
-// TODO(lead): wire to `template.themes.default` in config.yaml once the
-// config block lands (see docs/superpowers/specs/2026-09-25-terminal-template-design.md).
-export const defaultThemeId = 'green';
+/** Default theme, set via `template.themes.default` in src/config.yaml (falls back to the first theme). */
+export const defaultThemeId: string = themes.some((theme) => theme.id === TEMPLATE.themes.default)
+  ? TEMPLATE.themes.default
+  : themes[0].id;
 
 export function getThemeById(id: string): TerminalTheme | undefined {
   return themes.find((theme) => theme.id === id);
