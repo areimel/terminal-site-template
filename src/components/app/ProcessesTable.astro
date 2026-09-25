@@ -1,10 +1,7 @@
 ---
 /**
  * ProcessesTable - the "Processes" tab panel: a DataTable of fake running processes.
- *
- * `DataTable` cells are plain text/number/date - it has no per-cell renderer - so `status`
- * is a plain ALL-CAPS status string (`RUNNING`/`SLEEPING`/`STOPPED`) rather than an actual
- * `Badge`, per the design rule that ALL-CAPS is reserved for exactly this kind of string.
+ * Status renders as Badges via the DataTable column `badges` map.
  */
 import { DataTable } from '~/components/data';
 import type { ProcessRow } from './data';
@@ -38,7 +35,12 @@ const rows = processes.map((p) => ({
     { key: 'user', label: 'User', sortable: true },
     { key: 'cpu', label: 'CPU %', align: 'right', sortable: true, format: 'number' },
     { key: 'mem', label: 'Mem (MB)', align: 'right', sortable: true, format: 'number' },
-    { key: 'status', label: 'Status', sortable: true },
+    {
+      key: 'status',
+      label: 'Status',
+      sortable: true,
+      badges: { RUNNING: 'ok', SLEEPING: 'default', STOPPED: 'err' },
+    },
     { key: 'started', label: 'Started', sortable: true },
   ]}
   rows={rows}

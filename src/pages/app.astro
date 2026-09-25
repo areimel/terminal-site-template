@@ -12,7 +12,7 @@ import { Container, Panel } from '~/components/core';
 import { LogStream } from '~/components/data';
 import StatusBar from '~/components/app/StatusBar.astro';
 import StatsRow from '~/components/app/StatsRow.astro';
-import AppTabs from '~/components/app/AppTabs.astro';
+import { Tabs } from '~/components/navigation';
 import ProcessesTable from '~/components/app/ProcessesTable.astro';
 import JobsPanel from '~/components/app/JobsPanel.astro';
 import NodesPanel from '~/components/app/NodesPanel.astro';
@@ -44,7 +44,7 @@ const uptimeSeconds = 14 * 86400 + 6 * 3600 + 22 * 60 + 10;
 
         <div class="order-2 lg:order-1 lg:col-span-2">
           <Panel title="~/ops/console.sh" variant="double" tone="accent" padding="md">
-            <AppTabs
+            <Tabs
               tabs={[
                 { id: 'processes', label: 'Processes' },
                 { id: 'jobs', label: 'Jobs' },
@@ -60,7 +60,7 @@ const uptimeSeconds = 14 * 86400 + 6 * 3600 + 22 * 60 + 10;
               <Fragment slot="nodes">
                 <NodesPanel nodes={nodes} />
               </Fragment>
-            </AppTabs>
+            </Tabs>
           </Panel>
         </div>
       </div>

@@ -16,6 +16,8 @@ export interface DataTableColumn {
   align?: 'left' | 'right' | 'center';
   sortable?: boolean;
   format?: 'text' | 'number' | 'date';
+  /** Render cells as status Badges: maps a cell value to a tone (unmapped values use `default`). */
+  badges?: Record<string, 'default' | 'ok' | 'warn' | 'err'>;
 }
 
 export interface Props {
@@ -49,6 +51,7 @@ function formatCell(value: string | number | undefined, format: DataTableColumn[
   }
   return String(value);
 }
+import Badge from '~/components/core/Badge.astro';
 ---
 
 <terminal-datatable class:list={['data-table block', className]}>
@@ -99,7 +102,11 @@ function formatCell(value: string | number | undefined, format: DataTableColumn[
               <tr class:list={['data-table-row hover:bg-terminal-500/10', { 'bg-terminal-bg-secondary': i % 2 === 1 }]}>
                 {columns.map((col) => (
                   <td class:list={[CELL_PADDING, ALIGN[col.align ?? 'left'], 'tabular-nums text-terminal-500']}>
-                    {formatCell(row[col.key], col.format)}
+                    {col.badges ? (
+                      <Badge tone={col.badges[String(row[col.key])] ?? 'default'}>{formatCell(row[col.key])}</Badge>
+                    ) : (
+                      formatCell(row[col.key], col.format)
+                    )}
                   </td>
                 ))}
               </tr>

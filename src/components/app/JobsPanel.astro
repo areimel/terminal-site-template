@@ -34,7 +34,12 @@ const rows = jobs.map((job) => ({
       { key: 'schedule', label: 'Schedule', sortable: true },
       { key: 'lastRun', label: 'Last run', sortable: true },
       { key: 'nextRun', label: 'Next run', sortable: true },
-      { key: 'status', label: 'Status', sortable: true },
+      {
+        key: 'status',
+        label: 'Status',
+        sortable: true,
+        badges: { COMPLETED: 'ok', RUNNING: 'default', SCHEDULED: 'default', FAILED: 'err' },
+      },
     ]}
     rows={rows}
   />
@@ -42,7 +47,9 @@ const rows = jobs.map((job) => ({
   {
     runningJobs.length > 0 && (
       <div class="flex flex-col gap-3">
-        <Heading level={4}>Running now</Heading>
+        <Heading level={4} size={6}>
+          Running now
+        </Heading>
         <div class="flex flex-col gap-3">
           {runningJobs.map((job) =>
             job.progress == null ? (

@@ -5,21 +5,31 @@
  * item in a terminal list usually behaves. Home/End jump to the first/last tab.
  *
  * Panel content is provided via named slots, one per tab id: `<div slot={tab.id}>...</div>`.
+ * Slots are rendered server-side with `Astro.slots.render()` because Astro requires static
+ * `<slot name>` values. Ids are prefixed per instance so several Tabs can share a page.
  */
 export interface Props {
   tabs: { id: string; label: string }[];
   /** Initially selected tab id. Defaults to the first tab. */
   selected?: string;
+  /** Accessible name for the tab list. */
+  label?: string;
   class?: string;
 }
 
-const { tabs, selected, class: className } = Astro.props;
+const { tabs, selected, label = 'Tabs', class: className } = Astro.props;
+
+const uid = `tabs-${Math.random().toString(36).slice(2, 8)}`;
+
+const panels = await Promise.all(
+  tabs.map(async (tab) => (Astro.slots.has(tab.id) ? await Astro.slots.render(tab.id) : ''))
+);
 
 const initial = selected && tabs.some((tab) => tab.id === selected) ? selected : tabs[0]?.id;
 ---
 
 <terminal-tabs class:list={['terminal-tabs block', className]} data-selected={initial}>
-  <div role="tablist" aria-label="Tabs" class="tabs-list flex flex-wrap gap-1 font-kode text-sm">
+  <div role="tablist" aria-label={label} class="tabs-list flex flex-wrap gap-1 font-kode text-sm">
     {
       tabs.map((tab) => {
         const isSelected = tab.id === initial;
@@ -27,8 +37,8 @@ const initial = selected && tabs.some((tab) => tab.id === selected) ? selected :
           <button
             type="button"
             role="tab"
-            id={`tab-${tab.id}`}
-            aria-controls={`panel-${tab.id}`}
+            id={`${uid}-tab-${tab.id}`}
+            aria-controls={`${uid}-panel-${tab.id}`}
             aria-selected={isSelected ? 'true' : 'false'}
             tabindex={isSelected ? 0 : -1}
             data-tab-id={tab.id}
@@ -47,16 +57,17 @@ const initial = selected && tabs.some((tab) => tab.id === selected) ? selected :
   </div>
 
   {
-    tabs.map((tab) => (
+    tabs.map((tab, index) => (
       <div
         role="tabpanel"
-        id={`panel-${tab.id}`}
-        aria-labelledby={`tab-${tab.id}`}
+        id={`${uid}-panel-${tab.id}`}
+        aria-labelledby={`${uid}-tab-${tab.id}`}
+        data-panel-id={tab.id}
         hidden={tab.id !== initial}
         tabindex={0}
         class="tab-panel pt-3"
       >
-        <slot name={tab.id} />
+        <Fragment set:html={panels[index]} />
       </div>
     ))
   }
@@ -112,7 +123,7 @@ const initial = selected && tabs.some((tab) => tab.id === selected) ? selected :
         if (isSelected && focus) tab.focus();
       });
       this.panels.forEach((panel) => {
-        panel.hidden = panel.id !== `panel-${id}`;
+        panel.hidden = panel.dataset.panelId !== id;
       });
       this.dataset.selected = id;
       this.dispatchEvent(new CustomEvent('terminal:tabs-change', { detail: { id }, bubbles: true }));
