@@ -1,0 +1,102 @@
+---
+/**
+ * TypographyDemo - renders Prose, CodeBlock and Blockquote with realistic sample content.
+ * Embedded in the `/components` gallery (built in a later wave).
+ */
+import { TEMPLATE } from 'astrowind:config';
+import { Panel } from '~/components/core';
+import Prose from '~/components/content/Prose.astro';
+import CodeBlock from '~/components/content/CodeBlock.astro';
+import Blockquote from '~/components/content/Blockquote.astro';
+
+const shellSample = `import { createShell } from '~/lib/shell/engine';
+
+export const shell = createShell(host, [
+  { name: 'whoami', description: 'Print the current user', run: (ctx) => ctx.print(ctx.identity.handle) },
+]);`;
+
+const bashSample = `pnpm install
+pnpm run dev
+pnpm run build`;
+
+const bootSample = `function boot(lines: string[]): void {
+  for (const line of lines) {
+    print(line, 'default');
+  }
+  print('Ready.', 'ok');
+}`;
+---
+
+<div class="flex flex-col gap-8">
+  <Panel title="Prose">
+    <p class="mb-4 font-kode text-t-sm text-terminal-400">
+      Wraps long-form content - blog posts, docs, markdown pages - in the terminal typography styles.
+    </p>
+    <Prose>
+      <h1>System documentation</h1>
+      <p>
+        {TEMPLATE.identity.org} exposes a small set of terminal-native primitives so every page - marketing, docs, dashboard
+        - shares one visual rhythm. This paragraph exists only to show body copy at a realistic length, wrapping across a
+        couple of lines inside the capped measure.
+      </p>
+      <h2>Getting started</h2>
+      <p>
+        Install dependencies, then start the dev server with <code>pnpm run dev</code>. See the
+        <a href="/docs">full documentation</a> for the complete command reference.
+      </p>
+      <ul>
+        <li>Clone the repository</li>
+        <li>
+          Copy <code>.env.example</code> to <code>.env</code>
+        </li>
+        <li>
+          Run <code>pnpm install</code>
+        </li>
+      </ul>
+      <h3>Effects reference</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Effect</th>
+            <th>Default</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>boot</td>
+            <td>on</td>
+            <td>Runs once per session</td>
+          </tr>
+          <tr>
+            <td>scanline</td>
+            <td>on</td>
+            <td>Disabled under reduced motion</td>
+          </tr>
+        </tbody>
+      </table>
+      <hr />
+      <p>Everything past the rule is an aside, styled the same as any other paragraph.</p>
+    </Prose>
+  </Panel>
+
+  <Panel title="CodeBlock">
+    <p class="mb-4 font-kode text-t-sm text-terminal-400">
+      A syntax-highlighted code sample with a copy button, built on Panel.
+    </p>
+    <div class="flex flex-col gap-4">
+      <CodeBlock code={shellSample} lang="ts" filename="src/lib/shell/commands.ts" />
+      <CodeBlock code={bashSample} lang="bash" />
+      <CodeBlock code={bootSample} lang="ts" filename="src/lib/boot.ts" showLineNumbers />
+    </div>
+  </Panel>
+
+  <Panel title="Blockquote">
+    <p class="mb-4 font-kode text-t-sm text-terminal-400">
+      A terminal-styled quote with a glyph rule and an optional author line.
+    </p>
+    <Blockquote author={TEMPLATE.identity.name} cite="/blog/on-uptime">
+      <p>The system is most honest at 3am, when there's nothing left to perform for.</p>
+    </Blockquote>
+  </Panel>
+</div>

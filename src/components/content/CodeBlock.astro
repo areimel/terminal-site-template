@@ -1,0 +1,233 @@
+---
+/**
+ * CodeBlock - a syntax-highlighted code sample, built on the core `Panel`.
+ *
+ * The Panel title bar shows `filename` (falling back to `lang`). Highlighting uses Astro's
+ * built-in `<Code>` (from `astro:components`) with the `css-variables` Shiki theme, which emits
+ * `--astro-code-*` custom properties instead of hard-coded colors. This file maps those to the
+ * template's `--theme-*` variables (see the `<style>` block below), so highlighting re-themes
+ * live across all 5 terminal themes without a rebuild.
+ *
+ * The copy button is a small custom element, `<terminal-copy>`: it reads the rendered code from
+ * its own Panel, copies it to the clipboard, announces "Copied" via `aria-live`, and changes its
+ * own label to "Copied" for 2 seconds. A clipboard failure shows a plain fallback message instead
+ * of throwing.
+ *
+ * Markdown fenced code blocks are themed to match this component via CSS in `Prose.astro`; see
+ * that file's comment for the one shared config change (`markdown.shikiConfig.theme`) that would
+ * make them byte-for-byte consistent - reported under "Requests" since `astro.config.ts` is
+ * outside this file's ownership.
+ */
+import { Code } from 'astro:components';
+import Panel from '~/components/core/Panel.astro';
+
+// Astro/Shiki's own `CodeLanguage` union isn't exported from `astro:components`. Accepting a
+// plain string keeps this component's public API simple for consumers; unknown ids fall back to
+// plaintext highlighting (Shiki's own behavior), so the cast below is safe.
+type ShikiLang = Parameters<typeof Code>[0]['lang'];
+
+export interface Props {
+  /** The source code to display. */
+  code: string;
+  /** Shiki language id (e.g. `ts`, `bash`, `astro`). @default 'plaintext' */
+  lang?: string;
+  /** Shown in the Panel title bar. Falls back to `lang` when omitted. */
+  filename?: string;
+  /** Render line numbers via CSS counters. @default false */
+  showLineNumbers?: boolean;
+  class?: string;
+}
+
+const { code, lang = 'plaintext', filename, showLineNumbers = false, class: className } = Astro.props;
+const shikiLang = lang as ShikiLang;
+
+// Shiki chokes on a lone trailing newline being counted as an extra empty line.
+const trimmedCode = code.replace(/\n+$/, '');
+const lineCount = trimmedCode.length ? trimmedCode.split('\n').length : 0;
+const title = filename ?? lang;
+const scrollLabel = `Code sample${title ? `: ${title}` : ''}, ${lineCount} line${lineCount === 1 ? '' : 's'}`;
+---
+
+<Panel
+  title={title}
+  variant="line"
+  padding="none"
+  class:list={['codeblock', { 'codeblock-numbered': showLineNumbers }, className]}
+>
+  <Fragment slot="actions">
+    <terminal-copy class="codeblock-copy">
+      <button type="button" class="codeblock-copy-btn font-kode text-t-sm" data-copy-label>Copy</button>
+      <span class="codeblock-copy-status sr-only font-kode text-t-sm" role="status" aria-live="polite" data-copy-status
+      ></span>
+    </terminal-copy>
+  </Fragment>
+
+  <div class="codeblock-scroll" tabindex="0" role="group" aria-label={scrollLabel}>
+    <Code code={trimmedCode} lang={shikiLang} theme="css-variables" />
+  </div>
+</Panel>
+
+<style>
+  /* Map Shiki's `css-variables` theme output to the template's live theme vars, so highlighted
+     tokens re-theme with everything else instead of staying pinned to one palette. */
+  .codeblock {
+    --astro-code-foreground: var(--theme-500);
+    --astro-code-background: transparent;
+    --astro-code-token-constant: var(--theme-bright);
+    --astro-code-token-string: var(--theme-400);
+    --astro-code-token-comment: var(--theme-300);
+    --astro-code-token-keyword: var(--theme-accent-bright);
+    --astro-code-token-parameter: var(--theme-500);
+    --astro-code-token-function: var(--theme-bright);
+    --astro-code-token-string-expression: var(--theme-400);
+    --astro-code-token-punctuation: var(--theme-400);
+    --astro-code-token-link: var(--theme-accent);
+  }
+
+  .codeblock-scroll {
+    overflow-x: auto;
+    padding: 0.75rem 1rem;
+  }
+
+  .codeblock-scroll:focus-visible {
+    outline: 2px solid var(--theme-bright);
+    outline-offset: -2px;
+  }
+
+  .codeblock-scroll :global(pre.astro-code) {
+    /* The scroll container above owns overflow so there's exactly one scrollbar. */
+    overflow: visible !important;
+    background: transparent !important;
+    margin: 0;
+  }
+
+  .codeblock-scroll :global(code) {
+    font-family: 'Kode Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+
+  /* Line numbers via CSS counters on Shiki's per-line `.line` spans. */
+  .codeblock-numbered .codeblock-scroll :global(pre.astro-code > code) {
+    counter-reset: codeblock-line;
+  }
+
+  .codeblock-numbered .codeblock-scroll :global(pre.astro-code .line) {
+    display: inline-block;
+    width: 100%;
+    padding-left: 3em;
+    text-indent: -3em;
+  }
+
+  .codeblock-numbered .codeblock-scroll :global(pre.astro-code .line)::before {
+    counter-increment: codeblock-line;
+    content: counter(codeblock-line);
+    display: inline-block;
+    width: 2.25em;
+    margin-right: 0.75em;
+    text-align: right;
+    text-indent: 0;
+    color: var(--theme-300);
+    user-select: none;
+  }
+
+  .codeblock-copy {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .codeblock-copy-btn {
+    padding: 0.15em 0.6em;
+    color: var(--theme-400);
+    background: transparent;
+    border: 1px solid var(--theme-300);
+    cursor: pointer;
+    transition:
+      color 0.15s,
+      border-color 0.15s;
+  }
+
+  .codeblock-copy-btn:hover {
+    color: var(--theme-bright);
+    border-color: var(--theme-bright);
+  }
+
+  .codeblock-copy-btn:focus-visible {
+    outline: 2px solid var(--theme-bright);
+    outline-offset: 2px;
+  }
+
+  .codeblock-copy-status {
+    margin-left: 0.5rem;
+    color: var(--theme-400);
+    white-space: nowrap;
+  }
+
+  .codeblock-copy-status--error {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
+
+<script>
+  /**
+   * `<terminal-copy>` - wraps a button that copies the code from its own Panel to the
+   * clipboard. Defined once per page load; `connectedCallback` fires for every instance
+   * (including ones inserted after an Astro ClientRouter navigation), so no extra
+   * `astro:page-load` wiring is needed.
+   */
+  class TerminalCopy extends HTMLElement {
+    connectedCallback() {
+      if (this.dataset.copyInit === 'true') return;
+      this.dataset.copyInit = 'true';
+
+      const button = this.querySelector<HTMLButtonElement>('[data-copy-label]');
+      const status = this.querySelector<HTMLElement>('[data-copy-status]');
+      if (!button || !status) return;
+
+      const idleLabel = button.textContent ?? 'Copy';
+      let resetTimer: ReturnType<typeof setTimeout> | undefined;
+
+      button.addEventListener('click', async () => {
+        const source = this.closest('.codeblock')?.querySelector('pre');
+        const text = source?.textContent ?? '';
+
+        try {
+          await navigator.clipboard.writeText(text);
+          button.textContent = 'Copied';
+          status.textContent = 'Copied';
+          status.classList.remove('codeblock-copy-status--error');
+          status.classList.add('sr-only');
+          clearTimeout(resetTimer);
+          resetTimer = setTimeout(() => {
+            button.textContent = idleLabel;
+          }, 2000);
+        } catch {
+          status.textContent = 'Copy failed — select and copy manually';
+          status.classList.remove('sr-only');
+          status.classList.add('codeblock-copy-status--error');
+        }
+      });
+    }
+  }
+
+  if (!customElements.get('terminal-copy')) {
+    customElements.define('terminal-copy', TerminalCopy);
+  }
+</script>
