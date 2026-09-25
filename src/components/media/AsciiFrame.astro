@@ -1,0 +1,88 @@
+---
+/**
+ * AsciiFrame - a preformatted ASCII art container with a title bar.
+ *
+ * Renders ASCII art in a monospace font (VT323) within a bordered container.
+ * The `label` prop provides a visually-hidden text alternative to the decorative art.
+ */
+export interface Props {
+  label: string;
+  title?: string;
+  class?: string;
+}
+
+const { label, title, class: className } = Astro.props;
+---
+
+<div class:list={['media-ascii-frame', className]}>
+  {
+    title && (
+      <div class="media-ascii-header">
+        <span class="media-ascii-title">{title}</span>
+      </div>
+    )
+  }
+  <pre class="media-ascii-pre">
+    <slot />
+  </pre>
+  <span class="sr-only">{label}</span>
+</div>
+
+<style>
+  .media-ascii-frame {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--terminal-bg-secondary);
+    border: 1px solid var(--terminal-300);
+    overflow-x: auto;
+  }
+
+  .media-ascii-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    border-bottom: 1px solid var(--terminal-300);
+    background-color: var(--terminal-bg-primary);
+  }
+
+  .media-ascii-title {
+    font-size: 0.75rem;
+    line-height: 1;
+    color: var(--terminal-400);
+    font-family: 'Kode Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  .media-ascii-pre {
+    margin: 0;
+    padding: 1rem;
+    font-family: 'VT323', monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--terminal-500);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* Ensure the pre doesn't break layout on small screens */
+  @media (max-width: 480px) {
+    .media-ascii-pre {
+      font-size: 0.75rem;
+      padding: 0.75rem;
+    }
+  }
+
+  /* Utility class for screen readers only */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+</style>

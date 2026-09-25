@@ -1,0 +1,89 @@
+---
+import Panel from '~/components/core/Panel.astro';
+import Figure from '~/components/media/Figure.astro';
+import CrtImage from '~/components/media/CrtImage.astro';
+import AsciiFrame from '~/components/media/AsciiFrame.astro';
+import Embed from '~/components/media/Embed.astro';
+import Gallery from '~/components/media/Gallery.astro';
+
+const demoImages = [
+  {
+    src: '/images/blog/vr-headset-1.jpg',
+    alt: 'VR headset in a terminal environment',
+    caption: 'A virtual reality headset with retro aesthetic',
+  },
+];
+
+const galleryImages = [...demoImages, ...demoImages];
+
+const asciiArt = `
+    .---.
+   /   o\\
+  |  o   |
+   \\  o /
+    '---'
+   [MAINFRAME]
+`;
+---
+
+<div class="space-y-8">
+  <Panel title="Figure.astro" class="w-full">
+    <p class="text-t-sm text-terminal-500 mb-4">A simple captioned image with prompt prefix.</p>
+    <Figure
+      src="/images/blog/vr-headset-1.jpg"
+      alt="VR headset in a terminal environment"
+      caption="A virtual reality headset with retro aesthetic"
+      class="w-full max-w-md"
+    />
+  </Panel>
+
+  <Panel title="CrtImage.astro" class="w-full">
+    <p class="text-t-sm text-terminal-500 mb-4">Image with CRT monitor effect: grayscale, scanlines, and vignette.</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <p class="text-t-sm text-terminal-400 mb-2">Low intensity</p>
+        <CrtImage
+          src="/images/blog/vr-headset-1.jpg"
+          alt="VR headset with low-intensity CRT effect"
+          intensity="low"
+          caption="Low intensity effect"
+        />
+      </div>
+      <div>
+        <p class="text-t-sm text-terminal-400 mb-2">High intensity with flicker</p>
+        <CrtImage
+          src="/images/blog/vr-headset-1.jpg"
+          alt="VR headset with high-intensity CRT effect"
+          intensity="high"
+          caption="High intensity with flicker"
+        />
+      </div>
+    </div>
+  </Panel>
+
+  <Panel title="AsciiFrame.astro" class="w-full">
+    <p class="text-t-sm text-terminal-500 mb-4">Preformatted ASCII art with title bar and accessibility label.</p>
+    <AsciiFrame title="TERMINAL DISPLAY" label="A stylized MAINFRAME computer terminal">
+      {asciiArt}
+    </AsciiFrame>
+  </Panel>
+
+  <Panel title="Embed.astro" class="w-full">
+    <p class="text-t-sm text-terminal-500 mb-4">Responsive iframe container with configurable aspect ratio.</p>
+    <Embed
+      src="https://www.openstreetmap.org/export/embed.html?bbox=-0.1,51.5,-0.09,51.51&layer=mapnik"
+      title="Map embed"
+      aspect="16/9"
+    />
+  </Panel>
+
+  <Panel title="Gallery.astro" class="w-full">
+    <p class="text-t-sm text-terminal-500 mb-4">Responsive grid of images with optional captions and CRT effect.</p>
+    <Gallery images={galleryImages} columns={2} />
+  </Panel>
+
+  <Panel title="Gallery with CRT effect" class="w-full">
+    <p class="text-t-sm text-terminal-500 mb-4">Gallery with CRT effect applied to all images.</p>
+    <Gallery images={galleryImages} columns={2} crt={true} />
+  </Panel>
+</div>
