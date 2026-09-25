@@ -1,40 +1,72 @@
 ---
-// Astro Props
-// interface Props {
-//     title: string;
-// }
-// const { title } = Astro.props;
+import { Icon } from 'astro-icon/components';
+import { TEMPLATE } from 'astrowind:config';
+import { footerNav, socialLinks, mainNav } from '~/navigation';
 
 // Get current year for copyright
 const currentYear = new Date().getFullYear();
 ---
 
 <footer class="bg-terminal-bg-secondary border-t border-terminal-400 py-8 px-4 mt-16 text-center">
-    <nav class="mb-4">
-        <ul class="flex justify-center space-x-6 font-kode">
+  <nav class="mb-4" aria-label="Footer">
+    <ul class="flex flex-wrap justify-center gap-x-6 gap-y-2 font-kode">
+      {
+        mainNav.map((item) => (
+          <li>
+            <a href={item.href} class="footer-link">
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
+  {
+    footerNav.length > 0 && (
+      <nav class="mb-4" aria-label="Legal">
+        <ul class="flex flex-wrap justify-center gap-x-6 gap-y-2 font-kode text-sm">
+          {footerNav.map((item) => (
             <li>
-                <a href="/" class="footer-link">Home</a>
+              <a href={item.href} class="footer-link">
+                {item.label}
+              </a>
             </li>
-            <li>
-                <a href="/projects" class="footer-link">Projects</a>
-            </li>
-            <li>
-                <a href="/blog" class="footer-link">Blog</a>
-            </li>
-            <li>
-                <a href="/contact" class="footer-link">Contact</a>
-            </li>
+          ))}
         </ul>
-    </nav>
-    <p class="text-terminal-400 text-sm font-kode text-glow-subtle">
-        &copy; {currentYear} Alec Reimel<br/>
-        No Rights Reserved - Hack The Planet
-    </p>
+      </nav>
+    )
+  }
+
+  {
+    socialLinks.length > 0 && (
+      <ul class="flex justify-center gap-4 mb-4">
+        {socialLinks.map((link) => (
+          <li>
+            <a href={link.href} class="footer-link" aria-label={link.label} target="_blank" rel="noopener noreferrer">
+              <Icon name={link.icon} class="w-5 h-5" aria-hidden="true" />
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  <p class="text-terminal-400 text-sm font-kode text-glow-subtle">
+    &copy; {currentYear}
+    {TEMPLATE.identity.name}<br />
+    No Rights Reserved - Hack The Planet
+  </p>
 </footer>
 
 <style>
   .footer-link {
     @apply text-terminal-400 hover:text-terminal-bright transition-all duration-200 hover:underline;
+  }
+
+  .footer-link:focus-visible {
+    outline: 2px solid var(--terminal-bright, currentColor);
+    outline-offset: 2px;
   }
 
   /* Optional: Add glow effect on hover if desired */

@@ -8,9 +8,12 @@ export type Config = {
   i18n?: I18NConfig;
   apps?: {
     blog?: AppBlogConfig;
+    projects?: AppProjectsConfig;
   };
+  /** @deprecated AstroWind's light/dark UI setting. Kept only for components that still import it. */
   ui?: unknown;
   analytics?: unknown;
+  template?: TemplateConfigInput;
 };
 
 export interface SiteConfig {
@@ -69,6 +72,45 @@ export interface AppBlogConfig {
     };
   };
 }
+/** Same shape as AppBlogConfig, applied to the `project` collection instead of `post`. */
+export interface AppProjectsConfig {
+  isEnabled: boolean;
+  projectsPerPage: number;
+  isRelatedProjectsEnabled: boolean;
+  project: {
+    isEnabled: boolean;
+    permalink: string;
+    robots: {
+      index: boolean;
+      follow: boolean;
+    };
+  };
+  list: {
+    isEnabled: boolean;
+    pathname: string;
+    robots: {
+      index: boolean;
+      follow: boolean;
+    };
+  };
+  category: {
+    isEnabled: boolean;
+    pathname: string;
+    robots: {
+      index: boolean;
+      follow: boolean;
+    };
+  };
+  tag: {
+    isEnabled: boolean;
+    pathname: string;
+    robots: {
+      index: boolean;
+      follow: boolean;
+    };
+  };
+}
+
 export interface AnalyticsConfig {
   vendors: {
     googleAnalytics: {
@@ -78,9 +120,84 @@ export interface AnalyticsConfig {
   };
 }
 
+/** @deprecated AstroWind's light/dark UI setting; the `ui:` key has been removed from config.yaml. Kept because ApplyColorMode/BasicScripts/ToggleTheme still import it. */
 export interface UIConfig {
   theme: string;
 }
+
+// ---------------------------------------------------------------------------
+// Template config (persona, theme default, effects, shell, integrations)
+// ---------------------------------------------------------------------------
+
+export interface TemplateIdentity {
+  name: string;
+  handle: string;
+  org: string;
+  role: string;
+  tagline: string;
+  location: string;
+}
+
+export interface TemplateSocialLink {
+  label: string;
+  href: string;
+  icon: string;
+}
+
+export interface TemplateThemesConfig {
+  default: string;
+}
+
+export interface TemplateEffectsConfig {
+  boot: boolean;
+  noise: boolean;
+  scanline: boolean;
+  overlay: boolean;
+  decoder: boolean;
+}
+
+export interface TemplateShellConfig {
+  prompt: string;
+  motd: string;
+}
+
+export interface TemplateFormsIntegration {
+  provider: string;
+  accessKey: string | null;
+}
+
+export interface TemplateAnalyticsIntegration {
+  id: string | null;
+}
+
+export interface TemplateIntegrations {
+  forms: TemplateFormsIntegration;
+  gtm: TemplateAnalyticsIntegration;
+  ga: TemplateAnalyticsIntegration;
+}
+
+export interface TemplateConfig {
+  identity: TemplateIdentity;
+  social: TemplateSocialLink[];
+  themes: TemplateThemesConfig;
+  effects: TemplateEffectsConfig;
+  shell: TemplateShellConfig;
+  integrations: TemplateIntegrations;
+}
+
+/** Everything under `template:` in config.yaml is optional; configBuilder fills in the defaults below. */
+export type TemplateConfigInput = {
+  identity?: Partial<TemplateIdentity>;
+  social?: TemplateSocialLink[];
+  themes?: Partial<TemplateThemesConfig>;
+  effects?: Partial<TemplateEffectsConfig>;
+  shell?: Partial<TemplateShellConfig>;
+  integrations?: {
+    forms?: Partial<TemplateFormsIntegration>;
+    gtm?: Partial<TemplateAnalyticsIntegration>;
+    ga?: Partial<TemplateAnalyticsIntegration>;
+  };
+};
 
 const DEFAULT_SITE_NAME = 'Website';
 
@@ -172,6 +289,49 @@ const getAppBlog = (config: Config) => {
   return merge({}, _default, config?.apps?.blog ?? {}) as AppBlogConfig;
 };
 
+const getAppProjects = (config: Config) => {
+  const _default = {
+    isEnabled: true,
+    projectsPerPage: 12,
+    isRelatedProjectsEnabled: false,
+    project: {
+      isEnabled: true,
+      permalink: '/projects/%slug%',
+      robots: {
+        index: true,
+        follow: true,
+      },
+    },
+    list: {
+      isEnabled: true,
+      pathname: 'projects',
+      robots: {
+        index: true,
+        follow: true,
+      },
+    },
+    category: {
+      isEnabled: true,
+      pathname: 'category',
+      robots: {
+        index: true,
+        follow: true,
+      },
+    },
+    tag: {
+      isEnabled: false,
+      pathname: 'tag',
+      robots: {
+        index: false,
+        follow: true,
+      },
+    },
+  };
+
+  return merge({}, _default, config?.apps?.projects ?? {}) as AppProjectsConfig;
+};
+
+/** @deprecated see UIConfig */
 const getUI = (config: Config) => {
   const _default = {
     theme: 'system',
@@ -193,11 +353,53 @@ const getAnalytics = (config: Config) => {
   return merge({}, _default, config?.analytics ?? {}) as AnalyticsConfig;
 };
 
+const getTemplate = (config: Config) => {
+  const _default: TemplateConfig = {
+    identity: {
+      name: 'Ada Operator',
+      handle: 'ada',
+      org: 'MAINFRAME-7 Systems',
+      role: 'Systems Developer',
+      tagline: 'Building steady systems, one terminal command at a time.',
+      location: 'Sector 7, Grid North',
+    },
+    social: [
+      { label: 'GitHub', href: 'https://github.com/example', icon: 'tabler:brand-github' },
+      { label: 'X', href: 'https://x.com/example', icon: 'tabler:brand-x' },
+      { label: 'RSS', href: '/rss.xml', icon: 'tabler:rss' },
+    ],
+    themes: {
+      default: 'green',
+    },
+    effects: {
+      boot: true,
+      noise: true,
+      scanline: true,
+      overlay: true,
+      decoder: true,
+    },
+    shell: {
+      prompt: 'guest@mainframe-7:~$',
+      motd: 'Type help to list commands.',
+    },
+    integrations: {
+      forms: { provider: 'web3forms', accessKey: null },
+      gtm: { id: null },
+      ga: { id: null },
+    },
+  };
+
+  return merge({}, _default, config?.template ?? {}) as TemplateConfig;
+};
+
 export default (config: Config) => ({
   SITE: getSite(config),
   I18N: getI18N(config),
   METADATA: getMetadata(config),
   APP_BLOG: getAppBlog(config),
+  APP_PROJECTS: getAppProjects(config),
+  /** @deprecated see UIConfig */
   UI: getUI(config),
   ANALYTICS: getAnalytics(config),
+  TEMPLATE: getTemplate(config),
 });
