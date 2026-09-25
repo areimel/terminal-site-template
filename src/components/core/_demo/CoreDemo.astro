@@ -1,0 +1,102 @@
+---
+/**
+ * CoreDemo - renders every core primitive and its variants with short labels.
+ * Embedded in the `/components` gallery (built in a later wave).
+ */
+import { Panel, Button, Heading, Prompt, Divider, Badge, Kbd, Icon } from '~/components/core';
+---
+
+<div class="flex flex-col gap-8">
+  <section>
+    <Heading level={3} class="mb-3"> Panel </Heading>
+    <div class="grid gap-4 md:grid-cols-2">
+      <Panel title="~/panel/line.txt" variant="line">
+        <p class="font-kode text-sm">variant="line" - default content border.</p>
+      </Panel>
+      <Panel title="~/panel/double.txt" variant="double" tone="accent">
+        <p class="font-kode text-sm">variant="double" - app window chrome.</p>
+      </Panel>
+      <Panel title="~/panel/ascii.txt" variant="ascii" tone="muted">
+        <p class="font-kode text-sm">variant="ascii" - callout with corner marks.</p>
+      </Panel>
+      <Panel variant="none" padding="sm">
+        <p class="font-kode text-sm">variant="none" - plain surface, no title bar.</p>
+      </Panel>
+    </div>
+    <Panel title="~/panel/actions-and-footer.txt" class="mt-4">
+      <Fragment slot="actions">
+        <Badge tone="ok">OK</Badge>
+      </Fragment>
+      <p class="font-kode text-sm">Body content, with an action badge and a footer slot.</p>
+      <Fragment slot="footer">
+        <span class="font-kode text-xs">Footer content</span>
+      </Fragment>
+    </Panel>
+  </section>
+
+  <Divider label="Button" style="line" />
+
+  <section>
+    <div class="flex flex-wrap items-center gap-3">
+      <Button variant="solid">Solid</Button>
+      <Button variant="outline">Outline</Button>
+      <Button variant="ghost">Ghost</Button>
+      <Button variant="link" href="#">Link</Button>
+      <Button variant="solid" prompt> With prompt </Button>
+      <Button variant="solid" disabled> Disabled </Button>
+      <Button variant="solid" size="sm"> Small </Button>
+      <Button variant="solid" size="lg"> Large </Button>
+      <Button variant="outline" modalId="demo"> Opens modal </Button>
+    </div>
+  </section>
+
+  <Divider label="Heading" style="dashed" />
+
+  <section class="flex flex-col gap-2">
+    <Heading level={1}>Heading level 1</Heading>
+    <Heading level={2}>Heading level 2</Heading>
+    <Heading level={3}>Heading level 3</Heading>
+    <Heading level={4}>Heading level 4</Heading>
+    <Heading level={5} prompt> Heading level 5, with prompt </Heading>
+    <Heading level={6} glow="subtle"> Heading level 6, subtle glow </Heading>
+    <Heading level={3} glow="strong"> Heading level 3, strong glow </Heading>
+    <Heading level={3} decode> Heading level 3, decode-ready </Heading>
+  </section>
+
+  <Divider label="Prompt" style="ascii" />
+
+  <section class="flex flex-wrap items-center gap-6 font-kode">
+    <span><Prompt /> default</span>
+    <span><Prompt symbol="$" blink={false} /> no blink</span>
+    <span><Prompt symbol="guest@mainframe-7:~$" /> custom symbol</span>
+  </section>
+
+  <Divider />
+
+  <section>
+    <Heading level={3} class="mb-3"> Badge </Heading>
+    <div class="flex flex-wrap items-center gap-3">
+      <Badge>default</Badge>
+      <Badge tone="ok">OK</Badge>
+      <Badge tone="warn">WARN</Badge>
+      <Badge tone="err">ERR</Badge>
+      <Badge variant="outline" tone="ok"> OK </Badge>
+      <Badge variant="outline" tone="err"> ERR </Badge>
+    </div>
+  </section>
+
+  <section>
+    <Heading level={3} class="mb-3"> Kbd </Heading>
+    <p class="flex items-center gap-1 font-kode text-sm">
+      Press <Kbd>Ctrl</Kbd> + <Kbd>L</Kbd> to clear.
+    </p>
+  </section>
+
+  <section>
+    <Heading level={3} class="mb-3"> Icon </Heading>
+    <div class="flex items-center gap-4">
+      <Icon name="tabler:terminal-2" size={24} />
+      <Icon name="tabler:brand-github" size={24} label="GitHub" />
+    </div>
+  </section>
+</div>

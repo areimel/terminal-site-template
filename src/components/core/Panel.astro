@@ -1,0 +1,155 @@
+---
+/**
+ * Panel - the base "window"/card surface of the template.
+ *
+ * Replaces the repeated `bg-terminal-bg-secondary p-6 border border-terminal-300 shadow-md`
+ * card style scattered across the old components. When `title` (or the `actions` slot) is
+ * given, a title bar renders on top, like a window or file name (e.g. `~/projects/readme.txt`).
+ *
+ * Border `variant` encodes hierarchy: `double` for app windows, `line` for ordinary content,
+ * `ascii` for callouts, `none` for a plain surface.
+ *
+ * Slots: default (body), `actions` (right side of the title bar), `footer`.
+ */
+export interface Props {
+  /** Tag to render the outer element as. Defaults to `div`. */
+  as?: string;
+  /** Shown in the title bar like a window/file name. Omit for a plain surface. */
+  title?: string;
+  variant?: 'line' | 'double' | 'ascii' | 'none';
+  tone?: 'default' | 'accent' | 'muted';
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+  class?: string;
+}
+
+const { as: Tag = 'div', title, variant = 'line', tone = 'default', padding = 'md', class: className } = Astro.props;
+
+const hasActions = Astro.slots.has('actions');
+const hasFooter = Astro.slots.has('footer');
+const hasHeader = Boolean(title) || hasActions;
+
+const VARIANT_BORDER: Record<NonNullable<Props['variant']>, string> = {
+  line: 'border',
+  double: 'border-4 border-double',
+  ascii: 'border border-dashed',
+  none: 'border-0',
+};
+
+const TONE_BORDER: Record<NonNullable<Props['tone']>, string> = {
+  default: 'border-terminal-300',
+  accent: 'border-terminal-bright',
+  muted: 'border-terminal-200',
+};
+
+const TONE_TITLE: Record<NonNullable<Props['tone']>, string> = {
+  default: 'text-terminal-400',
+  accent: 'text-terminal-bright',
+  muted: 'text-terminal-300',
+};
+
+const PADDING: Record<NonNullable<Props['padding']>, string> = {
+  none: 'p-0',
+  sm: 'p-3',
+  md: 'p-6',
+  lg: 'p-8',
+};
+---
+
+<Tag
+  class:list={[
+    'core-panel relative bg-terminal-bg-secondary shadow-md',
+    VARIANT_BORDER[variant],
+    TONE_BORDER[tone],
+    { 'core-panel-ascii': variant === 'ascii' },
+    className,
+  ]}
+>
+  {
+    variant === 'ascii' && (
+      <>
+        <span class="core-panel-corner core-panel-corner-tl" aria-hidden="true">
+          +
+        </span>
+        <span class="core-panel-corner core-panel-corner-tr" aria-hidden="true">
+          +
+        </span>
+        <span class="core-panel-corner core-panel-corner-bl" aria-hidden="true">
+          +
+        </span>
+        <span class="core-panel-corner core-panel-corner-br" aria-hidden="true">
+          +
+        </span>
+      </>
+    )
+  }
+
+  {
+    hasHeader && (
+      <div
+        class:list={[
+          'flex items-center justify-between gap-3 px-3 py-1.5 font-kode text-xs',
+          TONE_TITLE[tone],
+          { 'border-b': variant !== 'none' },
+          TONE_BORDER[tone],
+        ]}
+      >
+        <span class="truncate">{title}</span>
+        {hasActions && (
+          <div class="flex items-center gap-2 shrink-0">
+            <slot name="actions" />
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  <div class:list={[PADDING[padding]]}>
+    <slot />
+  </div>
+
+  {
+    hasFooter && (
+      <div
+        class:list={[
+          'px-3 py-2 font-kode text-xs',
+          TONE_TITLE[tone],
+          { 'border-t': variant !== 'none' },
+          TONE_BORDER[tone],
+        ]}
+      >
+        <slot name="footer" />
+      </div>
+    )
+  }
+</Tag>
+
+<style>
+  .core-panel-ascii {
+    position: relative;
+  }
+
+  .core-panel-corner {
+    position: absolute;
+    line-height: 1;
+    font-family: 'Kode Mono', monospace;
+    pointer-events: none;
+    color: inherit;
+  }
+
+  .core-panel-corner-tl {
+    top: -0.6em;
+    left: -0.5em;
+  }
+  .core-panel-corner-tr {
+    top: -0.6em;
+    right: -0.5em;
+  }
+  .core-panel-corner-bl {
+    bottom: -0.6em;
+    left: -0.5em;
+  }
+  .core-panel-corner-br {
+    bottom: -0.6em;
+    right: -0.5em;
+  }
+</style>

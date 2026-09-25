@@ -1,0 +1,90 @@
+---
+/**
+ * Button - the single button/link primitive for the template.
+ *
+ * Merges the old `ui/ButtonLink.astro` (solid) and `ui/TextLink.astro` (inline link) into one
+ * component with a `variant` prop. Renders an `<a>` when `href` is given, otherwise a `<button>`.
+ *
+ * When `modalId` is set (and no `href`), it renders
+ * `<button type="button" data-modal-open={modalId}>` - this is the modal contract the
+ * feedback/Modal component implements (it listens for clicks on `[data-modal-open]`).
+ */
+export interface Props {
+  href?: string;
+  modalId?: string;
+  type?: 'button' | 'submit' | 'reset';
+  variant?: 'solid' | 'outline' | 'ghost' | 'link';
+  size?: 'sm' | 'md' | 'lg';
+  /** Prepends a `>` prompt glyph before the button's content. */
+  prompt?: boolean;
+  disabled?: boolean;
+  target?: string;
+  class?: string;
+}
+
+const {
+  href,
+  modalId,
+  type = 'button',
+  variant = 'solid',
+  size = 'md',
+  prompt = false,
+  disabled = false,
+  target,
+  class: className,
+} = Astro.props;
+
+const FOCUS_RING =
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terminal-bright';
+
+const VARIANT: Record<NonNullable<Props['variant']>, string> = {
+  solid: 'bg-terminal-500 hover:bg-terminal-600 text-terminal-bg-primary font-bold text-glow-subtle',
+  outline:
+    'border border-terminal-400 text-terminal-400 hover:bg-terminal-500 hover:text-terminal-bg-primary bg-transparent',
+  ghost: 'text-terminal-400 hover:text-terminal-bright hover:bg-terminal-500/10 bg-transparent',
+  link: 'inline text-terminal-400 hover:text-terminal-bright underline decoration-dotted underline-offset-4 bg-transparent p-0',
+};
+
+const SIZE: Record<NonNullable<Props['size']>, string> = {
+  sm: 'px-2 py-1 text-sm',
+  md: 'px-4 py-2 text-base',
+  lg: 'px-6 py-3 text-lg',
+};
+
+// The `link` variant keeps its natural inline sizing/padding.
+const sizeClasses = variant === 'link' ? '' : SIZE[size];
+
+const baseClasses = [
+  'core-button inline-flex items-center gap-1.5 font-uav-mono transition-colors cursor-pointer',
+  VARIANT[variant],
+  sizeClasses,
+  FOCUS_RING,
+  { 'opacity-50 cursor-not-allowed pointer-events-none': disabled },
+  className,
+];
+---
+
+{
+  href ? (
+    <a
+      href={href}
+      target={target}
+      aria-disabled={disabled ? 'true' : undefined}
+      tabindex={disabled ? -1 : undefined}
+      class:list={baseClasses}
+    >
+      {prompt && <span aria-hidden="true">&gt;</span>}
+      <slot />
+    </a>
+  ) : modalId ? (
+    <button type="button" data-modal-open={modalId} disabled={disabled} class:list={baseClasses}>
+      {prompt && <span aria-hidden="true">&gt;</span>}
+      <slot />
+    </button>
+  ) : (
+    <button type={type} disabled={disabled} class:list={baseClasses}>
+      {prompt && <span aria-hidden="true">&gt;</span>}
+      <slot />
+    </button>
+  )
+}

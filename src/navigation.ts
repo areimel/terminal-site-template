@@ -1,183 +1,74 @@
-import { getPermalink, getBlogPermalink, getAsset } from './utils/permalinks';
+import { TEMPLATE } from 'astrowind:config';
 
+import { getAsset, getPermalink } from './utils/permalinks';
+
+/** A single entry in the site's primary or footer navigation. Also read by the shell's `ls`/`cd` commands. */
+export interface NavItem {
+  label: string;
+  href: string;
+  icon: string;
+  /** Alias the `<terminal-shell>` command set accepts for `cd`/`open`, e.g. `projects` for `/projects`. */
+  shellAlias?: string;
+}
+
+/** Primary site navigation, read by SidebarNavV2 and the shell's `cd`/`ls` commands. */
+export const mainNav: NavItem[] = [
+  { label: 'Home', href: getPermalink('/'), icon: 'tabler:home', shellAlias: 'home' },
+  { label: 'Projects', href: getPermalink('/projects'), icon: 'tabler:briefcase', shellAlias: 'projects' },
+  { label: 'Blog', href: getPermalink('/blog'), icon: 'tabler:article', shellAlias: 'blog' },
+  { label: 'Docs', href: getPermalink('/docs'), icon: 'tabler:book-2', shellAlias: 'docs' },
+  { label: 'Components', href: getPermalink('/components'), icon: 'tabler:puzzle', shellAlias: 'components' },
+  { label: 'App', href: getPermalink('/app'), icon: 'tabler:layout-dashboard', shellAlias: 'app' },
+  { label: 'Terminal', href: getPermalink('/terminal'), icon: 'tabler:terminal-2', shellAlias: 'terminal' },
+  { label: 'Contact', href: getPermalink('/contact'), icon: 'tabler:mail', shellAlias: 'contact' },
+];
+
+/** Secondary/legal navigation, read by Footer. */
+export const footerNav: NavItem[] = [
+  { label: 'Privacy', href: getPermalink('/privacy'), icon: 'tabler:shield-lock' },
+  { label: 'Terms', href: getPermalink('/terms'), icon: 'tabler:file-text' },
+  { label: 'Changelog', href: getPermalink('/changelog'), icon: 'tabler:history' },
+  { label: 'RSS', href: getAsset('/rss.xml'), icon: 'tabler:rss' },
+];
+
+/** Social links, sourced from `template.social` in config.yaml so a fork only has to edit config. */
+export const socialLinks: NavItem[] = (TEMPLATE?.social ?? []).map(
+  (link: { label: string; href: string; icon: string }) => ({
+    label: link.label,
+    href: link.href,
+    icon: link.icon,
+  })
+);
+
+/**
+ * @deprecated AstroWind demo header data. Nothing in the template design reads this anymore;
+ * it remains only because `widgets/Header.astro` (via `LandingLayout.astro`) still imports it.
+ * Safe to delete once those files are removed/reskinned.
+ */
 export const headerData = {
   links: [
     {
-      text: 'Homes',
-      links: [
-        {
-          text: 'SaaS',
-          href: getPermalink('/homes/saas'),
-        },
-        {
-          text: 'Startup',
-          href: getPermalink('/homes/startup'),
-        },
-        {
-          text: 'Mobile App',
-          href: getPermalink('/homes/mobile-app'),
-        },
-        {
-          text: 'Personal',
-          href: getPermalink('/homes/personal'),
-        },
-      ],
-    },
-    {
       text: 'Pages',
       links: [
-        {
-          text: 'Features (Anchor Link)',
-          href: getPermalink('/#features'),
-        },
-        {
-          text: 'Services',
-          href: getPermalink('/services'),
-        },
-        {
-          text: 'Pricing',
-          href: getPermalink('/pricing'),
-        },
-        {
-          text: 'About us',
-          href: getPermalink('/about'),
-        },
-        {
-          text: 'Contact',
-          href: getPermalink('/contact'),
-        },
-        {
-          text: 'Terms',
-          href: getPermalink('/terms'),
-        },
-        {
-          text: 'Privacy policy',
-          href: getPermalink('/privacy'),
-        },
+        { text: 'Projects', href: getPermalink('/projects') },
+        { text: 'Blog', href: getPermalink('/blog') },
+        { text: 'Contact', href: getPermalink('/contact') },
       ],
-    },
-    {
-      text: 'Landing',
-      links: [
-        {
-          text: 'Lead Generation',
-          href: getPermalink('/landing/lead-generation'),
-        },
-        {
-          text: 'Long-form Sales',
-          href: getPermalink('/landing/sales'),
-        },
-        {
-          text: 'Click-Through',
-          href: getPermalink('/landing/click-through'),
-        },
-        {
-          text: 'Product Details (or Services)',
-          href: getPermalink('/landing/product'),
-        },
-        {
-          text: 'Coming Soon or Pre-Launch',
-          href: getPermalink('/landing/pre-launch'),
-        },
-        {
-          text: 'Subscription',
-          href: getPermalink('/landing/subscription'),
-        },
-      ],
-    },
-    {
-      text: 'Blog',
-      links: [
-        {
-          text: 'Blog List',
-          href: getBlogPermalink(),
-        },
-        {
-          text: 'Article',
-          href: getPermalink('get-started-website-with-astro-tailwind-css', 'post'),
-        },
-        {
-          text: 'Article (with MDX)',
-          href: getPermalink('markdown-elements-demo-post', 'post'),
-        },
-        {
-          text: 'Category Page',
-          href: getPermalink('tutorials', 'category'),
-        },
-        {
-          text: 'Tag Page',
-          href: getPermalink('astro', 'tag'),
-        },
-      ],
-    },
-    {
-      text: 'Widgets',
-      href: '#',
     },
   ],
-  actions: [{ text: 'Download', href: 'https://github.com/onwidget/astrowind', target: '_blank' }],
+  actions: [],
 };
 
+/**
+ * @deprecated AstroWind demo footer data. Footer.astro now reads `footerNav`/`socialLinks` instead.
+ * Kept only because `widgets/Footer.astro` still imports it.
+ */
 export const footerData = {
-  links: [
-    {
-      title: 'Product',
-      links: [
-        { text: 'Features', href: '#' },
-        { text: 'Security', href: '#' },
-        { text: 'Team', href: '#' },
-        { text: 'Enterprise', href: '#' },
-        { text: 'Customer stories', href: '#' },
-        { text: 'Pricing', href: '#' },
-        { text: 'Resources', href: '#' },
-      ],
-    },
-    {
-      title: 'Platform',
-      links: [
-        { text: 'Developer API', href: '#' },
-        { text: 'Partners', href: '#' },
-        { text: 'Atom', href: '#' },
-        { text: 'Electron', href: '#' },
-        { text: 'AstroWind Desktop', href: '#' },
-      ],
-    },
-    {
-      title: 'Support',
-      links: [
-        { text: 'Docs', href: '#' },
-        { text: 'Community Forum', href: '#' },
-        { text: 'Professional Services', href: '#' },
-        { text: 'Skills', href: '#' },
-        { text: 'Status', href: '#' },
-      ],
-    },
-    {
-      title: 'Company',
-      links: [
-        { text: 'About', href: '#' },
-        { text: 'Blog', href: '#' },
-        { text: 'Careers', href: '#' },
-        { text: 'Press', href: '#' },
-        { text: 'Inclusion', href: '#' },
-        { text: 'Social Impact', href: '#' },
-        { text: 'Shop', href: '#' },
-      ],
-    },
-  ],
+  links: [],
   secondaryLinks: [
     { text: 'Terms', href: getPermalink('/terms') },
     { text: 'Privacy Policy', href: getPermalink('/privacy') },
   ],
-  socialLinks: [
-    { ariaLabel: 'X', icon: 'tabler:brand-x', href: '#' },
-    { ariaLabel: 'Instagram', icon: 'tabler:brand-instagram', href: '#' },
-    { ariaLabel: 'Facebook', icon: 'tabler:brand-facebook', href: '#' },
-    { ariaLabel: 'RSS', icon: 'tabler:rss', href: getAsset('/rss.xml') },
-    { ariaLabel: 'Github', icon: 'tabler:brand-github', href: 'https://github.com/onwidget/astrowind' },
-  ],
-  footNote: `
-    <img class="w-5 h-5 md:w-6 md:h-6 md:-mt-0.5 bg-cover mr-1.5 rtl:mr-0 rtl:ml-1.5 float-left rtl:float-right rounded-sm" src="https://onwidget.com/favicon/favicon-32x32.png" alt="onWidget logo" loading="lazy"></img>
-    Made by <a class="text-blue-600 underline dark:text-muted" href="https://onwidget.com/"> onWidget</a> · All rights reserved.
-  `,
+  socialLinks: socialLinks.map((link: NavItem) => ({ ariaLabel: link.label, icon: link.icon, href: link.href })),
+  footNote: '',
 };

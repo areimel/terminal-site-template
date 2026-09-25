@@ -1,6 +1,6 @@
 import slugify from 'limax';
 
-import { SITE, APP_BLOG } from 'astrowind:config';
+import { SITE, APP_BLOG, APP_PROJECTS } from 'astrowind:config';
 
 import { trim } from '~/utils/utils';
 
@@ -25,13 +25,13 @@ export const BLOG_BASE = cleanSlug(APP_BLOG?.list?.pathname);
 export const CATEGORY_BASE = cleanSlug(APP_BLOG?.category?.pathname);
 export const TAG_BASE = cleanSlug(APP_BLOG?.tag?.pathname) || 'tag';
 
-// Project constants
-export const PROJECTS_BASE = 'projects';
-export const PROJECT_CATEGORY_BASE = 'category';
-export const PROJECT_TAG_BASE = 'tag';
+// Project constants (mirrors the blog constants above, driven by `apps.projects` in config.yaml)
+export const PROJECTS_BASE = cleanSlug(APP_PROJECTS?.list?.pathname) || 'projects';
+export const PROJECT_CATEGORY_BASE = cleanSlug(APP_PROJECTS?.category?.pathname) || 'category';
+export const PROJECT_TAG_BASE = cleanSlug(APP_PROJECTS?.tag?.pathname) || 'tag';
 
 export const POST_PERMALINK_PATTERN = trimSlash(APP_BLOG?.post?.permalink || `${BLOG_BASE}/%slug%`);
-export const PROJECT_PERMALINK_PATTERN = trimSlash(`${PROJECTS_BASE}/%slug%`);
+export const PROJECT_PERMALINK_PATTERN = trimSlash(APP_PROJECTS?.project?.permalink || `${PROJECTS_BASE}/%slug%`);
 
 /** */
 export const getCanonical = (path = ''): string | URL => {

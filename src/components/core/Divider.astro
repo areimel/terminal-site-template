@@ -1,0 +1,54 @@
+---
+/**
+ * Divider - a horizontal rule with terminal-flavored border styles, with an optional centered label.
+ */
+export interface Props {
+  style?: 'line' | 'ascii' | 'dashed';
+  label?: string;
+  class?: string;
+}
+
+const { style = 'line', label, class: className } = Astro.props;
+
+const LINE: Record<NonNullable<Props['style']>, string> = {
+  line: 'border-terminal-300',
+  dashed: 'border-terminal-300 border-dashed',
+  ascii: 'border-terminal-300 border-dashed',
+};
+---
+
+<div role="separator" aria-orientation="horizontal" class:list={['core-divider', className]}>
+  {
+    label ? (
+      <div class="flex items-center gap-3">
+        {style === 'ascii' && (
+          <span class="font-kode text-terminal-400" aria-hidden="true">
+            +
+          </span>
+        )}
+        <span class:list={['flex-1 border-t', LINE[style]]} />
+        <span class="font-kode text-xs text-terminal-400 whitespace-nowrap">{label}</span>
+        <span class:list={['flex-1 border-t', LINE[style]]} />
+        {style === 'ascii' && (
+          <span class="font-kode text-terminal-400" aria-hidden="true">
+            +
+          </span>
+        )}
+      </div>
+    ) : (
+      <div class="flex items-center gap-2">
+        {style === 'ascii' && (
+          <span class="font-kode text-terminal-400" aria-hidden="true">
+            +
+          </span>
+        )}
+        <span class:list={['flex-1 border-t', LINE[style]]} />
+        {style === 'ascii' && (
+          <span class="font-kode text-terminal-400" aria-hidden="true">
+            +
+          </span>
+        )}
+      </div>
+    )
+  }
+</div>

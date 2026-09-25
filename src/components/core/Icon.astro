@@ -1,0 +1,27 @@
+---
+/**
+ * Icon - thin wrapper over astro-icon's `Icon`, with a `size` shorthand and safe a11y defaults:
+ * icons are `aria-hidden` unless a `label` is given, in which case it gets `role="img"` and
+ * that label as its accessible name.
+ */
+import { Icon as AstroIcon } from 'astro-icon/components';
+
+export interface Props {
+  name: string;
+  size?: number | string;
+  label?: string;
+  class?: string;
+}
+
+const { name, size = 20, label, class: className } = Astro.props;
+---
+
+<AstroIcon
+  name={name}
+  width={size}
+  height={size}
+  class={className}
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+/>

@@ -1,0 +1,36 @@
+---
+/**
+ * Badge - a small status/label chip. `tone` is semantic (ok/warn/err use fixed status colors
+ * regardless of the active terminal theme, matching the "system status strings" convention -
+ * these are the only place all-caps text belongs, e.g. `OK`, `WARN`, `ERR`).
+ */
+export interface Props {
+  tone?: 'default' | 'ok' | 'warn' | 'err';
+  variant?: 'solid' | 'outline';
+  class?: string;
+}
+
+const { tone = 'default', variant = 'solid', class: className } = Astro.props;
+
+const SOLID: Record<NonNullable<Props['tone']>, string> = {
+  default: 'bg-terminal-500/20 text-terminal-400 border border-terminal-500/40',
+  ok: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40',
+  warn: 'bg-amber-500/20 text-amber-400 border border-amber-500/40',
+  err: 'bg-rose-500/20 text-rose-400 border border-rose-500/40',
+};
+
+const OUTLINE: Record<NonNullable<Props['tone']>, string> = {
+  default: 'border border-terminal-400 text-terminal-400 bg-transparent',
+  ok: 'border border-emerald-500 text-emerald-400 bg-transparent',
+  warn: 'border border-amber-500 text-amber-400 bg-transparent',
+  err: 'border border-rose-500 text-rose-400 bg-transparent',
+};
+
+const toneClasses = variant === 'outline' ? OUTLINE[tone] : SOLID[tone];
+---
+
+<span
+  class:list={['inline-flex items-center gap-1 px-2 py-0.5 font-kode text-xs leading-none', toneClasses, className]}
+>
+  <slot />
+</span>

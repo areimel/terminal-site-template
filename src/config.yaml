@@ -1,30 +1,28 @@
 site:
-  name: Alec Reimel Developer Portfolio
-  site: 'https://alecreimel.com'
+  name: MAINFRAME-7 Terminal
+  site: 'https://example.com'
   base: '/'
   trailingSlash: false
-
-  googleSiteVerificationId: orcPxI47GSa-cRvY11tUe6iGg2IO_RPvnA1q95iEM3M
 
 # Default SEO metadata
 metadata:
   title:
-    default: Alec Reimel Developer Portfolio
-    template: '%s | Alec Reimel Developer Portfolio'
-  description: "I specialize in Frontend Web Development - building immersive interactive experiences that make headlines, along with highly optimized, conversion-centric marketing websites."
+    default: MAINFRAME-7 Terminal
+    template: '%s | MAINFRAME-7 Terminal'
+  description: 'A retro terminal-themed site and web app template built with Astro.'
   robots:
     index: true
     follow: true
   openGraph:
-    site_name: Alec Reimel Developer Portfolio
+    site_name: MAINFRAME-7 Terminal
     images:
       - url: '/preview.png'
         width: 1200
         height: 628
     type: website
   twitter:
-    handle: '@alecreimel'
-    site: '@alecreimel'
+    handle: '@example'
+    site: '@example'
     cardType: summary_large_image
 
 i18n:
@@ -38,7 +36,7 @@ apps:
 
     post:
       isEnabled: true
-      permalink: '/%slug%' # Variables: %slug%, %year%, %month%, %day%, %hour%, %minute%, %second%, %category%
+      permalink: '/blog/%slug%' # Variables: %slug%, %year%, %month%, %day%, %hour%, %minute%, %second%, %category%
       robots:
         index: true
 
@@ -62,14 +60,14 @@ apps:
 
     isRelatedPostsEnabled: true
     relatedPostsCount: 4
-    
+
   projects:
     isEnabled: true
     projectsPerPage: 12
 
     project:
       isEnabled: true
-      permalink: '/%slug%' # Variables: %slug%, %year%, %month%, %day%, %hour%, %minute%, %second%, %category%
+      permalink: '/projects/%slug%' # Variables: %slug%, %year%, %month%, %day%, %hour%, %minute%, %second%, %category%
       robots:
         index: true
 
@@ -98,5 +96,48 @@ analytics:
     googleAnalytics:
       id: null # or "G-XXXXXXXXXX"
 
-ui:
-  theme: 'system' # Values: "system" | "light" | "dark" | "light:only" | "dark:only"
+# Template persona, theme default, effects and integrations.
+# Every field here is optional - configBuilder fills in defaults for anything omitted.
+# See vendor/integration/utils/configBuilder.ts for the full typed shape (TEMPLATE export).
+template:
+  identity:
+    name: Ada Operator
+    handle: ada
+    org: MAINFRAME-7 Systems
+    role: Systems Developer
+    tagline: 'Building steady systems, one terminal command at a time.'
+    location: 'Sector 7, Grid North'
+
+  social:
+    - label: GitHub
+      href: 'https://github.com/example'
+      icon: tabler:brand-github
+    - label: X
+      href: 'https://x.com/example'
+      icon: tabler:brand-x
+    - label: RSS
+      href: '/rss.xml'
+      icon: tabler:rss
+
+  themes:
+    default: green # Values: "green" | "amber" | "red" | "yellow" | "blue" (see src/lib/themes.ts)
+
+  effects:
+    boot: true
+    noise: true
+    scanline: true
+    overlay: true
+    decoder: true
+
+  shell:
+    prompt: 'guest@mainframe-7:~$'
+    motd: 'Type help to list commands.'
+
+  integrations:
+    forms:
+      provider: web3forms
+      accessKey: null
+    gtm:
+      id: null
+    ga:
+      id: null

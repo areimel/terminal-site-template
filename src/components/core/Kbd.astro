@@ -1,0 +1,18 @@
+---
+/** Kbd - a single styled keyboard key, e.g. <Kbd>Ctrl</Kbd> + <Kbd>L</Kbd>. */
+export interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<kbd
+  class:list={[
+    'inline-flex items-center justify-center min-w-[1.5em] px-1.5 py-0.5 font-kode text-xs leading-none',
+    'bg-terminal-bg-primary text-terminal-400 border border-terminal-300 border-b-2 rounded-sm shadow-sm',
+    className,
+  ]}
+>
+  <slot />
+</kbd>

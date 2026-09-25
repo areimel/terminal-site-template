@@ -1,0 +1,57 @@
+---
+/**
+ * Heading - the template's typed heading primitive.
+ *
+ * Always sets the UAV OSD Mono heading font (`font-uav-mono`). Sizes use a Tailwind fallback
+ * scale approximating a 1.25 modular scale; if/when the `t-*` type-scale tokens from the theme
+ * work land in tailwind.config.js, swap `SIZE` below to reference those classes instead.
+ *
+ * `decode` only marks the element up (`data-decode` + `data-text`) - the `effects/DecoderText`
+ * enhancer (owned by another agent) is what actually animates any `[data-decode]` element. This
+ * component does not implement that animation.
+ */
+export interface Props {
+  level: 1 | 2 | 3 | 4 | 5 | 6;
+  /** Override the rendered tag (e.g. visually an `h2` styled as an `h1`). Defaults to `h{level}`. */
+  as?: string;
+  /** Prepends a `>` prompt glyph before the heading text. */
+  prompt?: boolean;
+  /** Marks the element for the DecoderText enhancer; does not animate anything itself. */
+  decode?: boolean;
+  glow?: 'none' | 'subtle' | 'strong';
+  class?: string;
+}
+
+const { level, as, prompt = false, decode = false, glow = 'none', class: className } = Astro.props;
+
+const Tag = as ?? (`h${level}` as const);
+
+// Fallback Tailwind sizes (~1.25 modular scale). See the JSDoc above re: `t-*` tokens.
+const SIZE: Record<Props['level'], string> = {
+  1: 'text-4xl md:text-5xl font-bold leading-tight tracking-tight',
+  2: 'text-3xl md:text-4xl font-bold leading-tight tracking-tight',
+  3: 'text-2xl md:text-3xl font-semibold leading-tight',
+  4: 'text-xl md:text-2xl font-semibold',
+  5: 'text-lg md:text-xl font-semibold',
+  6: 'text-base md:text-lg font-semibold',
+};
+
+const GLOW: Record<NonNullable<Props['glow']>, string> = {
+  none: '',
+  subtle: 'text-glow-subtle',
+  strong: 'text-glow-strong',
+};
+
+// Only render the plain-text slot content into `data-text` when `decode` is on, since it
+// requires rendering the slot up front.
+const decodeText = decode ? (await Astro.slots.render('default')).replace(/<[^>]*>/g, '').trim() : undefined;
+---
+
+<Tag
+  class:list={['font-uav-mono', SIZE[level], GLOW[glow], className]}
+  data-decode={decode ? '' : undefined}
+  data-text={decodeText}
+>
+  {prompt && <span aria-hidden="true">&gt;_ </span>}
+  <slot />
+</Tag>

@@ -1,0 +1,51 @@
+---
+/**
+ * Prompt - a standalone shell-prompt glyph, e.g. `>_`.
+ *
+ * Replaces `TerminalComponents/TerminalPrefix.astro` (kept for now; other agents migrate its
+ * usages). The last character of `symbol` blinks like a cursor; blinking is disabled when
+ * `blink` is false or the user prefers reduced motion.
+ */
+export interface Props {
+  symbol?: string;
+  blink?: boolean;
+  class?: string;
+}
+
+const { symbol = '>_', blink = true, class: className } = Astro.props;
+
+const head = symbol.length > 1 ? symbol.slice(0, -1) : '';
+const cursor = symbol.length > 0 ? symbol.slice(-1) : '';
+---
+
+<span class:list={['core-prompt font-kode', className]} aria-hidden="true">
+  {head}{cursor && <span class:list={['core-prompt-cursor', { 'core-prompt-blink': blink }]}>{cursor}</span>}
+</span>
+
+<style>
+  .core-prompt {
+    display: inline-block;
+  }
+
+  .core-prompt-blink {
+    animation: core-prompt-flash 1s infinite steps(1, end);
+  }
+
+  @keyframes core-prompt-flash {
+    0%,
+    49% {
+      opacity: 1;
+    }
+    50%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .core-prompt-blink {
+      animation: none;
+      opacity: 1;
+    }
+  }
+</style>
