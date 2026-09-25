@@ -1,0 +1,13 @@
+---
+import PageLayout from '~/layouts/PageLayout.astro';
+import TerminalShell from '~/components/shell/TerminalShell.astro';
+
+const metadata = {
+  title: 'Terminal',
+  description: 'A full-screen, keyboard-operable shell for exploring the site from the command line.',
+};
+---
+
+<PageLayout metadata={metadata}>
+  <TerminalShell mode="fullscreen" autofocus />
+</PageLayout>
