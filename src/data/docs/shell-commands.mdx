@@ -22,9 +22,9 @@ The shell comes with these commands:
 - **help** — Show all available commands and their descriptions
 - **ls** — List navigation links; `ls projects` shows project routes
 - **cd** — Navigate to a page; `cd projects` goes to `/projects`
-- **open** — Open a URL in a new tab; `open https://example.com`
+- **open** — Navigate to a URL or route alias, same as `cd`; `open https://example.com`
 - **theme** — List available themes or switch themes; `theme amber`
-- **effects** — Toggle effects on/off; `effects decoder on`
+- **effects** — Toggle effects on/off; `effects [on|off|status] [name]`, e.g. `effects off decoder`
 - **clear** — Clear the terminal output
 - **whoami** — Show current identity (name, role, org)
 - **echo** — Print a message; `echo hello world`
@@ -53,21 +53,24 @@ export interface ShellCommand {
   usage?: string;
   hidden?: boolean;
   run(ctx: ShellContext, args: string[]): void | Promise<void>;
-  complete?(args: string[]): string[];
+  complete?(args: string[], ctx: ShellContext): string[];
 }
 ```
 
 ### Example: A greeting command
 
+`src/lib/shell/commands.ts` exports a plain array, `userCommands`, that's passed to `createShell(host, userCommands)` as extra commands — a command here with the same `name` as a built-in (see `src/lib/shell/builtins.ts`) replaces it:
+
 ```typescript
-import { ShellCommand, ShellContext } from './types';
+// src/lib/shell/commands.ts
+import type { ShellCommand } from './types';
 
 export const greetCommand: ShellCommand = {
   name: 'greet',
-  aliases: ['hello'],
+  aliases: ['hi'],
   description: 'Send a greeting',
   usage: 'greet [name]',
-  run(ctx: ShellContext, args: string[]) {
+  run(ctx, args) {
     const name = args[0] || 'friend';
     ctx.print(`Hello, ${name}!`);
   },
@@ -75,20 +78,14 @@ export const greetCommand: ShellCommand = {
     return ['Alice', 'Bob', 'Charlie'];
   },
 };
-```
 
-Then add it to the command list in `commands.ts`:
-
-```typescript
-const commands: ShellCommand[] = [
+export const userCommands: ShellCommand[] = [
   // ... existing commands ...
   greetCommand,
 ];
-
-export default commands;
 ```
 
-Rebuild and try `greet Alice`. Tab completion will suggest names.
+Rebuild and try `greet Alice`. Tab completion will suggest names. Naming the command object (rather than inlining it in the array) also makes it easy to import and unit test on its own — see below.
 
 ### Context API
 
@@ -106,7 +103,7 @@ interface ShellContext {
   commands: ShellCommand[];
   routes: ShellRoute[];
   themes: { id: string; label: string }[];
-  currentTheme(): string;
+  currentTheme: () => string;
   identity: { name: string; handle: string; role: string; org: string };
 }
 ```
@@ -148,7 +145,7 @@ import { greetCommand } from './commands';
 describe('greet', () => {
   it('greets the user', () => {
     const output: string[] = [];
-    const ctx = { print: (msg) => output.push(msg) };
+    const ctx = { print: (msg: string | string[]) => output.push(...[msg].flat()) } as ShellContext;
 
     greetCommand.run(ctx, ['Alice']);
 
@@ -157,4 +154,4 @@ describe('greet', () => {
 });
 ```
 
-Refer to `src/lib/shell/__tests__/` for examples.
+Refer to `src/lib/shell/engine.test.ts` and `src/lib/shell/parse.test.ts` for real examples. Run them with `pnpm test`.
