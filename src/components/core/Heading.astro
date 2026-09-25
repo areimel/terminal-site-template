@@ -28,11 +28,11 @@ const Tag = as ?? (`h${level}` as const);
 // Sizes use the 1.25 modular type scale tokens from tailwind.config.js.
 const SIZE: Record<Props['level'], string> = {
   1: 'text-t-4xl md:text-t-5xl font-bold tracking-tight',
-  2: 'text-t-3xl md:text-t-4xl font-bold tracking-tight',
-  3: 'text-t-2xl md:text-t-3xl font-semibold',
-  4: 'text-t-xl md:text-t-2xl font-semibold',
-  5: 'text-t-lg md:text-t-xl font-semibold',
-  6: 'text-t-base md:text-t-lg font-semibold',
+  2: 'text-t-2xl md:text-t-3xl font-bold tracking-tight',
+  3: 'text-t-xl md:text-t-2xl font-semibold',
+  4: 'text-t-lg md:text-t-xl font-semibold',
+  5: 'text-t-base md:text-t-lg font-semibold',
+  6: 'text-t-base font-semibold',
 };
 
 const GLOW: Record<NonNullable<Props['glow']>, string> = {
