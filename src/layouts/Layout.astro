@@ -6,8 +6,7 @@ import { I18N } from 'astrowind:config';
 
 import CommonMeta from '~/components/common/CommonMeta.astro';
 import Favicons from '~/components/Favicons.astro';
-import CustomStyles from '~/components/CustomStyles.astro';
-import ApplyColorMode from '~/components/common/ApplyColorMode.astro';
+import ThemeHead from '~/components/common/ThemeHead.astro';
 import Metadata from '~/components/common/Metadata.astro';
 // import SiteVerification from '~/components/common/SiteVerification.astro';
 // import Analytics from '~/components/common/Analytics.astro';
@@ -20,6 +19,8 @@ import LoadingScreen from '~/components/LoadingScreenV1.astro';
 // Comment the line below to disable View Transitions
 import { ClientRouter } from 'astro:transitions';
 
+import { defaultThemeId, themeClass } from '~/lib/themes';
+
 import type { MetaData as MetaDataType } from '~/types';
 
 export interface Props {
@@ -28,23 +29,19 @@ export interface Props {
 
 const { metadata = {} } = Astro.props;
 const { language, textDirection } = I18N;
-
-// Server-side default theme application (will be overridden by client-side code if needed)
-const defaultTheme = 'theme-green';
 ---
 
 <!doctype html>
-<html 
-  lang={language} 
-  dir={textDirection} 
-  class={`2xl:text-[20px] ${defaultTheme}`} 
+<html
+  lang={language}
+  dir={textDirection}
+  class={`2xl:text-[20px] ${themeClass(defaultThemeId)}`}
 >
   <head>
     <GoogleTagManagerHead />
     <CommonMeta />
     <Favicons />
-    <CustomStyles />
-    <ApplyColorMode />
+    <ThemeHead />
     <Metadata {...metadata} />
     <!-- <SiteVerification />
     <Analytics /> -->
@@ -99,14 +96,12 @@ const defaultTheme = 'theme-green';
         }
       }
       
-      /* Terminal-specific transition optimizations */
-      .theme-green ::view-transition-old(root),
-      .theme-amber ::view-transition-old(root) {
+      /* Terminal-specific transition optimizations (applies to every theme) */
+      html[class*="theme-"] ::view-transition-old(root) {
         filter: brightness(0.95);
       }
-      
-      .theme-green ::view-transition-new(root),
-      .theme-amber ::view-transition-new(root) {
+
+      html[class*="theme-"] ::view-transition-new(root) {
         filter: brightness(1.05);
       }
     </style>
@@ -116,54 +111,43 @@ const defaultTheme = 'theme-green';
     <GoogleTagManagerBody />
     <LoadingScreen />
     <TerminalOverlay />
-    
+
     <slot />
 
     <BasicScripts />
-    
+
+    <script>
+      import { initThemeRuntime } from '~/lib/theme-runtime';
+      import { initEffectsRuntime } from '~/lib/effects';
+
+      initThemeRuntime();
+      initEffectsRuntime();
+    </script>
+
     <!-- Enhanced View Transition Coordination -->
     <script>
       // Track transition state for better coordination
       let isTransitioning = false;
-      
+
       // Prepare for view transition
-      document.addEventListener('astro:before-preparation', (e) => {
+      document.addEventListener('astro:before-preparation', () => {
         isTransitioning = true;
-        
+
         // Add transitioning class for styling
         document.documentElement.setAttribute('data-astro-transition', 'preparing');
-        
-        // Preserve current theme state
-        const currentTheme = Array.from(document.documentElement.classList)
-          .find(cls => cls.startsWith('theme-'));
-        if (currentTheme) {
-          sessionStorage.setItem('preservedTheme', currentTheme);
-        }
       });
-      
-      // Apply preserved theme before swap to prevent flash
-      document.addEventListener('astro:before-swap', (e) => {
-        const preservedTheme = sessionStorage.getItem('preservedTheme');
-        if (preservedTheme) {
-          // Remove existing theme classes
-          document.documentElement.classList.remove(
-            'theme-green', 'theme-amber', 'theme-cyber', 'theme-cyber-yellow', 'theme-severance'
-          );
-          // Apply preserved theme immediately
-          document.documentElement.classList.add(preservedTheme);
-        }
-        
+
+      // Mark swap in progress. Theme re-application happens in
+      // ~/lib/theme-runtime's own astro:after-swap listener.
+      document.addEventListener('astro:before-swap', () => {
         document.documentElement.setAttribute('data-astro-transition', 'swapping');
       });
-      
+
       // Clean up after transition
       document.addEventListener('astro:after-swap', () => {
         document.documentElement.setAttribute('data-astro-transition', 'complete');
-        
-        // Clean up preserved theme from storage
-        sessionStorage.removeItem('preservedTheme');
       });
-      
+
       // Finalize transition
       document.addEventListener('astro:page-load', () => {
         isTransitioning = false;
@@ -176,7 +160,7 @@ const defaultTheme = 'theme-green';
       });
       
       // Handle transition failures gracefully
-      document.addEventListener('astro:before-preparation', (e) => {
+      document.addEventListener('astro:before-preparation', () => {
         // Add fallback timeout to prevent stuck states
         setTimeout(() => {
           if (isTransitioning && document.documentElement.hasAttribute('data-astro-transition')) {

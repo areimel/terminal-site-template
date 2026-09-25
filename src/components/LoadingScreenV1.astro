@@ -29,6 +29,8 @@
 </div>
 
 <script>
+  import { isEnabled } from '~/lib/effects';
+
   // Resource loading tracking system
   class ResourceLoader {
     isInitialLoad: boolean;
@@ -72,10 +74,10 @@
     async trackFontLoading(resource) {
       try {
         const fontFace = new FontFace(
-          resource.url.includes('KodeMono') ? 'KodeMono' :
-          resource.url.includes('UAV-OSD') ? 'UAVOSDMono' :
-          resource.url.includes('ShareTech') ? 'ShareTechMono' :
-          resource.url.includes('VT323') ? 'VT323' : 'WindowsCommandPrompt',
+          resource.url.includes('KodeMono') ? 'Kode Mono' :
+          resource.url.includes('UAV-OSD') ? 'UAV OSD Mono' :
+          resource.url.includes('ShareTech') ? 'Share Tech Mono' :
+          resource.url.includes('VT323') ? 'VT323' : 'Windows Command Prompt',
           `url(${resource.url})`
         );
         
@@ -187,7 +189,16 @@
   
   function initializeLoadingScreen() {
     const loadingScreen = document.getElementById('loading-screen');
-    
+
+    // Skip entirely when the boot effect is off (user preference,
+    // config default, or prefers-reduced-motion).
+    if (!isEnabled('boot')) {
+      if (loadingScreen) {
+        loadingScreen.style.display = 'none';
+      }
+      return;
+    }
+
     // If this is a view transition, hide the loading screen immediately
     if (resourceLoader.isViewTransition()) {
       if (loadingScreen) {

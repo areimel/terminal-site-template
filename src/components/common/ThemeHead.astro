@@ -1,0 +1,187 @@
+---
+/**
+ * Emits the terminal theme CSS custom properties and the effects gating
+ * CSS, plus an inline no-flash script that applies the persisted theme and
+ * effects state before first paint.
+ *
+ * Replaces the old `CustomStyles.astro` + `ApplyColorMode.astro` pair and
+ * the theme lists that used to be hard-coded in `BasicScripts`, `Layout`
+ * and `ThemeSwitcher`. Every theme is now data (`~/lib/themes`), so adding
+ * a theme means editing that registry, not this component.
+ */
+import { themes, defaultThemeId, getThemeById } from '~/lib/themes';
+import { effectNames, effectDefaults } from '~/lib/effects';
+
+const themeIds = themes.map((theme) => theme.id);
+const defaultTheme = getThemeById(defaultThemeId) ?? themes[0];
+
+function themeVars(colors: (typeof themes)[number]['colors']): string {
+  return `
+    --theme-100: ${colors[100]};
+    --theme-200: ${colors[200]};
+    --theme-300: ${colors[300]};
+    --theme-400: ${colors[400]};
+    --theme-500: ${colors[500]};
+    --theme-600: ${colors[600]};
+    --theme-700: ${colors[700]};
+    --theme-bright: ${colors.bright};
+    --theme-bg-primary: ${colors.bgPrimary};
+    --theme-bg-secondary: ${colors.bgSecondary};
+    --theme-bg-accent: ${colors.bgAccent};
+    --theme-accent: ${colors.accent};
+    --theme-accent-bright: ${colors.accentBright};
+    --theme-glow: ${colors.glow};
+  `;
+}
+
+const perThemeCss = themes.map((theme) => `.theme-${theme.id} {${themeVars(theme.colors)}}`).join('\n\n');
+
+const css = `
+:root {${themeVars(defaultTheme.colors)}}
+
+${perThemeCss}
+
+/* Shared mapping: every theme resolves the same terminal-*/aw-color-*
+   aliases, fonts and derived glow variants from its --theme-* base. */
+[class*="theme-"] {
+  --aw-font-sans: 'Kode Mono';
+  --aw-font-serif: 'Kode Mono';
+  --aw-font-heading: 'UAV OSD Mono';
+
+  --terminal-100: var(--theme-100);
+  --terminal-200: var(--theme-200);
+  --terminal-300: var(--theme-300);
+  --terminal-400: var(--theme-400);
+  --terminal-500: var(--theme-500);
+  --terminal-600: var(--theme-600);
+  --terminal-700: var(--theme-700);
+  --terminal-bright: var(--theme-bright);
+
+  --terminal-bg-primary: var(--theme-bg-primary);
+  --terminal-bg-secondary: var(--theme-bg-secondary);
+  --terminal-bg-accent: var(--theme-bg-accent);
+
+  --theme-glow-strong: 0 0 5ex var(--theme-700), 0 0 3ex var(--theme-600), 0 0 7px var(--theme-bright);
+  --theme-glow-subtle: 0 0 2ex var(--theme-300), 0 0 3px var(--theme-bright);
+  --theme-accent-glow: 0 0 3ex var(--theme-accent), 0 0 5px var(--theme-accent-bright);
+
+  /* Back-compat step aliases for consumers still using the old
+     --theme-accent-{500,600,700} naming (e.g. the styleguide palette). */
+  --theme-accent-500: var(--theme-accent);
+  --theme-accent-600: var(--theme-accent);
+  --theme-accent-700: var(--theme-accent-bright);
+
+  --aw-color-primary: var(--theme-500);
+  --aw-color-secondary: var(--theme-600);
+  --aw-color-accent: var(--theme-700);
+
+  --aw-color-text-heading: var(--theme-500);
+  --aw-color-text-default: var(--theme-500);
+  --aw-color-text-muted: var(--theme-300);
+  --aw-color-bg-page: var(--theme-bg-primary);
+}
+
+[class*="theme-"] ::selection {
+  background-color: var(--theme-500);
+  color: var(--theme-bg-primary);
+}
+
+[class*="theme-"] body {
+  text-shadow: var(--theme-glow);
+}
+
+.text-glow-strong {
+  text-shadow: var(--theme-glow-strong);
+}
+
+.text-glow-subtle {
+  text-shadow: var(--theme-glow-subtle);
+}
+
+/* Effects gating: hidden the moment their data-fx-* attribute is "off",
+   whether that came from a user preference or reduced-motion. */
+[data-fx-noise='off'] .terminal-overlay .noise,
+[data-fx-scanline='off'] .terminal-overlay .scanline,
+[data-fx-overlay='off'] .terminal-overlay .overlay {
+  display: none !important;
+}
+
+[data-fx-boot='off'] #loading-screen {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .terminal-overlay .noise,
+  .terminal-overlay .scanline,
+  .terminal-overlay .overlay,
+  #loading-screen {
+    display: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}
+`;
+---
+
+<style set:html={css}></style>
+
+<script
+  is:inline
+  define:vars={{
+    themeIds,
+    defaultThemeId,
+    effectNames,
+    effectDefaults,
+  }}
+>
+  (function () {
+    try {
+      const root = document.documentElement;
+
+      // Theme: read + validate against the known ids, fall back to default.
+      let savedTheme = null;
+      try {
+        savedTheme = localStorage.getItem('terminal-theme');
+      } catch {
+        /* storage unavailable */
+      }
+      const themeId = themeIds.indexOf(savedTheme) !== -1 ? savedTheme : defaultThemeId;
+      for (let i = 0; i < themeIds.length; i++) {
+        root.classList.remove('theme-' + themeIds[i]);
+      }
+      root.classList.add('theme-' + themeId);
+
+      // Effects: mirror the resolution logic in ~/lib/effects.ts so the
+      // very first paint already matches what initEffectsRuntime() would
+      // compute after hydration.
+      let overrides = {};
+      try {
+        const raw = localStorage.getItem('terminal-effects');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') overrides = parsed;
+        }
+      } catch {
+        /* storage unavailable or bad JSON */
+      }
+
+      let reduced = false;
+      try {
+        reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      } catch {
+        /* matchMedia unavailable */
+      }
+
+      const all = overrides.all === undefined ? effectDefaults.all : overrides.all;
+
+      for (let j = 0; j < effectNames.length; j++) {
+        const name = effectNames[j];
+        const requested = overrides[name] === undefined ? effectDefaults[name] : overrides[name];
+        const on = !reduced && all !== false && requested !== false;
+        root.setAttribute('data-fx-' + name, on ? 'on' : 'off');
+      }
+    } catch {
+      /* never block rendering over theme/effects bootstrapping */
+    }
+  })();
+</script>
