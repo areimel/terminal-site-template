@@ -1,0 +1,71 @@
+---
+/**
+ * FeatureGrid - a bordered grid of feature cells, deliberately not a grid of separate
+ * rounded cards: cells share hairline borders like a table of modules (same collapsing-border
+ * trick as `content/FactGrid`), inside one `Panel`.
+ */
+import Container from '~/components/core/Container.astro';
+import Panel from '~/components/core/Panel.astro';
+import Heading from '~/components/core/Heading.astro';
+import Icon from '~/components/core/Icon.astro';
+
+export interface Feature {
+  title: string;
+  description: string;
+  /** Iconify icon name, e.g. `tabler:activity`. */
+  icon?: string;
+}
+
+export interface Props {
+  title?: string;
+  intro?: string;
+  features: Feature[];
+  columns?: 2 | 3 | 4;
+  /** Anchor id for the outer `<section>`. */
+  id?: string;
+  class?: string;
+}
+
+const { title, intro, features, columns = 3, id, class: className } = Astro.props;
+
+const COLUMNS: Record<NonNullable<Props['columns']>, string> = {
+  2: 'sm:grid-cols-2',
+  3: 'sm:grid-cols-2 lg:grid-cols-3',
+  4: 'sm:grid-cols-2 lg:grid-cols-4',
+};
+---
+
+<section id={id} class:list={['feature-grid-section', className]}>
+  <Container size="default" spacing="lg">
+    {
+      (title || intro) && (
+        <div class="mb-8 flex max-w-[64ch] flex-col gap-3">
+          {title && <Heading level={2}>{title}</Heading>}
+          {intro && <p class="text-t-base text-terminal-400">{intro}</p>}
+        </div>
+      )
+    }
+    <Panel variant="line" tone="default" padding="none">
+      <div class:list={['grid grid-cols-1', COLUMNS[columns]]}>
+        {
+          features.map((feature) => (
+            <div class="feature-grid-cell flex flex-col gap-3 p-5">
+              {feature.icon && <Icon name={feature.icon} size={24} class="text-terminal-bright" />}
+              <Heading level={3}>{feature.title}</Heading>
+              <p class="text-t-sm text-terminal-400">{feature.description}</p>
+            </div>
+          ))
+        }
+      </div>
+    </Panel>
+  </Container>
+</section>
+
+<style>
+  /* Collapses adjacent 1px cell borders into shared lines, flush with Panel's own border
+     (same trick as `content/FactGrid`, which this deliberately mirrors). */
+  .feature-grid-cell {
+    border: 1px solid var(--theme-300);
+    margin: -1px 0 0 -1px;
+  }
+</style>

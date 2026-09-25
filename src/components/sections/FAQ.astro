@@ -1,0 +1,46 @@
+---
+/**
+ * FAQ - a titled list of questions, built on `navigation/Accordion` in exclusive mode so only
+ * one answer is open at a time.
+ */
+import Container from '~/components/core/Container.astro';
+import Heading from '~/components/core/Heading.astro';
+import Accordion from '~/components/navigation/Accordion.astro';
+import AccordionItem from '~/components/navigation/AccordionItem.astro';
+
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+export interface Props {
+  title?: string;
+  items: FaqItem[];
+  /** Anchor id for the outer `<section>`. */
+  id?: string;
+  class?: string;
+}
+
+const { title, items, id, class: className } = Astro.props;
+---
+
+<section id={id} class:list={['faq-section', className]}>
+  <Container size="prose" spacing="lg">
+    {
+      title && (
+        <Heading level={2} class="mb-6">
+          {title}
+        </Heading>
+      )
+    }
+    <Accordion exclusive>
+      {
+        items.map((item) => (
+          <AccordionItem title={item.question}>
+            <p>{item.answer}</p>
+          </AccordionItem>
+        ))
+      }
+    </Accordion>
+  </Container>
+</section>

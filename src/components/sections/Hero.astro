@@ -1,0 +1,109 @@
+---
+/**
+ * Hero - the top-of-page banner. Three variants:
+ *
+ * - `minimal`: title, subtitle and actions, left-aligned, no chrome. Good for quiet pages.
+ * - `split`: the same content in a left column, with the `aside` slot (e.g. a live
+ *   `TerminalShell` or an `AsciiFrame`) as a right column. Stacks on mobile.
+ * - `terminal`: renders the same content as if it had just been printed inside a terminal
+ *   window - a `Panel` `variant="double"` with a command line above the title, styled like
+ *   shell output rather than a marketing banner.
+ *
+ * `title` renders as the page's single `<h1>`, so a page should have exactly one `Hero`.
+ */
+import Container from '~/components/core/Container.astro';
+import Panel from '~/components/core/Panel.astro';
+import Heading from '~/components/core/Heading.astro';
+import Button from '~/components/core/Button.astro';
+import Prompt from '~/components/core/Prompt.astro';
+import type { SectionAction } from './types';
+
+export interface Props {
+  variant?: 'split' | 'terminal' | 'minimal';
+  title: string;
+  subtitle?: string;
+  actions?: SectionAction[];
+  /** Marks the title for the site-wide decoder-text enhancer. */
+  decode?: boolean;
+  /** Anchor id for the outer `<section>`. */
+  id?: string;
+  class?: string;
+}
+
+const { variant = 'minimal', title, subtitle, actions = [], decode = false, id, class: className } = Astro.props;
+
+const hasAside = Astro.slots.has('aside');
+---
+
+<section id={id} class:list={['hero-section', className]}>
+  {
+    variant === 'terminal' ? (
+      <Container size="default" spacing="lg">
+        <Panel variant="double" tone="accent" title="~/welcome.sh" padding="lg">
+          <div class="flex flex-col gap-4">
+            <p class="flex items-center gap-2 font-kode text-t-sm text-terminal-300">
+              <Prompt blink={false} />
+              <span>cat welcome.sh</span>
+            </p>
+            <Heading level={1} decode={decode} glow="subtle">
+              {title}
+            </Heading>
+            {subtitle && <p class="max-w-[60ch] font-kode text-t-lg text-terminal-400"># {subtitle}</p>}
+            {actions.length > 0 && (
+              <div class="flex flex-wrap gap-3 pt-2">
+                {actions.map((action) => (
+                  <Button href={action.href} variant={action.variant ?? 'solid'} prompt>
+                    {action.label}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
+        </Panel>
+      </Container>
+    ) : variant === 'split' ? (
+      <Container size="default" spacing="lg">
+        <div class="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
+          <div class="flex flex-col gap-5">
+            <Heading level={1} decode={decode} glow="subtle">
+              {title}
+            </Heading>
+            {subtitle && <p class="max-w-[60ch] text-t-lg text-terminal-400">{subtitle}</p>}
+            {actions.length > 0 && (
+              <div class="flex flex-wrap gap-3 pt-2">
+                {actions.map((action) => (
+                  <Button href={action.href} variant={action.variant ?? 'solid'}>
+                    {action.label}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
+          {hasAside && (
+            <div class="hero-aside">
+              <slot name="aside" />
+            </div>
+          )}
+        </div>
+      </Container>
+    ) : (
+      <Container size="default" spacing="lg">
+        <div class="flex max-w-[60ch] flex-col gap-5">
+          <Heading level={1} decode={decode} glow="subtle">
+            {title}
+          </Heading>
+          {subtitle && <p class="text-t-lg text-terminal-400">{subtitle}</p>}
+          {actions.length > 0 && (
+            <div class="flex flex-wrap gap-3 pt-2">
+              {actions.map((action) => (
+                <Button href={action.href} variant={action.variant ?? 'solid'}>
+                  {action.label}
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+      </Container>
+    )
+  }
+</section>

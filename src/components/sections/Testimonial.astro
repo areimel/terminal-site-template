@@ -1,0 +1,44 @@
+---
+/**
+ * Testimonial - a single quote styled as a log entry (a fictional operator handle plus the
+ * site's own org name, e.g. `ada@mainframe-7-systems:`), built on `content/Blockquote`. Bare
+ * content, no self-container - a page places one or more side by side inside its own section.
+ *
+ * The operator handle is derived from `author` and `TEMPLATE.identity.org` rather than
+ * hard-coded, so it stays correct after a fork changes `template.identity` in config.
+ */
+import { TEMPLATE } from 'astrowind:config';
+import Blockquote from '~/components/content/Blockquote.astro';
+
+export interface Props {
+  quote: string;
+  author: string;
+  role?: string;
+  /** Anchor id on the outer `<figure>`. */
+  id?: string;
+  class?: string;
+}
+
+const { quote, author, role, id, class: className } = Astro.props;
+
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+const handle = slugify(author);
+const org = slugify(TEMPLATE.identity.org);
+const caption = role ? `${author}, ${role}` : author;
+---
+
+<div id={id} class:list={['testimonial', className]}>
+  <p class="mb-1 font-kode text-t-sm text-terminal-300" aria-hidden="true">
+    [log] {handle}@{org}:
+  </p>
+  <Blockquote author={caption}>
+    <p>{quote}</p>
+  </Blockquote>
+</div>

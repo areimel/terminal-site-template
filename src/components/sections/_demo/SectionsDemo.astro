@@ -1,0 +1,215 @@
+---
+/**
+ * SectionsDemo - renders every `sections/` component with persona-neutral sample content (a
+ * fictional "MAINFRAME-7" system context). Embedded in the `/components` gallery (built in a
+ * later wave).
+ */
+import { Panel } from '~/components/core';
+import Hero from '../Hero.astro';
+import FeatureGrid from '../FeatureGrid.astro';
+import CTA from '../CTA.astro';
+import FAQ from '../FAQ.astro';
+import Timeline from '../Timeline.astro';
+import Testimonial from '../Testimonial.astro';
+import PricingTable from '../PricingTable.astro';
+import TerminalShell from '~/components/shell/TerminalShell.astro';
+---
+
+<div class="flex flex-col gap-8">
+  <Panel title="Hero" variant="line">
+    <p class="mb-4 font-kode text-t-sm text-terminal-300">
+      The top-of-page banner; three variants share the same title/subtitle/actions shape.
+    </p>
+    <div class="flex flex-col gap-8">
+      <div class="border border-dashed border-terminal-300">
+        <p class="border-b border-dashed border-terminal-300 px-3 py-1 font-kode text-xs text-terminal-300">
+          variant="minimal"
+        </p>
+        <Hero
+          variant="minimal"
+          title="Status pages that stay out of the way"
+          subtitle="Uplink watches your services and renders a static page from the results. No dashboard to babysit."
+          actions={[
+            { label: 'Start a status page', href: '#' },
+            { label: 'Read the docs', href: '#', variant: 'outline' },
+          ]}
+        />
+      </div>
+
+      <div class="border border-dashed border-terminal-300">
+        <p class="border-b border-dashed border-terminal-300 px-3 py-1 font-kode text-xs text-terminal-300">
+          variant="split" (aside: a live TerminalShell)
+        </p>
+        <Hero
+          variant="split"
+          title="Run your status page from a terminal"
+          subtitle="Uplink ships with a CLI. Try it here."
+          actions={[{ label: 'Start a status page', href: '#' }]}
+        >
+          <TerminalShell slot="aside" mode="inline" initialCommands={['help']} />
+        </Hero>
+      </div>
+
+      <div class="border border-dashed border-terminal-300">
+        <p class="border-b border-dashed border-terminal-300 px-3 py-1 font-kode text-xs text-terminal-300">
+          variant="terminal"
+        </p>
+        <Hero
+          variant="terminal"
+          title="Uplink"
+          subtitle="A self-hosted status page."
+          actions={[{ label: 'Start a status page', href: '#' }]}
+        />
+      </div>
+    </div>
+  </Panel>
+
+  <Panel title="FeatureGrid" variant="line">
+    <p class="mb-4 font-kode text-t-sm text-terminal-300">
+      A bordered grid of feature cells sharing hairline borders, like a table of modules.
+    </p>
+    <FeatureGrid
+      title="What Uplink watches"
+      intro="Six things every status page needs, built in."
+      columns={3}
+      features={[
+        {
+          title: 'Uptime checks',
+          description: 'Polls each endpoint every 5 minutes and records latency.',
+          icon: 'tabler:activity',
+        },
+        {
+          title: 'Incident log',
+          description: 'Post updates as an incident unfolds; visitors see them live.',
+          icon: 'tabler:alert-triangle',
+        },
+        {
+          title: 'Historical graphs',
+          description: 'The last 30 days of latency and uptime, rendered at build time.',
+          icon: 'tabler:chart-line',
+        },
+        {
+          title: 'Five themes',
+          description: 'Every component re-themes live across five color palettes.',
+          icon: 'tabler:palette',
+        },
+        {
+          title: 'Edge distribution',
+          description: 'Static output deploys to a CDN; no server to keep up.',
+          icon: 'tabler:world',
+        },
+        {
+          title: 'Live updates',
+          description: 'An optional WebSocket layer streams changes as they happen.',
+          icon: 'tabler:bolt',
+        },
+      ]}
+    />
+  </Panel>
+
+  <Panel title="Timeline" variant="line">
+    <p class="mb-4 font-kode text-t-sm text-terminal-300">
+      A real, ordered sequence: a vertical rail of repeating glyphs with a node per step.
+    </p>
+    <Timeline
+      items={[
+        {
+          date: 'Step 1',
+          title: 'Point the collector at your services',
+          description: 'Add each endpoint to the config; the Rust collector starts polling it.',
+        },
+        {
+          date: 'Step 2',
+          title: 'Metrics land in object storage',
+          description: 'Every check writes structured JSON - no database to run.',
+        },
+        {
+          date: 'Step 3',
+          title: 'Astro renders the status page',
+          description: 'The build pipeline turns that JSON into a static page on your theme.',
+        },
+      ]}
+    />
+  </Panel>
+
+  <Panel title="Testimonial" variant="line">
+    <p class="mb-4 font-kode text-t-sm text-terminal-300">
+      A quote styled as a log entry, built on `content/Blockquote`.
+    </p>
+    <div class="grid gap-6 md:grid-cols-2">
+      <Testimonial
+        quote="We dropped our status page hosting bill to zero and stopped worrying about the dashboard falling over."
+        author="Priya Nakamura"
+        role="Site Reliability Engineer"
+      />
+      <Testimonial
+        quote="Static generation was the right call. Five-minute latency is a fair trade for no database at all."
+        author="Owen Castillo"
+        role="Platform Lead"
+      />
+    </div>
+  </Panel>
+
+  <Panel title="FAQ" variant="line">
+    <p class="mb-4 font-kode text-t-sm text-terminal-300">
+      A titled question list, built on `navigation/Accordion` in exclusive mode.
+    </p>
+    <FAQ
+      items={[
+        {
+          question: 'Does Uplink need a database?',
+          answer: 'No. The collector writes JSON to object storage and the build reads it back.',
+        },
+        {
+          question: 'Can I self-host it?',
+          answer: 'Yes - that is the point. Run the collector anywhere and deploy the static output to any host.',
+        },
+      ]}
+    />
+  </Panel>
+
+  <Panel title="PricingTable" variant="line">
+    <p class="mb-4 font-kode text-t-sm text-terminal-300">
+      One `Panel` per plan; the highlighted plan gets an accent border and a badge, not a hover effect.
+    </p>
+    <PricingTable
+      plans={[
+        {
+          name: 'Hobby',
+          price: '$0',
+          description: 'One status page, community support.',
+          features: ['1 status page', '5 monitors', '30-day history'],
+          cta: { label: 'Start a status page', href: '#' },
+        },
+        {
+          name: 'Team',
+          price: '$29',
+          period: 'month',
+          description: 'For teams that need incidents and alerting.',
+          features: ['5 status pages', '50 monitors', '1-year history', 'Incident log'],
+          cta: { label: 'Start a trial', href: '#' },
+          highlighted: true,
+        },
+        {
+          name: 'Enterprise',
+          price: 'Talk to us',
+          description: 'Custom limits, SSO and a support contract.',
+          features: ['Unlimited status pages', 'Unlimited monitors', 'SSO', 'Support contract'],
+          cta: { label: 'Contact sales', href: '#' },
+        },
+      ]}
+    />
+  </Panel>
+
+  <Panel title="CTA" variant="line">
+    <p class="mb-4 font-kode text-t-sm text-terminal-300">A single bordered strip: title, description, actions.</p>
+    <CTA
+      title="Ready to stop babysitting a dashboard?"
+      description="Start a status page in a few minutes, or read the docs first."
+      actions={[
+        { label: 'Start a status page', href: '#' },
+        { label: 'Read the docs', href: '#', variant: 'outline' },
+      ]}
+    />
+  </Panel>
+</div>

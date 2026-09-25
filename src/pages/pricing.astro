@@ -1,0 +1,87 @@
+---
+/**
+ * /pricing - plans for Uplink, the self-hosted status page described in
+ * `src/data/projects/uplink.md`.
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import Container from '~/components/core/Container.astro';
+import Heading from '~/components/core/Heading.astro';
+import { PricingTable, FAQ, CTA } from '~/components/sections';
+import type { MetaData } from '~/types';
+
+const metadata: MetaData = {
+  title: 'Pricing - Uplink',
+  description:
+    'Uplink plans: a free Hobby tier, a Team plan for incidents and alerting, and Enterprise for custom limits.',
+};
+---
+
+<PageLayout metadata={metadata}>
+  <section id="pricing">
+    <Container size="default" spacing="lg">
+      <div class="mb-10 flex max-w-[64ch] flex-col gap-3">
+        <Heading level={1}>Pricing</Heading>
+        <p class="text-t-base text-terminal-400">
+          Run the collector yourself and the static output costs nothing to host. Paid plans add hosted collection,
+          longer history and support.
+        </p>
+      </div>
+
+      <PricingTable
+        plans={[
+          {
+            name: 'Hobby',
+            price: '$0',
+            description: 'One status page, run on your own infrastructure.',
+            features: ['1 status page', '5 monitors', '30-day history', 'Community support'],
+            cta: { label: 'Start a status page', href: '/docs/getting-started' },
+          },
+          {
+            name: 'Team',
+            price: '$29',
+            period: 'month',
+            description: 'For teams that need incidents and alerting on top of the basics.',
+            features: ['5 status pages', '50 monitors', '1-year history', 'Incident log', 'Email and Slack alerts'],
+            cta: { label: 'Start a trial', href: '/docs/getting-started' },
+            highlighted: true,
+          },
+          {
+            name: 'Enterprise',
+            price: 'Talk to us',
+            description: 'Custom limits, single sign-on and a support contract.',
+            features: ['Unlimited status pages', 'Unlimited monitors', 'SSO', 'Support contract'],
+            cta: { label: 'Contact sales', href: '/contact' },
+          },
+        ]}
+      />
+    </Container>
+  </section>
+
+  <FAQ
+    title="Billing"
+    items={[
+      {
+        question: 'Is the Hobby plan really free?',
+        answer: "Yes. It runs on your own infrastructure, so there's no hosting cost on our side to recover.",
+      },
+      {
+        question: 'Can I switch plans later?',
+        answer: 'Yes. Upgrades apply immediately; downgrades apply at the end of the current billing period.',
+      },
+      {
+        question: 'Do you offer a discount for annual billing?',
+        answer: 'Yes. Paying annually on the Team plan saves two months compared to paying monthly.',
+      },
+      {
+        question: 'What happens if I go over my monitor limit?',
+        answer: "We'll email you before anything is disabled, with the option to upgrade or remove monitors.",
+      },
+    ]}
+  />
+
+  <CTA
+    title="Still deciding?"
+    description="Talk to us about your setup and we'll help you pick a plan."
+    actions={[{ label: 'Contact us', href: '/contact' }]}
+  />
+</PageLayout>

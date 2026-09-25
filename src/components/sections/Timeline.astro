@@ -1,0 +1,53 @@
+---
+/**
+ * Timeline - a real, ordered sequence (an `<ol>`, so assistive tech announces "N of M"),
+ * rendered as a vertical rail of repeating `│` glyphs with a `●` node per step. Bare content -
+ * no title prop or self-container, since a page usually wants its own heading (e.g. "How it
+ * works") directly above it inside one shared section.
+ */
+import Heading from '~/components/core/Heading.astro';
+
+export interface TimelineItem {
+  date: string;
+  title: string;
+  description: string;
+}
+
+export interface Props {
+  items: TimelineItem[];
+  /** Anchor id on the outer wrapper. */
+  id?: string;
+  class?: string;
+}
+
+const { items, id, class: className } = Astro.props;
+
+const RAIL_GLYPH = '│';
+// Enough glyphs to cover a long list; `overflow: hidden` on the rail clips the rest (same trick
+// as `content/Blockquote`'s rail).
+const railLines = Array.from({ length: 200 });
+---
+
+<div id={id} class:list={['timeline relative', className]}>
+  <div
+    class="timeline-rail absolute inset-y-2 left-[0.3rem] flex w-4 flex-col items-center overflow-hidden leading-tight text-terminal-300"
+  >
+    {railLines.map(() => <span aria-hidden="true">{RAIL_GLYPH}</span>)}
+  </div>
+  <ol class="flex flex-col gap-8">
+    {
+      items.map((item) => (
+        <li class="relative pl-9">
+          <span class="absolute left-0 top-1 font-uav-mono text-terminal-bright" aria-hidden="true">
+            ●
+          </span>
+          <p class="font-kode text-t-sm text-terminal-300">{item.date}</p>
+          <Heading level={3} class="mt-1">
+            {item.title}
+          </Heading>
+          <p class="mt-2 text-t-sm text-terminal-400">{item.description}</p>
+        </li>
+      ))
+    }
+  </ol>
+</div>

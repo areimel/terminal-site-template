@@ -1,0 +1,87 @@
+---
+/**
+ * PricingTable - one `Panel` per plan, in a row that stacks on mobile. The highlighted plan
+ * (at most one is expected) gets the accent tone, a `double` border and a "Most picked" badge
+ * instead of any hover/scale treatment. Bare content, no self-container - a page usually wants
+ * its own heading and intro directly above it inside one shared section.
+ */
+import Panel from '~/components/core/Panel.astro';
+import Badge from '~/components/core/Badge.astro';
+import Button from '~/components/core/Button.astro';
+
+export interface PricingCta {
+  label: string;
+  href: string;
+}
+
+export interface PricingPlan {
+  name: string;
+  price: string;
+  period?: string;
+  description: string;
+  features: string[];
+  cta: PricingCta;
+  highlighted?: boolean;
+}
+
+export interface Props {
+  plans: PricingPlan[];
+  /** Anchor id on the outer wrapper. */
+  id?: string;
+  class?: string;
+}
+
+const { plans, id, class: className } = Astro.props;
+
+const COLUMNS: Record<number, string> = {
+  1: '',
+  2: 'md:grid-cols-2',
+  3: 'md:grid-cols-3',
+};
+const columnsClass = COLUMNS[plans.length] ?? 'md:grid-cols-3';
+---
+
+<div id={id} class:list={['pricing-table grid grid-cols-1 items-stretch gap-6', columnsClass, className]}>
+  {
+    plans.map((plan) => (
+      <Panel
+        as="article"
+        title={plan.name}
+        variant={plan.highlighted ? 'double' : 'line'}
+        tone={plan.highlighted ? 'accent' : 'default'}
+        padding="lg"
+        class="flex flex-col gap-5"
+      >
+        {plan.highlighted && (
+          <Fragment slot="actions">
+            <Badge tone="ok" variant="solid">
+              Most picked
+            </Badge>
+          </Fragment>
+        )}
+
+        <div class="flex items-baseline gap-1">
+          <span class="font-uav-mono text-t-3xl font-bold text-terminal-bright">{plan.price}</span>
+          {plan.period && <span class="text-t-sm text-terminal-300">/{plan.period}</span>}
+        </div>
+
+        <p class="text-t-sm text-terminal-400">{plan.description}</p>
+
+        <ul class="flex flex-1 flex-col gap-2">
+          {plan.features.map((feature) => (
+            <li class="flex items-start gap-2 text-t-sm text-terminal-400">
+              <span class="font-kode text-terminal-bright" aria-hidden="true">
+                [x]
+              </span>
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+
+        <Button href={plan.cta.href} variant={plan.highlighted ? 'solid' : 'outline'} class="w-full justify-center">
+          {plan.cta.label}
+        </Button>
+      </Panel>
+    ))
+  }
+</div>
