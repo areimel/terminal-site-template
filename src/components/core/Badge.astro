@@ -12,11 +12,16 @@ export interface Props {
 
 const { tone = 'default', variant = 'solid', class: className } = Astro.props;
 
+// `ok`/`warn`/`err` use a neutral black backdrop (not a tinted `<tone>-500/20`): a
+// same-hue theme background (e.g. the green theme behind an `ok` emerald badge, or the red
+// theme behind an `err` rose badge) blended through a tinted backdrop at this size dropped
+// below 4.5:1 (measured ~3.5:1 via axe). Black has no hue to clash with any theme, so the
+// status color stays legible against every theme's background.
 const SOLID: Record<NonNullable<Props['tone']>, string> = {
   default: 'bg-terminal-500/20 text-terminal-400 border border-terminal-500/40',
-  ok: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40',
-  warn: 'bg-amber-500/20 text-amber-400 border border-amber-500/40',
-  err: 'bg-rose-500/20 text-rose-400 border border-rose-500/40',
+  ok: 'bg-black/50 text-emerald-400 border border-emerald-500/40',
+  warn: 'bg-black/50 text-amber-400 border border-amber-500/40',
+  err: 'bg-black/50 text-rose-400 border border-rose-500/40',
 };
 
 const OUTLINE: Record<NonNullable<Props['tone']>, string> = {

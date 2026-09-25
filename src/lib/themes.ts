@@ -32,13 +32,25 @@ export interface TerminalTheme {
 }
 
 /**
- * Shared text-glow formula. It is identical for every theme on purpose:
- * each theme only differs in what `--theme-600` / `--theme-bright` resolve
- * to, so a single formula (rather than a hand-tuned string per theme) keeps
- * every palette visually consistent. `ThemeHead.astro` derives the
- * `-strong` / `-subtle` variants from the same numbered color steps.
+ * Text-glow formula. `body { text-shadow: var(--theme-glow) }` (see `ThemeHead.astro`) is
+ * applied to every page's text, in every theme.
+ *
+ * It used to read `0 0 3ex var(--theme-600), 0 0 5px var(--theme-bright)` directly -
+ * identical for every theme except for what `--theme-600`/`--theme-bright` resolve to. But
+ * axe-core's color-contrast check treats a blurred text-shadow as partially compositing into
+ * the perceived background (`blurRadiusToAlpha` in axe-core), and every theme's `600`/`bright`
+ * steps are opaque enough (0.8-1.0) that this pushed several combinations below 4.5:1 -
+ * the footer's `text-terminal-400` copy on `bg-terminal-bg-secondary` (measured ~2.4-3.7:1
+ * across themes), but also fixed-hue foregrounds that don't share the theme's own hue at all
+ * (e.g. `text-rose-400` log/error labels, measured ~3.3:1 in the green theme).
+ *
+ * `dimGlow` keeps each theme's own hue and the same two-shadow blur shape, just at a much
+ * lower alpha (independent of the `600`/`bright` tokens themselves, which are still used at
+ * full strength elsewhere - buttons, active states, `glow-strong`/`glow-subtle`).
  */
-const GLOW = '0 0 3ex var(--theme-600), 0 0 5px var(--theme-bright)';
+function dimGlow(rgb600: string, rgbBright: string): string {
+  return `0 0 3ex rgba(${rgb600}, 0.15), 0 0 5px rgba(${rgbBright}, 0.1)`;
+}
 
 export const themes: TerminalTheme[] = [
   {
@@ -47,18 +59,18 @@ export const themes: TerminalTheme[] = [
     colors: {
       100: 'rgba(160, 255, 160, 0.25)',
       200: 'rgba(160, 255, 160, 0.35)',
-      300: 'rgba(160, 255, 160, 0.55)',
+      300: 'rgba(160, 255, 160, 0.7)',
       400: 'rgba(160, 255, 160, 0.75)',
       500: 'rgba(160, 255, 160, 0.9)',
       600: 'rgba(128, 255, 128, 0.95)',
       700: 'rgba(128, 255, 128, 1.0)',
       bright: 'rgba(200, 255, 200, 1.0)',
       bgPrimary: '#023612',
-      bgSecondary: '#11581e',
+      bgSecondary: '#04320e',
       bgAccent: '#0d4417',
       accent: 'rgba(255, 170, 60, 0.9)',
       accentBright: 'rgba(255, 207, 118, 0.95)',
-      glow: GLOW,
+      glow: dimGlow('128, 255, 128', '200, 255, 200'),
     },
   },
   {
@@ -67,38 +79,44 @@ export const themes: TerminalTheme[] = [
     colors: {
       100: 'rgba(255, 183, 77, 0.1)',
       200: 'rgba(255, 183, 77, 0.2)',
-      300: 'rgba(255, 183, 77, 0.4)',
-      400: 'rgba(255, 183, 77, 0.6)',
+      300: 'rgba(255, 183, 77, 0.65)',
+      400: 'rgba(255, 183, 77, 0.75)',
       500: 'rgba(255, 183, 77, 0.8)',
       600: 'rgba(255, 170, 60, 0.9)',
       700: 'rgba(255, 160, 40, 1.0)',
       bright: 'rgba(255, 207, 118, 0.95)',
-      bgPrimary: '#201200',
-      bgSecondary: '#2d1900',
+      bgPrimary: '#180d00',
+      bgSecondary: '#281600',
       bgAccent: '#3a2000',
       accent: 'rgba(96, 255, 96, 0.9)',
       accentBright: 'rgba(180, 255, 180, 0.95)',
-      glow: GLOW,
+      glow: dimGlow('255, 170, 60', '255, 207, 118'),
     },
   },
   {
     id: 'red',
     label: 'Hacker Red',
     colors: {
+      // 300/400 use a lighter, less saturated red than 500-700 (not a straight alpha step of
+      // the same rgb): pure saturated red (255, 0, 60) has a low luminance ceiling (little
+      // green in it, and luminance weighs green heavily), so even at alpha 1.0 it can't clear
+      // 4.5:1 as body text against a background this dark. Lightening just the lower/muted
+      // steps keeps 500+ (buttons, active states) a vivid "hacker red" while 300/400 read as
+      // legible body/muted text.
       100: 'rgba(255, 0, 60, 0.1)',
       200: 'rgba(255, 0, 60, 0.2)',
-      300: 'rgba(255, 0, 60, 0.4)',
-      400: 'rgba(255, 0, 60, 0.6)',
-      500: 'rgba(255, 0, 60, 0.8)',
+      300: 'rgba(255, 120, 148, 0.75)',
+      400: 'rgba(255, 120, 148, 0.85)',
+      500: 'rgba(255, 0, 60, 1.0)',
       600: 'rgba(255, 0, 60, 0.9)',
       700: 'rgba(255, 0, 60, 1.0)',
       bright: 'rgba(255, 71, 108, 0.95)',
-      bgPrimary: '#0a0a0a',
-      bgSecondary: '#1a0f12',
+      bgPrimary: '#050505',
+      bgSecondary: '#10090b',
       bgAccent: '#2a1216',
       accent: 'rgba(0, 255, 240, 0.9)',
       accentBright: 'rgba(64, 255, 248, 0.95)',
-      glow: GLOW,
+      glow: dimGlow('255, 0, 60', '255, 71, 108'),
     },
   },
   {
@@ -107,8 +125,8 @@ export const themes: TerminalTheme[] = [
     colors: {
       100: 'rgba(255, 230, 0, 0.1)',
       200: 'rgba(255, 230, 0, 0.2)',
-      300: 'rgba(255, 230, 0, 0.4)',
-      400: 'rgba(255, 230, 0, 0.6)',
+      300: 'rgba(255, 230, 0, 0.55)',
+      400: 'rgba(255, 230, 0, 0.65)',
       500: 'rgba(255, 230, 0, 0.8)',
       600: 'rgba(255, 230, 0, 0.9)',
       700: 'rgba(255, 230, 0, 1.0)',
@@ -118,7 +136,7 @@ export const themes: TerminalTheme[] = [
       bgAccent: '#2a2a00',
       accent: 'rgba(0, 255, 240, 0.9)',
       accentBright: 'rgba(64, 255, 248, 0.95)',
-      glow: GLOW,
+      glow: dimGlow('255, 230, 0', '255, 240, 60'),
     },
   },
   {
@@ -127,7 +145,7 @@ export const themes: TerminalTheme[] = [
     colors: {
       100: 'rgba(110, 230, 255, 0.25)',
       200: 'rgba(110, 230, 255, 0.35)',
-      300: 'rgba(110, 230, 255, 0.55)',
+      300: 'rgba(110, 230, 255, 0.62)',
       400: 'rgba(110, 230, 255, 0.75)',
       500: 'rgba(110, 230, 255, 0.9)',
       600: 'rgba(110, 230, 255, 0.95)',
@@ -138,7 +156,7 @@ export const themes: TerminalTheme[] = [
       bgAccent: '#002638',
       accent: 'rgba(220, 240, 255, 0.9)',
       accentBright: 'rgba(240, 250, 255, 0.95)',
-      glow: GLOW,
+      glow: dimGlow('110, 230, 255', '140, 240, 255'),
     },
   },
 ];

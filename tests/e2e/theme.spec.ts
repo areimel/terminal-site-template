@@ -21,8 +21,9 @@ test('a theme set via localStorage persists across navigation', async ({ page })
   await page.goto('/');
   await expect(page.locator('html')).toHaveClass(/theme-amber/);
 
-  // Scoped to the sidebar: "Projects" also appears as a homepage CTA and in the footer nav.
-  await page.locator('#sidebar-nav').getByRole('link', { name: 'Projects' }).click();
+  // Scoped to the sidebar (SidebarNav.astro's `<nav aria-label="Primary">`): "Projects" also
+  // appears as a homepage CTA and in the footer nav.
+  await page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name: 'Projects' }).click();
   await expect(page).toHaveURL(/\/projects\/?$/);
   await expect(page.locator('html')).toHaveClass(/theme-amber/);
 });
@@ -39,12 +40,23 @@ test('applying a theme via the Settings UI', async ({ page }) => {
   await page.goto('/');
   const settingsTrigger = page.locator('[data-modal-open="settings"]');
 
-  test.fixme(
-    (await settingsTrigger.count()) === 0,
-    'Settings modal trigger ([data-modal-open="settings"]) is not wired up yet -- see B3/lead in BRIEF.md'
-  );
+  await settingsTrigger.click();
+  const dialog = page.locator('dialog#settings');
+  await expect(dialog).toBeVisible();
+
+  await page.getByRole('radiogroup', { name: 'Terminal theme' }).getByRole('radio', { name: 'Cozy Amber' }).click();
+  await expect(page.locator('html')).toHaveClass(/theme-amber/);
+});
+
+test('Esc closes the Settings modal and returns focus to the trigger', async ({ page }) => {
+  await page.goto('/');
+  const settingsTrigger = page.locator('[data-modal-open="settings"]');
 
   await settingsTrigger.click();
-  await page.getByRole('button', { name: /amber/i }).click();
-  await expect(page.locator('html')).toHaveClass(/theme-amber/);
+  const dialog = page.locator('dialog#settings');
+  await expect(dialog).toBeVisible();
+
+  await page.keyboard.press('Escape');
+  await expect(dialog).not.toBeVisible();
+  await expect(settingsTrigger).toBeFocused();
 });
