@@ -1,0 +1,256 @@
+---
+/**
+ * BootScreen - a full-screen boot log that plays once per browser session, then fades out.
+ *
+ * Merges the old `LoadingScreenV1.astro` (resource-aware progress) and the older
+ * `TerminalComponents/LoadingScreen.astro` (scrolling boot log) into one component. Boot lines
+ * default to a small BIOS-style log generated from `TEMPLATE.identity`.
+ *
+ * Session behavior: shown only on the first page load of a browser session (tracked via
+ * `sessionStorage['terminal-booted']`), never replayed on `ClientRouter` navigations. Gated by
+ * the `boot` effect and `prefers-reduced-motion` (both resolved through `~/lib/effects`) - when
+ * either says no, nothing is ever shown and `terminal:boot-complete` fires immediately.
+ *
+ * Accessibility: the whole overlay is `aria-hidden`, page content stays in the DOM underneath it
+ * (this never blocks assistive tech), and it can be skipped with Escape, any other key, or a
+ * click.
+ */
+import { TEMPLATE } from 'astrowind:config';
+
+export interface Props {
+  /** Boot log lines. Defaults to a short BIOS-style log generated from `TEMPLATE.identity`. */
+  lines?: string[];
+  /** Shown in the boot screen's own title bar. */
+  title?: string;
+  /** Minimum time (ms) the sequence stays up once it starts, so it reads rather than flashes. */
+  minDuration?: number;
+  class?: string;
+}
+
+const { identity } = TEMPLATE;
+
+const defaultLines = [
+  `${identity.org} BIOS v2.3`,
+  'Checking memory... OK',
+  `Mounting /home/${identity.handle}... OK`,
+  'Loading shell...',
+];
+
+const { lines = defaultLines, title = `${identity.org} boot`, minDuration = 1200, class: className } = Astro.props;
+---
+
+<div
+  id="loading-screen"
+  class:list={[
+    'boot-screen fixed inset-0 z-[100] flex items-center justify-center bg-terminal-bg-primary p-4 font-kode',
+    className,
+  ]}
+  aria-hidden="true"
+  data-min-duration={minDuration}
+>
+  <div class="boot-screen-panel w-full max-w-lg border border-terminal-300 bg-terminal-bg-secondary p-6 shadow-lg">
+    <div class="mb-4 flex items-center justify-between text-t-sm text-terminal-400">
+      <span class="font-uav-mono uppercase tracking-wide">{title}</span>
+      <span class="text-terminal-300">press any key to skip</span>
+    </div>
+
+    <ul class="mb-5 flex flex-col gap-1 text-t-sm text-terminal-400">
+      {
+        lines.map((line) => (
+          <li data-boot-line class="boot-line">
+            <span aria-hidden="true">&gt;</span> {line}
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="font-vt323 text-t-lg text-terminal-500" data-boot-progress>[--------------------] 0%</div>
+  </div>
+</div>
+
+<style>
+  /* Set by the inline script below once `terminal-booted` is already in this session's
+     sessionStorage, so a same-session reload never flashes the boot screen before the module
+     script (which runs later) gets a chance to hide it. */
+  [data-boot-shown='0'] #loading-screen {
+    display: none !important;
+  }
+
+  .boot-line {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .boot-line.is-visible {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .boot-line {
+      transition: none;
+    }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    try {
+      if (sessionStorage.getItem('terminal-booted') === '1') {
+        document.documentElement.setAttribute('data-boot-shown', '0');
+      }
+    } catch {
+      /* sessionStorage unavailable; the module script below still guards this. */
+    }
+  })();
+</script>
+
+<script>
+  import { isEnabled } from '~/lib/effects';
+
+  const STORAGE_KEY = 'terminal-booted';
+  const FALLBACK_CAP_MS = 5000;
+
+  function hasBooted(): boolean {
+    try {
+      return sessionStorage.getItem(STORAGE_KEY) === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  function markBooted(): void {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, '1');
+    } catch {
+      /* storage unavailable; the boot sequence still runs correctly this once */
+    }
+  }
+
+  function dispatchComplete(): void {
+    document.dispatchEvent(new CustomEvent('terminal:boot-complete'));
+  }
+
+  function hideInstantly(el: HTMLElement | null): void {
+    if (!el) return;
+    el.style.transition = 'none';
+    el.style.display = 'none';
+  }
+
+  function renderBar(pct: number, width = 20): string {
+    const filled = Math.max(0, Math.min(width, Math.round((pct / 100) * width)));
+    return `[${'#'.repeat(filled)}${'-'.repeat(width - filled)}] ${pct}%`;
+  }
+
+  function fontsReadyPromise() {
+    try {
+      return document.fonts ? document.fonts.ready : Promise.resolve();
+    } catch {
+      return Promise.resolve();
+    }
+  }
+
+  function runBootSequence(root: HTMLElement): void {
+    const lineEls = Array.from(root.querySelectorAll<HTMLElement>('[data-boot-line]'));
+    const progressEl = root.querySelector<HTMLElement>('[data-boot-progress]');
+    const minDuration = Number(root.dataset.minDuration) || 1200;
+    const total = lineEls.length || 1;
+
+    let finished = false;
+    let skipped = false;
+    const timers = new Set<ReturnType<typeof setTimeout>>();
+
+    const setProgress = (pct: number) => {
+      if (progressEl) progressEl.textContent = renderBar(pct);
+    };
+
+    function onSkipKey(): void {
+      skip();
+    }
+    function onSkipClick(): void {
+      skip();
+    }
+
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      timers.forEach((t) => clearTimeout(t));
+      timers.clear();
+      document.removeEventListener('keydown', onSkipKey);
+      root.removeEventListener('click', onSkipClick);
+      markBooted();
+      root.style.transition = 'opacity 0.4s ease';
+      root.style.opacity = '0';
+      timers.add(
+        setTimeout(() => {
+          root.style.display = 'none';
+        }, 420)
+      );
+      dispatchComplete();
+    };
+
+    function skip(): void {
+      if (skipped || finished) return;
+      skipped = true;
+      lineEls.forEach((el) => el.classList.add('is-visible'));
+      setProgress(100);
+      finish();
+    }
+
+    document.addEventListener('keydown', onSkipKey);
+    root.addEventListener('click', onSkipClick);
+
+    const perLineDelay = Math.max(60, Math.min(220, Math.floor(minDuration / (total + 1))));
+    let revealed = 0;
+    const revealNext = () => {
+      if (skipped || finished || revealed >= lineEls.length) return;
+      lineEls[revealed].classList.add('is-visible');
+      revealed++;
+      setProgress(Math.round((revealed / total) * 100));
+      timers.add(setTimeout(revealNext, perLineDelay));
+    };
+    revealNext();
+
+    const domReady =
+      document.readyState === 'complete'
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => window.addEventListener('load', () => resolve(), { once: true }));
+
+    const resourcesReady = Promise.race([
+      Promise.all([fontsReadyPromise(), domReady]),
+      new Promise<void>((resolve) => {
+        timers.add(setTimeout(resolve, FALLBACK_CAP_MS));
+      }),
+    ]);
+
+    const minDurationElapsed = new Promise<void>((resolve) => {
+      timers.add(setTimeout(resolve, minDuration));
+    });
+
+    Promise.all([resourcesReady, minDurationElapsed]).then(() => {
+      if (!skipped) finish();
+    });
+  }
+
+  function init(): void {
+    const root = document.getElementById('loading-screen');
+    if (!root) return;
+
+    if (hasBooted() || !isEnabled('boot')) {
+      markBooted();
+      hideInstantly(root);
+      dispatchComplete();
+      return;
+    }
+
+    runBootSequence(root);
+  }
+
+  init();
+
+  // Client-side navigations never replay the boot screen: Layout renders this component on
+  // every page, so any freshly swapped-in copy is hidden the instant it lands (mirrors how
+  // ~/lib/theme-runtime and ~/lib/effects re-sync their own state on `astro:after-swap`).
+  document.addEventListener('astro:after-swap', () => {
+    hideInstantly(document.getElementById('loading-screen'));
+  });
+</script>

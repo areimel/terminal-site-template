@@ -1,0 +1,158 @@
+---
+/**
+ * EffectsRuntime - the site-wide `[data-decode]` enhancer.
+ *
+ * `DecoderText` (and `core/Heading`'s `decode` prop) only mark elements up with `data-decode` +
+ * `data-text` - this is the one place that actually scrambles and reveals them: gated by the
+ * `decoder` effect (`~/lib/effects`, which already folds in `prefers-reduced-motion`), triggered
+ * the first time each element enters the viewport, and re-run on every `astro:page-load` so
+ * elements on newly-navigated pages get picked up too.
+ *
+ * Included once, site-wide, from `Layout.astro`. Renders no markup of its own.
+ */
+---
+
+<script>
+  import { isEnabled } from '~/lib/effects';
+
+  const SELECTOR = '[data-decode]';
+  const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const DEFAULT_DURATION_MS = 700;
+  const SCRAMBLE_FRAME_MS = 40;
+
+  interface DecodeState {
+    observer?: IntersectionObserver;
+    timers: Set<ReturnType<typeof setTimeout>>;
+    done: boolean;
+  }
+
+  const states = new WeakMap<HTMLElement, DecodeState>();
+
+  function randomChar(): string {
+    return SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+  }
+
+  function finalTextFor(el: HTMLElement): string {
+    return el.dataset.text ?? el.textContent ?? '';
+  }
+
+  function clearTimers(state: DecodeState): void {
+    state.timers.forEach((t) => clearTimeout(t));
+    state.timers.clear();
+  }
+
+  /** Stops any in-progress animation and renders the element as its plain final text. */
+  function snapToFinal(el: HTMLElement): void {
+    const state = states.get(el);
+    if (state) {
+      clearTimers(state);
+      state.observer?.disconnect();
+      state.done = true;
+    }
+    el.textContent = finalTextFor(el);
+    el.removeAttribute('aria-label');
+  }
+
+  function animate(el: HTMLElement): void {
+    const state = states.get(el);
+    if (!state || state.done) return;
+
+    const text = finalTextFor(el);
+    const chars = Array.from(text);
+    const duration = Number(el.dataset.decodeDuration) || DEFAULT_DURATION_MS;
+    const revealStepMs = Math.max(20, duration / Math.max(chars.length, 1));
+
+    // Scrambled characters live in their own aria-hidden span; the outer element keeps an
+    // aria-label with the final text throughout, so its accessible name never changes.
+    el.setAttribute('aria-label', text);
+    el.textContent = '';
+    const charSpan = document.createElement('span');
+    charSpan.setAttribute('aria-hidden', 'true');
+    el.appendChild(charSpan);
+
+    let revealed = 0;
+    const render = () => {
+      charSpan.textContent = chars.map((c, i) => (c === ' ' || i < revealed ? c : randomChar())).join('');
+    };
+    render();
+
+    const scrambleTimer = setInterval(render, SCRAMBLE_FRAME_MS);
+    state.timers.add(scrambleTimer);
+
+    const revealTimer = setInterval(() => {
+      revealed++;
+      render();
+      if (revealed >= chars.length) {
+        clearInterval(scrambleTimer);
+        clearInterval(revealTimer);
+        state.timers.delete(scrambleTimer);
+        state.timers.delete(revealTimer);
+        state.done = true;
+        el.textContent = text;
+        el.removeAttribute('aria-label');
+      }
+    }, revealStepMs);
+    state.timers.add(revealTimer);
+  }
+
+  function startWhenReady(el: HTMLElement): void {
+    const state = states.get(el);
+    if (!state) return;
+    const delay = Number(el.dataset.decodeDelay) || 0;
+    state.timers.add(setTimeout(() => animate(el), delay));
+  }
+
+  /** True while a visible boot sequence is still running and the decoder should wait for it. */
+  function bootIsBlocking(): boolean {
+    try {
+      if (sessionStorage.getItem('terminal-booted') === '1') return false;
+    } catch {
+      /* storage unavailable; fall through to the effect check below */
+    }
+    return isEnabled('boot') && !!document.getElementById('loading-screen');
+  }
+
+  function whenBootDone(cb: () => void): void {
+    if (!bootIsBlocking()) {
+      cb();
+      return;
+    }
+    document.addEventListener('terminal:boot-complete', cb, { once: true });
+  }
+
+  function setupElement(el: HTMLElement): void {
+    if (states.has(el)) return;
+    const state: DecodeState = { timers: new Set(), done: false };
+    states.set(el, state);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            observer.disconnect();
+            whenBootDone(() => startWhenReady(el));
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+    state.observer = observer;
+    observer.observe(el);
+  }
+
+  function setupAll(): void {
+    if (!isEnabled('decoder')) return;
+    document.querySelectorAll<HTMLElement>(SELECTOR).forEach(setupElement);
+  }
+
+  document.addEventListener('astro:page-load', setupAll);
+  setupAll();
+
+  document.addEventListener('terminal:effects-change', () => {
+    if (isEnabled('decoder')) {
+      setupAll();
+      return;
+    }
+    document.querySelectorAll<HTMLElement>(SELECTOR).forEach(snapToFinal);
+  });
+</script>

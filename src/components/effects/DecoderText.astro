@@ -1,0 +1,27 @@
+---
+/**
+ * DecoderText - marks up text for the scramble-then-reveal "decoder" animation.
+ *
+ * This component only renders markup: `[data-decode]` + `data-text` (mirrors `core/Heading`'s
+ * `decode` prop). The animation itself is implemented once, site-wide, by the `[data-decode]`
+ * enhancer in `EffectsRuntime.astro` - it only runs when the `decoder` effect is on (see
+ * `~/lib/effects`, which already folds in `prefers-reduced-motion`); otherwise this renders as
+ * plain, static text.
+ */
+export interface Props {
+  text: string;
+  /** Tag to render as. Defaults to `span`. */
+  as?: string;
+  class?: string;
+  /** Extra delay (ms), after the element enters the viewport, before the enhancer starts it. */
+  delay?: number;
+  /** Total duration (ms) of the reveal, once it starts. Defaults to the enhancer's own default. */
+  duration?: number;
+}
+
+const { text, as: Tag = 'span', class: className, delay, duration } = Astro.props;
+---
+
+<Tag data-decode data-text={text} data-decode-delay={delay} data-decode-duration={duration} class:list={[className]}
+  >{text}</Tag
+>
