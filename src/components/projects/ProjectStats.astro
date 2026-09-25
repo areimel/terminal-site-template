@@ -1,0 +1,28 @@
+---
+/**
+ * ProjectStats - a labeled fact block for embedding inside project MDX content, e.g.
+ * `<ProjectStats prefix=".01" title="Impact" content="<p>...</p>" />`.
+ */
+import { Panel } from '~/components/core';
+
+export interface Props {
+  /** Short index/number shown beside the title, e.g. ".01". */
+  prefix?: string;
+  title: string;
+  /** HTML string rendered as the block's body. */
+  content: string;
+  class?: string;
+}
+
+const { prefix, title, content, class: className } = Astro.props;
+---
+
+<Panel variant="line" tone="muted" padding="md" class:list={['not-prose', className]}>
+  <div class="flex items-start gap-4">
+    {prefix && <span class="font-uav-mono text-t-2xl text-terminal-500 text-glow-subtle">{prefix}</span>}
+    <div>
+      <h3 class="font-uav-mono text-t-lg font-semibold text-terminal-500">{title}</h3>
+      <div class="mt-1 text-terminal-400 [&_a]:underline [&_a]:decoration-dotted" set:html={content} />
+    </div>
+  </div>
+</Panel>

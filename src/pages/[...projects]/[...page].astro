@@ -2,8 +2,8 @@
 import type { InferGetStaticPropsType, GetStaticPaths } from 'astro';
 
 import Layout from '~/layouts/PageLayout.astro';
-import BlogList from '~/components/blog/List.astro';
-import Headline from '~/components/blog/Headline.astro';
+import PostList from '~/components/blog/List.astro';
+import { Heading } from '~/components/core';
 import Pagination from '~/components/blog/Pagination.astro';
 
 import { projectsListRobots, getStaticPathsProjectsList } from '~/utils/projects';
@@ -32,13 +32,12 @@ const metadata = {
 ---
 
 <Layout metadata={metadata}>
-  <section class="px-6 sm:px-6 py-12 sm:py-16 lg:py-20 mx-auto max-w-4xl">
-    <Headline
-      subtitle="Explore my portfolio of projects showcasing my skills, expertise, and creative solutions."
-    >
-      Projects
-    </Headline>
-    <BlogList posts={page.data} />
+  <section class="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
+    <header class="mb-8 text-center md:mb-12">
+      <Heading level={1} class="mb-2"> Projects </Heading>
+      <p class="text-terminal-400">Selected work and experiments.</p>
+    </header>
+    <PostList posts={page.data} />
     <Pagination prevUrl={page.url.prev} nextUrl={page.url.next} />
   </section>
-</Layout> 
+</Layout>

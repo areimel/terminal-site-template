@@ -1,5 +1,5 @@
 ---
-import { Icon } from 'astro-icon/components';
+import { Icon } from '~/components/core';
 
 export interface Props {
   text: string;
@@ -7,59 +7,56 @@ export interface Props {
   class?: string;
 }
 
-const { text, url, class: className = 'inline-block' } = Astro.props;
+const { text, url, class: className } = Astro.props;
+
+const encodedUrl = encodeURIComponent(String(url));
+const encodedText = encodeURIComponent(text);
+
+const links = [
+  {
+    label: 'Share on X',
+    icon: 'tabler:brand-x',
+    href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`,
+  },
+  {
+    label: 'Share on Facebook',
+    icon: 'tabler:brand-facebook',
+    href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+  },
+  {
+    label: 'Share on LinkedIn',
+    icon: 'tabler:brand-linkedin',
+    href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+  },
+  {
+    label: 'Share on WhatsApp',
+    icon: 'tabler:brand-whatsapp',
+    href: `https://api.whatsapp.com/send?text=${encodedText}%20${encodedUrl}`,
+  },
+  {
+    label: 'Share by email',
+    icon: 'tabler:mail',
+    href: `mailto:?subject=${encodedText}&body=${encodedUrl}`,
+  },
+];
 ---
 
-<div class={className}>
-  <span class="align-super font-bold text-terminal-400">Share:</span>
-  <button
-    class="ml-2 rtl:ml-0 rtl:mr-2"
-    title="Twitter Share"
-    data-aw-social-share="twitter"
-    data-aw-url={url}
-    data-aw-text={text}
-    ><Icon
-      name="tabler:brand-x"
-      class="w-6 h-6 text-terminal-300 hover:text-terminal-700"
-    />
-  </button>
-  <button class="ml-2 rtl:ml-0 rtl:mr-2" title="Facebook Share" data-aw-social-share="facebook" data-aw-url={url}
-    ><Icon
-      name="tabler:brand-facebook"
-      class="w-6 h-6 text-terminal-300 hover:text-terminal-700"
-    />
-  </button>
-  <button
-    class="ml-2 rtl:ml-0 rtl:mr-2"
-    title="Linkedin Share"
-    data-aw-social-share="linkedin"
-    data-aw-url={url}
-    data-aw-text={text}
-    ><Icon
-      name="tabler:brand-linkedin"
-      class="w-6 h-6 text-terminal-300 hover:text-terminal-700"
-    />
-  </button>
-  <button
-    class="ml-2 rtl:ml-0 rtl:mr-2"
-    title="Whatsapp Share"
-    data-aw-social-share="whatsapp"
-    data-aw-url={url}
-    data-aw-text={text}
-    ><Icon
-      name="tabler:brand-whatsapp"
-      class="w-6 h-6 text-terminal-300 hover:text-terminal-700"
-    />
-  </button>
-  <button
-    class="ml-2 rtl:ml-0 rtl:mr-2"
-    title="Email Share"
-    data-aw-social-share="mail"
-    data-aw-url={url}
-    data-aw-text={text}
-    ><Icon
-      name="tabler:mail"
-      class="w-6 h-6 text-terminal-300 hover:text-terminal-700"
-    />
-  </button>
+<div class:list={['flex items-center gap-3', className]}>
+  <span class="font-kode text-t-sm text-terminal-400">Share:</span>
+  <ul class="flex items-center gap-2">
+    {
+      links.map((link) => (
+        <li>
+          <a
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex text-terminal-300 transition-colors hover:text-terminal-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terminal-bright"
+          >
+            <Icon name={link.icon} label={link.label} size={20} />
+          </a>
+        </li>
+      ))
+    }
+  </ul>
 </div>

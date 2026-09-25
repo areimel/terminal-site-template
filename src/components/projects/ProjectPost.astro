@@ -1,0 +1,26 @@
+---
+import ArticleShell from '~/components/article/ArticleShell.astro';
+import ProjectHeader from '~/components/projects/ProjectHeader.astro';
+
+import type { Post } from '~/types';
+
+export interface Props {
+  post: Post;
+  url: string | URL;
+}
+
+const { post, url } = Astro.props;
+---
+
+<ArticleShell post={post} url={url}>
+  <ProjectHeader
+    slot="facts"
+    technologies={post.technologies}
+    role={post.role}
+    client={post.client}
+    duration={post.duration}
+    liveUrl={post.projectUrl}
+    repoUrl={post.repoUrl}
+  />
+  <slot />
+</ArticleShell>
