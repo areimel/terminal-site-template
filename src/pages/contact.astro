@@ -1,6 +1,6 @@
 ---
 import Layout from '~/layouts/PageLayout.astro';
-import ContactFormFull from '~/components/Forms/ContactFormFull.astro';
+import ContactForm from '~/components/forms/ContactForm.astro';
 import { Heading } from '@components/core';
 
 const metadata = {
@@ -11,9 +11,7 @@ const metadata = {
 <Layout metadata={metadata}>
   <div class="w-full max-w-4xl mx-auto py-12 px-4">
     <Heading level={1} class="mb-6">Get in touch</Heading>
-    <p class="text-terminal-400 font-kode text-base mb-8">
-      Send us a message and we'll respond as soon as possible.
-    </p>
-    <ContactFormFull />
+    <p class="text-terminal-400 font-kode text-base mb-8">Send us a message and we'll respond as soon as possible.</p>
+    <ContactForm variant="full" />
   </div>
 </Layout>

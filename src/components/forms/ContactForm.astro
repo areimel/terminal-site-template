@@ -1,0 +1,63 @@
+---
+/**
+ * ContactForm - the template's one contact form, composed entirely from the primitives in this
+ * folder. Replaces the old `Forms/ContactFormFull.astro`, `Forms/ContactFormSmall.astro` and
+ * `PopUpComponents/ContactFormModal.astro` (three near-duplicate Web3Forms forms); wrap this in
+ * `feedback/Modal` for the modal use case instead of keeping a separate copy.
+ *
+ * `variant="full"` adds a subject Select and a taller message field; `variant="compact"` is
+ * name/email/message only. Submission, validation and the status line all come from `Form` +
+ * `~/lib/forms.ts`. When no Web3Forms key is configured, a small muted note says so.
+ */
+import { TEMPLATE } from 'astrowind:config';
+import { Button } from '~/components/core';
+import Form from './Form.astro';
+import Field from './Field.astro';
+import Select from './Select.astro';
+
+export interface Props {
+  variant?: 'full' | 'compact';
+  class?: string;
+}
+
+const { variant = 'full', class: className } = Astro.props;
+
+const hasAccessKey = Boolean(TEMPLATE.integrations.forms.accessKey);
+
+const subjectOptions = [
+  { value: '', label: 'Select a subject' },
+  { value: 'general', label: 'General inquiry' },
+  { value: 'support', label: 'Technical support' },
+  { value: 'business', label: 'Business opportunity' },
+  { value: 'other', label: 'Other' },
+];
+---
+
+<Form provider class:list={['forms-contact', className]}>
+  <div class:list={['grid gap-4', { 'md:grid-cols-2': variant === 'full' }]}>
+    <Field name="name" label="Name" required placeholder="Your name" autocomplete="name" />
+    <Field name="email" label="Email" type="email" required placeholder="you@example.com" autocomplete="email" />
+  </div>
+
+  {variant === 'full' && <Select name="subject" label="Subject" options={subjectOptions} />}
+
+  <Field
+    as="textarea"
+    name="message"
+    label="Message"
+    required
+    rows={variant === 'full' ? 6 : 4}
+    placeholder="What's on your mind?"
+  />
+
+  <div class="flex flex-wrap items-center gap-3">
+    <Button type="submit" variant="solid" prompt>Send message</Button>
+    {
+      !hasAccessKey && (
+        <p class="font-kode text-t-sm text-terminal-300">
+          Demo mode: no Web3Forms key configured, so messages won't be sent.
+        </p>
+      )
+    }
+  </div>
+</Form>
