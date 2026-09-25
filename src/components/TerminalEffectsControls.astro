@@ -1,132 +1,107 @@
 ---
-// Component to control terminal effects visibility
+// Component to control terminal effects visibility, backed by ~/lib/effects.ts.
 import { Icon } from 'astro-icon/components';
+import { effectNames } from '~/lib/effects';
 
-// Define effects controls as a JSON object
-interface EffectControl {
-  id: string;
-  label: string;
-  dataEffect: string;
-  defaultChecked: boolean;
-}
-
-const effectControls: EffectControl[] = [
-  {
-    id: 'noise-effect',
-    label: 'CRT Noise',
-    dataEffect: 'noise',
-    defaultChecked: true
-  },
-  {
-    id: 'scanline-effect',
-    label: 'Scanlines',
-    dataEffect: 'scanline',
-    defaultChecked: true
-  },
-  {
-    id: 'overlay-effect',
-    label: 'CRT Overlay',
-    dataEffect: 'overlay',
-    defaultChecked: true
-  }
-];
+const effectLabels: Record<(typeof effectNames)[number], string> = {
+  boot: 'Boot Screen',
+  noise: 'CRT Noise',
+  scanline: 'Scanlines',
+  overlay: 'CRT Overlay',
+  decoder: 'Decoder Text',
+};
 ---
 
 <div class="terminal-effects-controls">
   <h3 class="text-terminal-500 text-lg font-bold mb-3">Terminal Effects</h3>
-  
+
   <div class="flex flex-col gap-2">
-    {effectControls.map(effect => (
-      <div class="flex items-center px-4 py-2 bg-terminal-bg-secondary border-2 border-terminal-300">
-        <div class="custom-checkbox-container mr-3">
-          <input 
-            type="checkbox" 
-            id={effect.id} 
-            class="effect-toggle sr-only"
-            data-effect={effect.dataEffect}
-            checked={effect.defaultChecked}
-          />
-          <label 
-            for={effect.id} 
-            class="custom-checkbox flex items-center justify-center w-4 h-4 border border-terminal-400 bg-terminal-bg-secondary cursor-pointer transition-colors hover:border-terminal-500"
+    <div class="flex items-center px-4 py-2 bg-terminal-bg-secondary border-2 border-terminal-bright">
+      <div class="custom-checkbox-container mr-3">
+        <input type="checkbox" id="effect-all" class="effect-toggle sr-only" data-effect-all checked />
+        <label
+          for="effect-all"
+          class="custom-checkbox flex items-center justify-center w-4 h-4 border border-terminal-400 bg-terminal-bg-secondary cursor-pointer transition-colors hover:border-terminal-500"
+        >
+          <Icon name="tabler:check" class="w-3 h-3 text-terminal-500 opacity-0 transition-opacity check-icon" />
+        </label>
+      </div>
+      <label for="effect-all" class="text-terminal-bright font-uav-mono text-xs cursor-pointer select-none no-glow"
+        >All effects</label
+      >
+    </div>
+
+    {
+      effectNames.map((name) => (
+        <div class="flex items-center px-4 py-2 bg-terminal-bg-secondary border-2 border-terminal-300">
+          <div class="custom-checkbox-container mr-3">
+            <input type="checkbox" id={`effect-${name}`} class="effect-toggle sr-only" data-effect={name} checked />
+            <label
+              for={`effect-${name}`}
+              class="custom-checkbox flex items-center justify-center w-4 h-4 border border-terminal-400 bg-terminal-bg-secondary cursor-pointer transition-colors hover:border-terminal-500"
+            >
+              <Icon name="tabler:check" class="w-3 h-3 text-terminal-500 opacity-0 transition-opacity check-icon" />
+            </label>
+          </div>
+          <label
+            for={`effect-${name}`}
+            class="text-terminal-500 font-uav-mono text-xs cursor-pointer select-none no-glow"
           >
-            <Icon name="tabler:check" class="w-3 h-3 text-terminal-500 opacity-0 transition-opacity check-icon" />
+            {effectLabels[name]}
           </label>
         </div>
-        <label for={effect.id} class="text-terminal-500 font-uav-mono text-xs cursor-pointer select-none no-glow">{effect.label}</label>
-      </div>
-    ))}
+      ))
+    }
   </div>
 </div>
 
 <script>
-  function setupTerminalEffectsControls() {
-    const toggles = document.querySelectorAll('.effect-toggle');
-    
-    // Load saved preferences
-    toggles.forEach(toggle => {
-      const effectName = toggle.getAttribute('data-effect');
-      const savedState = localStorage.getItem(`terminal-effect-${effectName}`);
-      
-      // If we have a saved state, apply it
-      if (savedState !== null) {
-        const isEnabled = savedState === 'true';
-        const toggleInput = toggle as HTMLInputElement;
-        toggleInput.checked = isEnabled;
-        updateCheckboxUI(toggleInput);
-        updateEffectVisibility(effectName, isEnabled);
-      } else {
-        // Initialize UI for default checked status
-        updateCheckboxUI(toggle as HTMLInputElement);
-      }
+  import { effectNames, getEffects, setEffect, setAllEffects, type EffectsState } from '~/lib/effects';
+
+  function updateCheckboxUI(checkbox: HTMLInputElement) {
+    const checkIcon = checkbox.nextElementSibling?.querySelector('.check-icon');
+    checkIcon?.classList.toggle('opacity-100', checkbox.checked);
+    checkIcon?.classList.toggle('opacity-0', !checkbox.checked);
+  }
+
+  function render(state: EffectsState) {
+    const allToggle = document.querySelector<HTMLInputElement>('[data-effect-all]');
+    if (allToggle) {
+      allToggle.checked = state.all;
+      updateCheckboxUI(allToggle);
+    }
+
+    effectNames.forEach((name) => {
+      const toggle = document.querySelector<HTMLInputElement>(`[data-effect="${name}"]`);
+      if (!toggle) return;
+      toggle.checked = state[name];
+      toggle.disabled = !state.all;
+      updateCheckboxUI(toggle);
     });
-    
-    // Add event listeners to toggles
-    toggles.forEach(toggle => {
-      toggle.addEventListener('change', (e) => {
-        const target = e.currentTarget as HTMLInputElement;
-        const effectName = target.getAttribute('data-effect');
-        const isEnabled = target.checked;
-        
-        // Update the checkbox UI
-        updateCheckboxUI(target);
-        
-        // Update the effect visibility
-        updateEffectVisibility(effectName, isEnabled);
-        
-        // Save the preference
-        localStorage.setItem(`terminal-effect-${effectName}`, isEnabled.toString());
+  }
+
+  function setupTerminalEffectsControls() {
+    render(getEffects());
+
+    document.querySelectorAll<HTMLInputElement>('.terminal-effects-controls [data-effect-all]').forEach((toggle) => {
+      toggle.addEventListener('change', () => {
+        render(setAllEffects(toggle.checked));
+      });
+    });
+
+    document.querySelectorAll<HTMLInputElement>('.terminal-effects-controls [data-effect]').forEach((toggle) => {
+      toggle.addEventListener('change', () => {
+        const name = toggle.getAttribute('data-effect') as (typeof effectNames)[number];
+        render(setEffect(name, toggle.checked));
       });
     });
   }
-  
-  // Update custom checkbox appearance based on checked state
-  function updateCheckboxUI(checkbox: HTMLInputElement) {
-    const checkIcon = checkbox.nextElementSibling?.querySelector('.check-icon');
-    if (checkIcon) {
-      if (checkbox.checked) {
-        checkIcon.classList.remove('opacity-0');
-        checkIcon.classList.add('opacity-100');
-      } else {
-        checkIcon.classList.remove('opacity-100');
-        checkIcon.classList.add('opacity-0');
-      }
-    }
-  }
-  
-  function updateEffectVisibility(effectName, isEnabled) {
-    const effectElement = document.querySelector(`.terminal-overlay .${effectName}`);
-    if (effectElement) {
-      if (isEnabled) {
-        effectElement.classList.remove('hidden');
-      } else {
-        effectElement.classList.add('hidden');
-      }
-    }
-  }
 
-  // Set up controls on initial load and on navigation
+  setupTerminalEffectsControls();
   document.addEventListener('astro:page-load', setupTerminalEffectsControls);
+  document.addEventListener('terminal:effects-change', (event) => {
+    render((event as CustomEvent<EffectsState>).detail);
+  });
 </script>
 
 <style>
@@ -135,32 +110,38 @@ const effectControls: EffectControl[] = [
     position: relative;
     display: inline-block;
   }
-  
+
   /* Custom checkbox appearance */
   .custom-checkbox {
     transition: all 0.2s ease-in-out;
   }
-  
+
   /* Checked state */
   .effect-toggle:checked + .custom-checkbox {
     background-color: var(--terminal-bg-accent);
     border-color: var(--terminal-bright);
   }
-  
+
   /* Focus state for accessibility */
   .effect-toggle:focus + .custom-checkbox {
-    box-shadow: 0 0 0 2px rgba(var(--terminal-bright-rgb), 0.3);
+    box-shadow: 0 0 0 2px var(--terminal-bright);
   }
-  
+
+  /* Disabled state (all effects off) */
+  .effect-toggle:disabled + .custom-checkbox {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
   /* Hover state */
   .custom-checkbox:hover {
     border-color: var(--terminal-500);
   }
-  
+
   /* Explicitly disable glow effects */
   .no-glow {
     text-shadow: none !important;
     box-shadow: none !important;
     filter: none !important;
   }
-</style> 
+</style>

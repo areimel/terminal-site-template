@@ -92,7 +92,7 @@ const colorGroups = {
   setupColorPalette();
 
   // Setup on theme change
-  document.addEventListener('themeChanged', setupColorPalette);
+  document.addEventListener('terminal:theme-change', setupColorPalette);
 
   // Watch for theme changes through the theme switcher
   const observer = new MutationObserver((mutations) => {

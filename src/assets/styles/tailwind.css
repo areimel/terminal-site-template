@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Visible keyboard focus everywhere: a glowing outline in the active
+   theme's brightest color, so tabbing through the terminal UI is always
+   legible against dark backgrounds. */
+:focus-visible {
+  outline: 2px solid var(--theme-bright, currentColor);
+  outline-offset: 2px;
+  box-shadow: 0 0 8px var(--theme-bright, transparent);
+  border-radius: 2px;
+}
+
 @layer utilities {
   .bg-page {
     background-color: var(--aw-color-bg-page);
