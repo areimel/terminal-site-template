@@ -1,0 +1,159 @@
+---
+/**
+ * /landing - a product landing page for Uplink, the self-hosted status page described in
+ * `src/data/projects/uplink.md`. Signature moment: the hero's `aside` is a live, inline
+ * `TerminalShell` so a visitor can try the shell without leaving the page.
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import Container from '~/components/core/Container.astro';
+import Heading from '~/components/core/Heading.astro';
+import TerminalShell from '~/components/shell/TerminalShell.astro';
+import { Hero, FeatureGrid, Timeline, Testimonial, FAQ, CTA } from '~/components/sections';
+import type { MetaData } from '~/types';
+
+const metadata: MetaData = {
+  title: 'Uplink - a self-hosted status page',
+  description:
+    'Uplink polls your services, renders a static status page, and deploys it to a CDN. No dashboard to babysit, no database to run.',
+};
+---
+
+<PageLayout metadata={metadata}>
+  <Hero
+    variant="split"
+    title="Know when something's down before your users tell you"
+    subtitle="Uplink polls your services every five minutes, renders a static status page, and deploys it to a CDN. No dashboard to babysit, no database to run."
+    actions={[
+      { label: 'Start a status page', href: '/docs/getting-started' },
+      { label: 'Read the docs', href: '/docs', variant: 'outline' },
+    ]}
+  >
+    <TerminalShell slot="aside" mode="inline" initialCommands={['whoami', 'help']} />
+  </Hero>
+
+  <FeatureGrid
+    title="What Uplink watches"
+    intro="A status page tool built for teams that want reliability reporting without the cost of managed SaaS."
+    columns={3}
+    features={[
+      {
+        title: 'Five-minute polling',
+        description:
+          'The Rust collector checks each endpoint every five minutes and writes structured JSON to object storage.',
+        icon: 'tabler:refresh',
+      },
+      {
+        title: 'Historical graphs',
+        description: 'The last 30 days of latency and uptime, rendered into the page at build time.',
+        icon: 'tabler:chart-line',
+      },
+      {
+        title: 'Zero database',
+        description: 'No database to run or back up. Metrics live as JSON; the page itself is static HTML.',
+        icon: 'tabler:database-off',
+      },
+      {
+        title: 'Edge distribution',
+        description: 'The build deploys to a CDN, so the page loads fast wherever your users are.',
+        icon: 'tabler:world',
+      },
+      {
+        title: 'Five color themes',
+        description: 'Every badge, graph and table re-themes live across five built-in terminal palettes.',
+        icon: 'tabler:palette',
+      },
+      {
+        title: 'Optional live updates',
+        description: "Add a WebSocket layer on Fly.io when five-minute latency isn't fast enough.",
+        icon: 'tabler:bolt',
+      },
+    ]}
+  />
+
+  <section id="how-it-works">
+    <Container size="prose" spacing="lg">
+      <Heading level={2} class="mb-8"> How it works </Heading>
+      <Timeline
+        items={[
+          {
+            date: 'Step 1',
+            title: 'Point the collector at your services',
+            description: "Add each endpoint's URL to the collector config. It starts polling on the next run.",
+          },
+          {
+            date: 'Step 2',
+            title: 'Metrics land in object storage',
+            description:
+              'Every check writes latency, status and parsed error data as structured JSON. No database round trips.',
+          },
+          {
+            date: 'Step 3',
+            title: 'Astro builds the status page',
+            description: 'The build pipeline reads that JSON and renders a themed, static status page from it.',
+          },
+          {
+            date: 'Step 4',
+            title: 'Deploy to your CDN',
+            description: 'Push the output to Netlify, or any static host, and the page is live worldwide.',
+          },
+        ]}
+      />
+    </Container>
+  </section>
+
+  <section id="testimonials">
+    <Container size="default" spacing="lg">
+      <Heading level={2} class="mb-8"> What people are saying </Heading>
+      <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+        <Testimonial
+          quote="We turned off our old monitoring dashboard the same week we deployed Uplink. Nobody's missed it."
+          author="Priya Nakamura"
+          role="Site Reliability Engineer"
+        />
+        <Testimonial
+          quote="Five-minute latency turned out to be the right trade. We'd been paying for real-time updates we never watched in real time."
+          author="Owen Castillo"
+          role="Platform Lead"
+        />
+      </div>
+    </Container>
+  </section>
+
+  <FAQ
+    title="Questions"
+    items={[
+      {
+        question: 'Does Uplink need a database?',
+        answer:
+          "No. The collector writes JSON to object storage and the build reads it back. There's nothing to provision or back up.",
+      },
+      {
+        question: 'How often does it check my services?',
+        answer: 'Every five minutes by default. That interval keeps costs at zero without missing a meaningful outage.',
+      },
+      {
+        question: 'Can I self-host the whole thing?',
+        answer: 'Yes. Run the collector wherever you like and deploy the static output to any host that serves files.',
+      },
+      {
+        question: 'What if I need updates faster than five minutes?',
+        answer:
+          'Add the optional WebSocket layer on Fly.io. It streams changes as they happen, on top of the same static page.',
+      },
+      {
+        question: 'Does it work with my color scheme?',
+        answer:
+          'Every component re-themes live across five built-in palettes, and you can register your own in the theme registry.',
+      },
+    ]}
+  />
+
+  <CTA
+    title="Start watching your services"
+    description="Set up your first status page in a few minutes, or read the docs first."
+    actions={[
+      { label: 'Start a status page', href: '/docs/getting-started' },
+      { label: 'Read the docs', href: '/docs', variant: 'outline' },
+    ]}
+  />
+</PageLayout>
