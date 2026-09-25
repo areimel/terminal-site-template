@@ -1,8 +1,14 @@
 ---
+import { TEMPLATE } from 'astrowind:config';
 
+const gtmId = TEMPLATE.integrations.gtm.id;
 ---
 
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KX6H9NQ"
-  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
+{gtmId && (
+  <>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
+      height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+  </>
+)}
