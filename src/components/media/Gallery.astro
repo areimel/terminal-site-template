@@ -1,0 +1,48 @@
+---
+import Figure from '~/components/media/Figure.astro';
+import CrtImage from '~/components/media/CrtImage.astro';
+
+/**
+ * Gallery - a responsive grid of images using Figure or CrtImage components.
+ *
+ * Each image is rendered with optional captions. Set `crt` to true to apply
+ * the CRT effect to all images in the gallery. The grid is responsive and
+ * adapts to the specified column count.
+ */
+export interface Props {
+  images: Array<{
+    src: string;
+    alt: string;
+    caption?: string;
+  }>;
+  columns?: 2 | 3 | 4;
+  crt?: boolean;
+  class?: string;
+}
+
+const { images, columns = 2, crt = false, class: className } = Astro.props;
+
+const columnClasses: Record<number, string> = {
+  2: 'grid-cols-1 md:grid-cols-2',
+  3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+  4: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
+};
+---
+
+<div class:list={['media-gallery gap-6', columnClasses[columns], className]}>
+  {
+    images.map((image) =>
+      crt ? (
+        <CrtImage src={image.src} alt={image.alt} caption={image.caption} loading="lazy" />
+      ) : (
+        <Figure src={image.src} alt={image.alt} caption={image.caption} loading="lazy" />
+      )
+    )
+  }
+</div>
+
+<style>
+  .media-gallery {
+    display: grid;
+  }
+</style>

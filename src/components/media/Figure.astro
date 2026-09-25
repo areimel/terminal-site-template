@@ -1,0 +1,65 @@
+---
+import Image from '~/components/common/Image.astro';
+import Prompt from '~/components/core/Prompt.astro';
+
+/**
+ * Figure - a captioned image with optional small caption line prefixed with prompt glyph.
+ *
+ * The caption is styled as a small, muted line prefixed with the Prompt glyph (>),
+ * creating a subtle visual separation from the main content.
+ */
+export interface Props {
+  src: string;
+  alt: string;
+  caption?: string;
+  width?: number;
+  height?: number;
+  loading?: 'lazy' | 'eager';
+  class?: string;
+}
+
+const { src, alt, caption, width, height, loading = 'lazy', class: className } = Astro.props;
+---
+
+<figure class:list={['media-figure', className]}>
+  <Image src={src} alt={alt} {width} {height} loading={loading} class="media-figure-img" />
+  {
+    caption && (
+      <figcaption class="media-figure-caption">
+        <Prompt symbol=">" class="media-figure-prompt" />
+        <span class="media-figure-text">{caption}</span>
+      </figcaption>
+    )
+  }
+</figure>
+
+<style>
+  .media-figure {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .media-figure-img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .media-figure-caption {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--terminal-300);
+  }
+
+  .media-figure-prompt {
+    flex-shrink: 0;
+  }
+
+  .media-figure-text {
+    flex: 1;
+  }
+</style>
