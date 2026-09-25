@@ -1,0 +1,272 @@
+---
+/**
+ * LogStream - a live-updating log panel (`role="log"`, `aria-live="polite"`).
+ *
+ * Auto-scrolls to the newest line unless the user has scrolled up to read older ones, in
+ * which case a "Jump to latest" button appears instead of yanking their scroll position.
+ *
+ * `demo` mode generates plausible, persona-neutral fake mainframe log lines (job
+ * scheduler/disk/network/auth) every 0.8-2.5s. It stops entirely while the panel is off
+ * screen (`IntersectionObserver`), and starts paused under `prefers-reduced-motion` - the
+ * user has to press "Resume" once to opt in, and it stays paused if the OS setting flips
+ * back (no auto-resume).
+ *
+ * Append API: `element.appendLine({ text, level?, time? })`, or dispatch
+ * `window.dispatchEvent(new CustomEvent('terminal:log', { detail: { text, level?, time? } }))`
+ * from anywhere - both go through the same code path, so `maxLines` trimming and the
+ * scroll/jump behavior apply either way.
+ */
+import Panel from '~/components/core/Panel.astro';
+import { LOG_LEVEL_LABEL, LOG_LEVEL_CLASS, type LogLevel } from './log-levels';
+import { generateDemoLogLine } from './log-demo';
+
+export interface LogStreamLine {
+  time?: string;
+  level?: LogLevel;
+  text: string;
+}
+
+export interface Props {
+  lines?: LogStreamLine[];
+  maxLines?: number;
+  demo?: boolean;
+  title?: string;
+  height?: string;
+  class?: string;
+}
+
+const {
+  lines = [],
+  maxLines = 200,
+  demo = false,
+  title = '~/var/log/system.log',
+  height = '16rem',
+  class: className,
+} = Astro.props;
+
+// Seed a few lines in demo mode so the panel isn't empty on first paint.
+const initialLines = demo && lines.length === 0 ? Array.from({ length: 6 }, () => generateDemoLogLine()) : lines;
+---
+
+<terminal-logstream
+  class:list={['log-stream block', className]}
+  data-max-lines={maxLines}
+  data-demo={demo ? '' : undefined}
+>
+  <Panel title={title} padding="none">
+    {
+      demo && (
+        <Fragment slot="actions">
+          <button
+            type="button"
+            class="log-stream-toggle font-kode text-t-sm text-terminal-400 hover:text-terminal-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terminal-bright"
+            data-log-toggle
+          >
+            Pause
+          </button>
+        </Fragment>
+      )
+    }
+    <div class="log-stream-body relative">
+      <div
+        class="log-stream-scroll overflow-y-auto px-3 py-2 font-kode text-t-sm"
+        style={`height:${height}`}
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        tabindex="0"
+        data-log-scroll
+      >
+        {
+          initialLines.map((line) => (
+            <p class="log-stream-line break-words" data-level={line.level ?? 'info'}>
+              {line.time && <span class="text-terminal-300">{line.time}</span>}
+              <span class:list={['log-stream-level', LOG_LEVEL_CLASS[line.level ?? 'info']]}>
+                {LOG_LEVEL_LABEL[line.level ?? 'info']}
+              </span>
+              <span class="text-terminal-500">{line.text}</span>
+            </p>
+          ))
+        }
+      </div>
+      <button
+        type="button"
+        class="log-stream-jump absolute bottom-2 right-2 hidden bg-terminal-500 px-2 py-1 font-kode text-xs text-terminal-bg-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terminal-bright"
+        data-log-jump
+      >
+        Jump to latest
+      </button>
+    </div>
+  </Panel>
+</terminal-logstream>
+
+<style>
+  .log-stream-line + .log-stream-line {
+    margin-top: 0.125rem;
+  }
+</style>
+
+<script>
+  import { LOG_LEVEL_LABEL, LOG_LEVEL_CLASS, type LogLevel } from './log-levels';
+  import { generateDemoLogLine } from './log-demo';
+
+  interface AppendLine {
+    time?: string;
+    level?: string;
+    text: string;
+  }
+
+  class TerminalLogStream extends HTMLElement {
+    private scrollEl: HTMLElement | null = null;
+    private jumpBtn: HTMLButtonElement | null = null;
+    private toggleBtn: HTMLButtonElement | null = null;
+    private observer: IntersectionObserver | null = null;
+    private reduceMotionQuery: MediaQueryList | null = null;
+    private timer: number | null = null;
+    private paused = false;
+    private visible = false;
+    private scrolledUp = false;
+    private maxLines = 200;
+    private demo = false;
+
+    private readonly onExternalLog = (event: Event) => {
+      const detail = (event as CustomEvent<AppendLine>).detail;
+      if (!detail?.text) return;
+      this.appendLine(detail);
+    };
+
+    connectedCallback(): void {
+      this.scrollEl = this.querySelector<HTMLElement>('[data-log-scroll]');
+      this.jumpBtn = this.querySelector<HTMLButtonElement>('[data-log-jump]');
+      this.toggleBtn = this.querySelector<HTMLButtonElement>('[data-log-toggle]');
+      this.maxLines = Number(this.dataset.maxLines ?? 200);
+      this.demo = this.hasAttribute('data-demo');
+
+      this.scrollEl?.addEventListener('scroll', () => this.handleScroll());
+      this.jumpBtn?.addEventListener('click', () => this.scrollToBottom());
+      this.toggleBtn?.addEventListener('click', () => this.toggle());
+      window.addEventListener('terminal:log', this.onExternalLog);
+
+      this.scrollToBottom();
+
+      if (this.demo) {
+        this.reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        this.paused = this.reduceMotionQuery.matches;
+        this.updateToggleLabel();
+        this.reduceMotionQuery.addEventListener('change', () => {
+          // Reduced motion always pauses; it never auto-resumes on its own.
+          if (this.reduceMotionQuery?.matches) {
+            this.paused = true;
+            this.updateToggleLabel();
+          }
+          this.manageTimer();
+        });
+
+        this.observer = new IntersectionObserver(([entry]) => {
+          this.visible = entry?.isIntersecting ?? false;
+          this.manageTimer();
+        });
+        this.observer.observe(this);
+      }
+    }
+
+    disconnectedCallback(): void {
+      this.observer?.disconnect();
+      if (this.timer !== null) window.clearTimeout(this.timer);
+      window.removeEventListener('terminal:log', this.onExternalLog);
+    }
+
+    /**
+     * Public append API: `logStreamEl.appendLine({ text, level?, time? })`.
+     *
+     * Named `appendLine` rather than `append` - shadowing the inherited `Node.append()`
+     * with an incompatible signature isn't type-safe and would silently break normal DOM
+     * append calls on this element, so this uses a distinct name instead.
+     */
+    appendLine(line: AppendLine): void {
+      if (!this.scrollEl) return;
+      const level = (line.level as LogLevel) ?? 'info';
+
+      const p = document.createElement('p');
+      p.className = 'log-stream-line break-words';
+      p.dataset.level = level;
+
+      if (line.time) {
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'text-terminal-300';
+        timeSpan.textContent = `${line.time} `;
+        p.appendChild(timeSpan);
+      }
+
+      const levelSpan = document.createElement('span');
+      levelSpan.className = `log-stream-level ${LOG_LEVEL_CLASS[level] ?? LOG_LEVEL_CLASS.info}`;
+      levelSpan.textContent = LOG_LEVEL_LABEL[level] ?? LOG_LEVEL_LABEL.info;
+      p.appendChild(levelSpan);
+
+      const textSpan = document.createElement('span');
+      textSpan.className = 'text-terminal-500';
+      textSpan.textContent = ` ${line.text}`;
+      p.appendChild(textSpan);
+
+      this.scrollEl.appendChild(p);
+
+      while (this.scrollEl.children.length > this.maxLines) {
+        this.scrollEl.firstElementChild?.remove();
+      }
+
+      if (this.scrolledUp) {
+        this.jumpBtn?.classList.remove('hidden');
+      } else {
+        this.scrollToBottom();
+      }
+    }
+
+    private handleScroll(): void {
+      if (!this.scrollEl) return;
+      const distanceFromBottom = this.scrollEl.scrollHeight - this.scrollEl.scrollTop - this.scrollEl.clientHeight;
+      this.scrolledUp = distanceFromBottom > 24;
+      if (!this.scrolledUp) this.jumpBtn?.classList.add('hidden');
+    }
+
+    private scrollToBottom(): void {
+      if (!this.scrollEl) return;
+      this.scrollEl.scrollTop = this.scrollEl.scrollHeight;
+      this.scrolledUp = false;
+      this.jumpBtn?.classList.add('hidden');
+    }
+
+    private toggle(): void {
+      this.paused = !this.paused;
+      this.updateToggleLabel();
+      this.manageTimer();
+    }
+
+    private updateToggleLabel(): void {
+      if (this.toggleBtn) this.toggleBtn.textContent = this.paused ? 'Resume' : 'Pause';
+    }
+
+    private manageTimer(): void {
+      if (!this.demo) return;
+      const shouldRun = this.visible && !this.paused;
+      if (shouldRun && this.timer === null) {
+        this.scheduleNext();
+      } else if (!shouldRun && this.timer !== null) {
+        window.clearTimeout(this.timer);
+        this.timer = null;
+      }
+    }
+
+    private scheduleNext(): void {
+      const delay = 800 + Math.random() * 1700;
+      this.timer = window.setTimeout(() => {
+        this.timer = null;
+        this.appendLine(generateDemoLogLine());
+        this.manageTimer();
+      }, delay);
+    }
+  }
+
+  if (!customElements.get('terminal-logstream')) {
+    customElements.define('terminal-logstream', TerminalLogStream);
+  }
+</script>

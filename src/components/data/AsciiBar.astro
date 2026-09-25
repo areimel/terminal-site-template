@@ -1,0 +1,67 @@
+---
+/**
+ * AsciiBar - the base monospace bar the whole `data/` bar family is built on:
+ * `[#########-----------] 45%`. The fill count is computed server-side from
+ * `value`/`max`/`width`; `showValue` toggles the trailing percentage readout.
+ *
+ * The root element carries `data-ascii-bar` plus `data-value`/`data-min`/`data-max`/
+ * `data-width`, so the shared `setBarValue()` helper (`~/components/data/ascii-bar`) can
+ * find and re-render it client-side without a full re-render of the component.
+ *
+ * `Meter` and `ProgressBar` both wrap this component rather than reimplementing the bar.
+ */
+import { clampValue, renderAsciiBarText, formatBarPercent, TONE_TEXT_CLASS, type DataTone } from './ascii-bar';
+
+export interface Props {
+  value: number;
+  max?: number;
+  /**
+   * Minimum of the bar's range. Not part of the public contract most callers need
+   * (plain 0-based bars can omit it) - `Meter` sets it to support non-zero-minimum ranges.
+   */
+  min?: number;
+  width?: number;
+  label?: string;
+  showValue?: boolean;
+  tone?: DataTone;
+  class?: string;
+}
+
+const {
+  value,
+  max = 100,
+  min = 0,
+  width = 20,
+  label,
+  showValue = true,
+  tone = 'default',
+  class: className,
+} = Astro.props;
+
+const clamped = clampValue(value, min, max);
+const barText = renderAsciiBarText(clamped, min, max, width);
+const percentText = formatBarPercent(clamped, min, max);
+---
+
+<div
+  class:list={['ascii-bar inline-flex items-center gap-2 font-kode text-t-sm', className]}
+  data-ascii-bar
+  data-value={clamped}
+  data-min={min}
+  data-max={max}
+  data-width={width}
+>
+  {label && <span class="ascii-bar-label whitespace-nowrap text-terminal-400">{label}</span>}
+  <span
+    class:list={['ascii-bar-track whitespace-pre tabular-nums', TONE_TEXT_CLASS[tone]]}
+    data-ascii-bar-track
+    aria-hidden="true">{barText}</span
+  >
+  {
+    showValue && (
+      <span class="ascii-bar-value tabular-nums whitespace-nowrap text-terminal-400" data-ascii-bar-value>
+        {percentText}
+      </span>
+    )
+  }
+</div>

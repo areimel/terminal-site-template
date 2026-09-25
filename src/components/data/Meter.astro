@@ -1,0 +1,51 @@
+---
+/**
+ * Meter - a labeled gauge for a value with a known range (`role="meter"`), e.g. CPU load,
+ * disk usage, a quota. Wraps `AsciiBar` for the visual track and adds its own label +
+ * value/unit readout row above it (`AsciiBar`'s own `showValue` is turned off, since a
+ * plain percent-of-range doesn't make sense once `min`/`unit` are in play).
+ *
+ * `tone` is derived automatically from `low`/`high`/`optimum`, the same three-threshold
+ * model the native `<meter>` element uses - see `autoTone()` in `./ascii-bar` for the exact
+ * rule. Leave all three out for a neutral gauge with no judgment attached.
+ */
+import AsciiBar from './AsciiBar.astro';
+import { clampValue, autoTone } from './ascii-bar';
+
+export interface Props {
+  value: number;
+  max?: number;
+  min?: number;
+  label: string;
+  /** Below this, the gauge reads as good/bad depending on `optimum` - see `autoTone()`. */
+  low?: number;
+  /** Above this, the gauge reads as good/bad depending on `optimum` - see `autoTone()`. */
+  high?: number;
+  /** Where "good" sits. At/above `high` = higher is better; at/below `low` = lower is better. */
+  optimum?: number;
+  unit?: string;
+  class?: string;
+}
+
+const { value, max = 100, min = 0, label, low, high, optimum, unit, class: className } = Astro.props;
+
+const clamped = clampValue(value, min, max);
+const tone = autoTone(clamped, min, max, low, high, optimum);
+const valueText = `${clamped}${unit ?? ''}`;
+---
+
+<div
+  class:list={['meter flex flex-col gap-1', className]}
+  role="meter"
+  aria-valuenow={clamped}
+  aria-valuemin={min}
+  aria-valuemax={max}
+  aria-label={label}
+  data-unit={unit}
+>
+  <div class="flex items-center justify-between gap-2 font-kode text-t-sm text-terminal-400">
+    <span>{label}</span>
+    <span class="tabular-nums text-terminal-bright" data-value-readout>{valueText}</span>
+  </div>
+  <AsciiBar value={clamped} min={min} max={max} tone={tone} showValue={false} class="w-full" />
+</div>

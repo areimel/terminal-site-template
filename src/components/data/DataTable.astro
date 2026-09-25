@@ -1,0 +1,211 @@
+---
+/**
+ * DataTable - a semantic, sortable `<table>`.
+ *
+ * Sortable columns render their header as a `<button>` (so they're keyboard/click
+ * operable) inside the `<th>`; the custom element `terminal-datatable` wires up clicks,
+ * does a stable sort of the `<tbody>` rows (original order is the tie-breaker) using each
+ * column's `format` to compare, and keeps `aria-sort` in sync. Sorting reorders the DOM
+ * rows directly rather than re-rendering, so it needs no framework.
+ *
+ * The table sits in a `tabindex="0"` horizontally-scrolling region for narrow viewports.
+ */
+export interface DataTableColumn {
+  key: string;
+  label: string;
+  align?: 'left' | 'right' | 'center';
+  sortable?: boolean;
+  format?: 'text' | 'number' | 'date';
+}
+
+export interface Props {
+  columns: DataTableColumn[];
+  rows: Record<string, string | number>[];
+  caption: string;
+  dense?: boolean;
+  stickyHeader?: boolean;
+  class?: string;
+}
+
+const { columns, rows, caption, dense = false, stickyHeader = false, class: className } = Astro.props;
+
+const ALIGN: Record<NonNullable<DataTableColumn['align']>, string> = {
+  left: 'text-left',
+  right: 'text-right',
+  center: 'text-center',
+};
+
+const CELL_PADDING = dense ? 'px-2 py-1' : 'px-3 py-2';
+
+function formatCell(value: string | number | undefined, format: DataTableColumn['format'] = 'text'): string {
+  if (value == null) return '';
+  if (format === 'number') {
+    const num = typeof value === 'number' ? value : Number(value);
+    return Number.isNaN(num) ? String(value) : num.toLocaleString();
+  }
+  if (format === 'date') {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString();
+  }
+  return String(value);
+}
+---
+
+<terminal-datatable class:list={['data-table block', className]}>
+  <div class="data-table-scroll overflow-x-auto" tabindex="0" role="region" aria-label={`${caption}, scrollable table`}>
+    <table class="w-full min-w-max border-collapse font-kode text-t-sm">
+      <caption class="pb-2 text-left text-terminal-400">{caption}</caption>
+      <thead class:list={[{ 'data-table-sticky': stickyHeader }]}>
+        <tr class="border-b border-terminal-300">
+          {
+            columns.map((col) => (
+              <th
+                scope="col"
+                class:list={[CELL_PADDING, ALIGN[col.align ?? 'left'], 'font-semibold text-terminal-bright']}
+                data-key={col.key}
+                data-format={col.format ?? 'text'}
+                data-sortable={col.sortable ? '' : undefined}
+                aria-sort={col.sortable ? 'none' : undefined}
+              >
+                {col.sortable ? (
+                  <button
+                    type="button"
+                    class="data-table-sort-btn inline-flex items-center gap-1 font-kode font-semibold text-terminal-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terminal-bright"
+                    data-sort-button
+                  >
+                    <span>{col.label}</span>
+                    <span class="data-table-sort-glyph text-terminal-400" aria-hidden="true" data-sort-glyph>
+                      {'↕'}
+                    </span>
+                  </button>
+                ) : (
+                  <span>{col.label}</span>
+                )}
+              </th>
+            ))
+          }
+        </tr>
+      </thead>
+      <tbody>
+        {
+          rows.length === 0 ? (
+            <tr>
+              <td colspan={columns.length} class:list={[CELL_PADDING, 'text-center text-terminal-400']}>
+                No rows to show.
+              </td>
+            </tr>
+          ) : (
+            rows.map((row, i) => (
+              <tr class:list={['data-table-row hover:bg-terminal-500/10', { 'bg-terminal-bg-secondary': i % 2 === 1 }]}>
+                {columns.map((col) => (
+                  <td class:list={[CELL_PADDING, ALIGN[col.align ?? 'left'], 'tabular-nums text-terminal-500']}>
+                    {formatCell(row[col.key], col.format)}
+                  </td>
+                ))}
+              </tr>
+            ))
+          )
+        }
+      </tbody>
+    </table>
+  </div>
+</terminal-datatable>
+
+<style>
+  .data-table-sort-glyph {
+    display: inline-block;
+    min-width: 1em;
+    opacity: 0.5;
+  }
+
+  th[aria-sort='ascending'] .data-table-sort-glyph,
+  th[aria-sort='descending'] .data-table-sort-glyph {
+    opacity: 1;
+    color: var(--terminal-bright);
+  }
+
+  .data-table-sticky th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--terminal-bg-secondary);
+  }
+</style>
+
+<script>
+  type CellFormat = 'text' | 'number' | 'date';
+
+  function compareValues(a: string, b: string, format: CellFormat): number {
+    if (format === 'number') {
+      const na = parseFloat(a.replace(/[^0-9.-]/g, ''));
+      const nb = parseFloat(b.replace(/[^0-9.-]/g, ''));
+      const safeA = Number.isNaN(na) ? -Infinity : na;
+      const safeB = Number.isNaN(nb) ? -Infinity : nb;
+      return safeA - safeB;
+    }
+    if (format === 'date') {
+      const da = Date.parse(a);
+      const db = Date.parse(b);
+      const safeA = Number.isNaN(da) ? -Infinity : da;
+      const safeB = Number.isNaN(db) ? -Infinity : db;
+      return safeA - safeB;
+    }
+    return a.localeCompare(b);
+  }
+
+  class TerminalDataTable extends HTMLElement {
+    connectedCallback() {
+      const buttons = this.querySelectorAll<HTMLButtonElement>('[data-sort-button]');
+      buttons.forEach((button) => {
+        button.addEventListener('click', () => this.sortBy(button));
+      });
+    }
+
+    private sortBy(button: HTMLButtonElement): void {
+      const th = button.closest('th');
+      const table = this.querySelector('table');
+      if (!th || !table) return;
+
+      const key = th.dataset.key;
+      const format = (th.dataset.format ?? 'text') as CellFormat;
+      const headerRow = th.parentElement;
+      const columnIndex = headerRow ? Array.from(headerRow.children).indexOf(th) : -1;
+      if (!key || columnIndex < 0) return;
+
+      const nextDirection = th.getAttribute('aria-sort') === 'ascending' ? 'descending' : 'ascending';
+
+      table.querySelectorAll('th[data-sortable]').forEach((otherTh) => {
+        otherTh.setAttribute('aria-sort', 'none');
+        const glyph = otherTh.querySelector('[data-sort-glyph]');
+        if (glyph) glyph.textContent = '↕';
+      });
+      th.setAttribute('aria-sort', nextDirection);
+      const glyph = th.querySelector('[data-sort-glyph]');
+      if (glyph) glyph.textContent = nextDirection === 'ascending' ? '▲' : '▼';
+
+      const tbody = table.querySelector('tbody');
+      if (!tbody) return;
+
+      const rows = Array.from(tbody.querySelectorAll<HTMLTableRowElement>('tr'));
+      // The empty-state row has a single cell spanning every column - nothing to sort.
+      if (rows.length <= 1 && rows[0]?.children.length === 1 && rows[0]?.querySelector('[colspan]')) return;
+
+      const indexed = rows.map((row, index) => ({ row, index }));
+      const dir = nextDirection === 'ascending' ? 1 : -1;
+
+      indexed.sort((a, b) => {
+        const cellA = a.row.children[columnIndex]?.textContent?.trim() ?? '';
+        const cellB = b.row.children[columnIndex]?.textContent?.trim() ?? '';
+        const cmp = compareValues(cellA, cellB, format);
+        if (cmp !== 0) return cmp * dir;
+        return a.index - b.index; // Stable: ties keep their original relative order.
+      });
+
+      for (const { row } of indexed) tbody.appendChild(row);
+    }
+  }
+
+  if (!customElements.get('terminal-datatable')) {
+    customElements.define('terminal-datatable', TerminalDataTable);
+  }
+</script>

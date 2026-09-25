@@ -1,0 +1,158 @@
+---
+/**
+ * DataDemo - renders every `data/` component with realistic, persona-neutral sample
+ * data (a system-monitor / mainframe ops console), so the `/components` gallery can show
+ * the whole group at once. Also wires a "Randomize values" button to `setBarValue()` to
+ * demonstrate the shared client-side update helper.
+ */
+import { TEMPLATE } from 'astrowind:config';
+import Panel from '~/components/core/Panel.astro';
+import Heading from '~/components/core/Heading.astro';
+import Button from '~/components/core/Button.astro';
+import Divider from '~/components/core/Divider.astro';
+import AsciiBar from '~/components/data/AsciiBar.astro';
+import Meter from '~/components/data/Meter.astro';
+import ProgressBar from '~/components/data/ProgressBar.astro';
+import StatReadout from '~/components/data/StatReadout.astro';
+import KeyValue from '~/components/data/KeyValue.astro';
+import DataTable from '~/components/data/DataTable.astro';
+import LogStream from '~/components/data/LogStream.astro';
+
+const processRows = [
+  { pid: 4021, name: 'sched-daemon', cpu: 2.1, mem: 84, status: 'running', started: '2026-09-18' },
+  { pid: 4088, name: 'index-worker', cpu: 41.6, mem: 512, status: 'running', started: '2026-09-20' },
+  { pid: 4102, name: 'backup-nightly', cpu: 6.4, mem: 128, status: 'sleeping', started: '2026-09-21' },
+  { pid: 4115, name: 'auth-gateway', cpu: 12.8, mem: 256, status: 'running', started: '2026-09-19' },
+  { pid: 4190, name: 'metrics-rollup', cpu: 3.9, mem: 96, status: 'sleeping', started: '2026-09-22' },
+  { pid: 4207, name: 'cache-warm', cpu: 0.4, mem: 32, status: 'stopped', started: '2026-09-15' },
+];
+
+const systemInfo = [
+  { key: 'Host', value: TEMPLATE.identity.org },
+  { key: 'Operator', value: `${TEMPLATE.identity.name} (${TEMPLATE.identity.handle})` },
+  { key: 'Role', value: TEMPLATE.identity.role },
+  { key: 'Location', value: TEMPLATE.identity.location },
+  { key: 'Uptime', value: '14d 06h 22m' },
+  { key: 'Kernel', value: 'TERMOS 7.2.1' },
+  { key: 'Load average', value: '0.62, 0.58, 0.51' },
+];
+---
+
+<div class="flex flex-col gap-8" data-data-demo>
+  <section>
+    <Heading level={3} class="mb-3"> AsciiBar </Heading>
+    <p class="mb-3 font-kode text-t-sm text-terminal-400">
+      The monospace track every other bar in this group is built on.
+    </p>
+    <div class="flex flex-col gap-2">
+      <AsciiBar value={45} label="default" />
+      <AsciiBar value={82} tone="ok" label="tone=ok" />
+      <AsciiBar value={65} tone="warn" label="tone=warn" />
+      <AsciiBar value={12} tone="err" label="tone=err" />
+      <AsciiBar value={70} width={40} showValue={false} label="width=40, no value" />
+    </div>
+  </section>
+
+  <Divider label="Meter" style="dashed" />
+
+  <section>
+    <p class="mb-3 font-kode text-t-sm text-terminal-400">
+      A labeled gauge (`role="meter"`) whose tone is derived from low/high thresholds.
+    </p>
+    <div class="grid gap-4 md:grid-cols-3">
+      <Meter label="CPU load" value={42} unit="%" low={70} high={90} optimum={0} />
+      <Meter label="Memory usage" value={76} unit="%" low={70} high={90} optimum={0} />
+      <Meter label="Disk usage" value={97} unit="%" low={80} high={95} optimum={0} />
+    </div>
+  </section>
+
+  <Divider label="ProgressBar" style="dashed" />
+
+  <section class="flex flex-col gap-3">
+    <p class="font-kode text-t-sm text-terminal-400">
+      Determinate progress wraps AsciiBar; indeterminate swaps in a bouncing block (a static "[ working&hellip; ]" under
+      reduced motion).
+    </p>
+    <ProgressBar value={64} max={100} label="Deploy: uploading build artifacts" />
+    <ProgressBar indeterminate label="Deploy: running database migration" />
+  </section>
+
+  <Divider label="StatReadout" style="dashed" />
+
+  <section class="grid gap-6 sm:grid-cols-3">
+    <StatReadout label="Active sessions" value={128} delta={3.2} deltaLabel="vs last hour" />
+    <StatReadout label="Queue depth" value={42} unit="jobs" delta={-1.1} status="warn" />
+    <StatReadout label="Error rate" value="0.4%" delta={0} status="ok" />
+  </section>
+
+  <Divider label="KeyValue" style="dashed" />
+
+  <section class="grid gap-6 md:grid-cols-2">
+    <Panel title="~/etc/system-info" variant="ascii" tone="muted" padding="sm">
+      <KeyValue items={systemInfo} />
+    </Panel>
+    <Panel title="~/etc/quick-facts" variant="ascii" tone="muted" padding="sm">
+      <KeyValue
+        layout="inline"
+        items={[
+          { key: 'Region', value: 'sector-7' },
+          { key: 'Nodes', value: '12' },
+          { key: 'Status', value: 'nominal', tone: 'ok' },
+          { key: 'Alerts', value: '1', tone: 'warn' },
+        ]}
+      />
+    </Panel>
+  </section>
+
+  <Divider label="DataTable" style="dashed" />
+
+  <section>
+    <DataTable
+      caption="Running processes"
+      dense
+      columns={[
+        { key: 'pid', label: 'PID', align: 'right', sortable: true, format: 'number' },
+        { key: 'name', label: 'Name', sortable: true },
+        { key: 'cpu', label: 'CPU %', align: 'right', sortable: true, format: 'number' },
+        { key: 'mem', label: 'Mem (MB)', align: 'right', sortable: true, format: 'number' },
+        { key: 'status', label: 'Status', sortable: true },
+        { key: 'started', label: 'Started', sortable: true, format: 'date' },
+      ]}
+      rows={processRows}
+    />
+  </section>
+
+  <Divider label="LogStream" style="dashed" />
+
+  <section>
+    <LogStream demo title="~/var/log/system.log" height="14rem" />
+  </section>
+
+  <Divider />
+
+  <section class="flex items-center gap-3">
+    <div data-demo-randomize>
+      <Button variant="outline" size="sm">Randomize values</Button>
+    </div>
+    <span class="font-kode text-t-sm text-terminal-400"
+      >Demonstrates setBarValue() on every meter/progress bar above.</span
+    >
+  </section>
+</div>
+
+<script>
+  import { setBarValue } from '~/components/data/ascii-bar';
+
+  const root = document.querySelector<HTMLElement>('[data-data-demo]');
+  const button = root?.querySelector<HTMLButtonElement>('[data-demo-randomize] button');
+
+  button?.addEventListener('click', () => {
+    const bars = root ? Array.from(root.querySelectorAll<HTMLElement>('[data-ascii-bar]')) : [];
+    bars.forEach((bar) => {
+      const min = Number(bar.dataset.min ?? 0);
+      const max = Number(bar.dataset.max ?? 100);
+      const next = Math.round(min + Math.random() * (max - min));
+      setBarValue(bar, next);
+    });
+  });
+</script>
