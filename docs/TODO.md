@@ -34,12 +34,12 @@ Spec: `docs/superpowers/specs/2026-09-25-terminal-template-design.md`
 
 ## Wave 2 — Sections & pages
 
-- [ ] P1 home, /now, /uses
-- [ ] P2 sections/ + /landing + /pricing
-- [ ] P3 /contact, /404, /privacy, /terms, /terminal, MDX embeds
-- [ ] P4 /components gallery
-- [ ] P5 /app dashboard
-- [ ] Merge Wave 2, build green
+- [x] P1 home, /now, /uses
+- [x] P2 sections/ + /landing + /pricing
+- [x] P3 /contact, /404, /privacy, /terms, /terminal, MDX embeds
+- [x] P4 /components gallery
+- [x] P5 /app dashboard
+- [x] Merge Wave 2, build green
 
 ## Wave 3 — Integration & verification
 
