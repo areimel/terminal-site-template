@@ -59,7 +59,7 @@ Every group except the page-specific ones ships a `src/components/<group>/_demo/
 import { TEMPLATE, SITE, METADATA, APP_BLOG, APP_PROJECTS } from 'astrowind:config';
 ```
 
-`TEMPLATE` shape: `identity {name, handle, org, role, tagline, location}`, `social [{label, href, icon}]`, `themes.default`, `effects {boot, noise, scanline, overlay, decoder}`, `shell {prompt, motd}`, `integrations {forms:{provider, accessKey}, gtm:{id}, ga:{id}}`. Note: `integrations.ga.id` exists in the schema but nothing currently reads it to load a script — GTM is the one that's actually wired up (`common/GoogleTagManagerHead.astro`/`GoogleTagManagerBody.astro`). There's no env-var interpolation into `config.yaml` — values in it are committed as plain text.
+`TEMPLATE` shape: `identity {name, handle, org, role, tagline, location}`, `social [{label, href, icon}]`, `themes.default`, `effects {boot, noise, scanline, overlay, decoder}`, `shell {prompt, motd}`, `integrations {forms:{provider, accessKey}, gtm:{id}, ga:{id}}`. GTM (`common/GoogleTagManagerHead.astro`/`Body.astro`) and GA (`common/GoogleAnalytics.astro`) render only when their ids are set. There's no env-var interpolation into `config.yaml` — values in it are committed as plain text.
 
 Extend `vendor/integration/**` for new config fields; don't replace the pattern (merge defaults + user config with `lodash.merge`).
 
@@ -86,7 +86,7 @@ Extend `vendor/integration/**` for new config fields; don't replace the pattern 
 - **Demo convention**: every component group ships `src/components/<group>/_demo/<Group>Demo.astro`, rendering every component and meaningful variant inside a `Panel` titled with the component's name plus one plain sentence of what it's for. `/components` composes these automatically.
 - **Line endings**: `.gitattributes` normalizes text files to LF (`* text=auto eol=lf`); binary types (images, fonts) are marked `binary`. Don't fight this with editor-specific line-ending settings.
 - **Image handling**: `astro.config.ts` uses `passthroughImageService()` — images are served as-is, not optimized/resized at build time. Compress large images yourself before adding them.
-- **Deployment**: config for both Netlify (`netlify.toml`) and Vercel (`vercel.json`) is committed; the template isn't tied to either one. Note `netlify.toml`'s build command is currently `npm run build`, not `pnpm` — Netlify still installs via the committed `pnpm-lock.yaml`.
+- **Deployment**: config for both Netlify (`netlify.toml`) and Vercel (`vercel.json`) is committed; the template isn't tied to either one. Both build with pnpm from the committed `pnpm-lock.yaml`.
 
 ## Testing
 

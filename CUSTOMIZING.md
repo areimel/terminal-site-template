@@ -193,7 +193,7 @@ template:
 
 `GoogleTagManagerHead`/`GoogleTagManagerBody` (mounted in `src/layouts/Layout.astro`) render nothing when `gtm.id` is `null`, and the GTM snippet plus its `<noscript>` fallback when it's set.
 
-`template.integrations.ga.id` exists in the config schema for parity, but nothing in the template currently reads it to load a Google Analytics script — if you need GA, either route it through GTM (a GTM container can fire a GA4 tag) or add your own analytics component and read `TEMPLATE.integrations.ga.id` from it.
+Set `template.integrations.ga.id` (e.g. `'G-XXXXXXXXXX'`) to load Google Analytics via `common/GoogleAnalytics.astro`. If you already fire GA4 from a GTM container, leave `ga.id` empty so it isn't loaded twice.
 
 ## Add a docs page
 

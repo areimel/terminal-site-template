@@ -51,7 +51,7 @@ The repo includes a `netlify.toml` configuration.
 4. Connect your GitHub repo
 5. Netlify detects the config and deploys automatically
 
-`netlify.toml`'s `[build]` block sets the command to `npm run build` (not `pnpm`) and `publish` to `dist`; Netlify still installs with pnpm on its own, since it detects the committed `pnpm-lock.yaml`. Change the command in `netlify.toml` if you'd rather it run `pnpm run build` explicitly.
+`netlify.toml`'s `[build]` block sets the command to `pnpm run build` and `publish` to `dist`; Netlify installs with pnpm because it detects the committed `pnpm-lock.yaml`.
 
 ### Configuration
 

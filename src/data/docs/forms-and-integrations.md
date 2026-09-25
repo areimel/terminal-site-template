@@ -122,16 +122,16 @@ template:
 
 ### Google Analytics
 
-`template.integrations.ga.id` exists in the config schema for parity with `gtm`, but nothing in the template currently reads it to load a GA script:
+`common/GoogleAnalytics.astro` (mounted in `src/layouts/Layout.astro`) reads `template.integrations.ga.id` and loads gtag.js when it's set:
 
 ```yaml
 template:
   integrations:
     ga:
-      id: null # present in the schema; not yet wired to a script
+      id: 'G-XXXXXXXXXX'
 ```
 
-To use GA, either configure a GA4 tag inside your GTM container (recommended, since GTM is already wired up), or add your own component that reads `TEMPLATE.integrations.ga.id` and mount it in `Layout.astro`.
+If you already use GTM, you can instead fire a GA4 tag from your GTM container and leave `ga.id` empty so GA isn't loaded twice.
 
 Set `gtm.id`/`ga.id` to `null` (or omit them) to leave analytics off.
 
