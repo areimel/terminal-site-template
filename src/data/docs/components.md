@@ -1,0 +1,183 @@
+---
+title: Components
+description: Overview of the component library and demo gallery.
+section: Components
+order: 1
+---
+
+Components are organized by function in `src/components/`. Each folder contains related components plus a `_demo/` subfolder with a demo page.
+
+## Component groups
+
+Visit `/components` to see live demos of all components.
+
+### Core
+
+Foundational primitives used everywhere:
+
+- **Panel** — Bordered container with title bar; variants for hierarchy (line, double, ascii)
+- **Button** — Clickable action; variants for prominence (solid, outline, ghost, link)
+- **Heading** — Semantic headings (h1–h6) with optional decode animation
+- **Prompt** — Terminal prompt symbol, typically used before input or code blocks
+- **Divider** — Horizontal separator; styles include line, ascii, or dashed
+- **Badge** — Small label; tones for status (default, ok, warn, err)
+- **Kbd** — Keyboard key styling (e.g., `Ctrl+C`)
+- **Icon** — Tabler icon wrapper with sizing
+
+### Content
+
+Text and media presentation:
+
+- **Prose** — Long-form text with terminal typography
+- **CodeBlock** — Highlighted code with copy button
+- **Blockquote** — Indented quote with accent
+- **Callout** — Alert box; tones for note, tip, warn, err
+- **Card** — Content card for projects, blog posts, or items
+- **TextBox** — Simple text container
+- **FactGrid** — Two-column grid of label/value pairs
+
+### Media
+
+Images and embeds:
+
+- **Figure** — Image with caption
+- **AsciiFrame** — ASCII art container with border
+- **CrtImage** — Image with CRT scanline and bloom effects
+- **Embed** — Video or iframe embed with aspect ratio
+- **Gallery** — Image gallery grid with lightbox
+
+### Effects
+
+Visual animations and effects:
+
+- **BootScreen** — Startup sequence animation (home page only)
+- **CrtOverlay** — CRT screen effect overlay
+- **DecoderText** — Text decode animation component
+- **Typewriter** — Sequential character reveal animation
+
+### Forms
+
+Input components:
+
+- **Field** — Text input with label
+- **Select** — Dropdown selection
+- **Checkbox** — Checkbox input
+- **Radio** — Radio button input
+- **Toggle** — Switch input (on/off)
+- **Form** — Form wrapper with validation
+- **ContactForm** — Pre-built contact form with Web3Forms integration
+
+### Feedback
+
+User feedback and modals:
+
+- **Modal** — Dialog overlay
+- **Toast** — Notification toast
+- **Tooltip** — Hover tooltip
+- **Alert** — Persistent alert
+- **Spinner** — Loading spinner (ASCII frames)
+- **ProgressBar** — Progress indicator
+
+### Data
+
+Data display components:
+
+- **DataTable** — Sortable table
+- **StatReadout** — Statistic display (value + label)
+- **Meter** — Gauge/meter visualization
+- **KeyValue** — Key-value pair display
+- **LogStream** — Streaming log lines (custom element)
+
+### Navigation
+
+Navigation and structure:
+
+- **SidebarNav** — Main sidebar navigation
+- **Footer** — Site footer
+- **Tabs** — Tab navigation
+- **Accordion** — Collapsible sections
+- **Breadcrumb** — Page hierarchy
+- **Pagination** — Blog/post pagination
+- **SettingsPanel** — Theme and effects controls
+
+### Sections
+
+Page-level layouts:
+
+- **Hero** — Hero section with variants
+- **FeatureGrid** — Feature showcase grid
+- **CTA** — Call-to-action section
+- **FAQ** — Frequently asked questions
+- **Timeline** — Event timeline
+- **Testimonial** — Quote or testimonial
+- **PricingTable** — Pricing options
+
+### Shell
+
+Terminal interface:
+
+- **TerminalShell** — Full terminal UI (custom element)
+
+## Using components
+
+All components are Astro components. Import and use them in pages or other components:
+
+```astro
+---
+import { Button, Heading, Panel } from '~/components/core';
+---
+
+<Panel title="Welcome" variant="double">
+  <Heading level={1}>Hello</Heading>
+  <Button href="/projects">View projects</Button>
+</Panel>
+```
+
+Props are typed. Your editor will show hints and catch errors.
+
+## Demo convention
+
+Each component group has a `_demo/` folder with a demo page. The demo renders every component and variant:
+
+```astro
+<!-- src/components/core/_demo/CoreDemo.astro -->
+<Panel title="Button" variant="line">
+  <p>Click me:</p>
+  <Button variant="solid">Solid</Button>
+  <Button variant="outline">Outline</Button>
+  <Button variant="ghost">Ghost</Button>
+</Panel>
+```
+
+Demos are rendered at `/components` in a gallery with code snippets. This is the source of truth for how to use each component.
+
+## Styling
+
+Components use Tailwind `terminal-*` classes:
+
+```astro
+<div class="text-terminal-300 bg-terminal-bg-primary">Content</div>
+```
+
+Never hard-code colors. Always use Tailwind or CSS variables. This ensures your components re-theme instantly when the user switches themes.
+
+## Accessibility
+
+All interactive components have:
+
+- Keyboard support (Tab, Enter, Escape, arrows)
+- Proper ARIA roles and labels
+- Visible `:focus-visible` outline (terminal glow)
+- Text descriptions for icons
+
+Test your components with a keyboard before shipping.
+
+## Custom elements
+
+Some components (like `LogStream` and `TerminalShell`) are custom elements:
+
+```typescript
+customElements.define('terminal-shell', TerminalShellElement);
+```
+
+Custom elements survive Astro's `ClientRouter` navigation. They clean up on `astro:before-swap` and re-initialize on `astro:page-load`.
