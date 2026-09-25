@@ -17,7 +17,7 @@ import { routes, discoverDetailHref, discoverCategoryHref } from './routes';
  * Files land at `<OUTPUT_DIR>/<theme>-<width>-<route-slug>.png`.
  */
 
-const OUTPUT_DIR = 'C:/Users/Alec/Documents/Dev/Personal-Repos/terminal-site-template/.playwright-mcp/screens';
+const OUTPUT_DIR = process.env.SCREENS_DIR ?? 'test-results/screens';
 const THEMES = ['green', 'amber'] as const;
 const WIDTHS = [360, 1280] as const;
 

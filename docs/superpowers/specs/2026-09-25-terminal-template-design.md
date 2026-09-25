@@ -2,7 +2,7 @@
 
 ## Context
 
-This repo is a copy of Alec's personal portfolio: Astro 5, AstroWind-derived, with an 80s CRT terminal aesthetic. The goal is a **fork/clone GitHub template** that other people can use to build **sites and web apps** with the same theme. To get there:
+This repo started as a copy of a personal developer portfolio: Astro 5, AstroWind-derived, with an 80s CRT terminal aesthetic. The goal is a **fork/clone GitHub template** that other people can use to build **sites and web apps** with the same theme. To get there:
 
 - strip every personal detail
 - delete dead code and AstroWind leftovers
@@ -31,7 +31,7 @@ This repo is a copy of Alec's personal portfolio: Astro 5, AstroWind-derived, wi
   - `pages/contact.astro`, `pages/index.astro`
   - 4 project MDX files plus `public/images/projects/*`, 2 blog posts
   - `public/preview*.png`
-  - **Live GTM ID** `GTM-KX6H9NQ` (`common/GoogleTagManager*.astro`)
+  - **Live GTM container ID** hard-coded in `common/GoogleTagManager*.astro`
   - **Web3Forms key** hard-coded in 3 form components
   - README, `project-docs/*`
 - **Theme bugs:**
@@ -265,11 +265,11 @@ A TODO list tracks every item below.
 
 ### Wave 0: Foundation (3 agents; sequential merges; nothing else starts until it's green)
 
-| Agent                         | Model  | Owns                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ----------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| F1 Theme and effects core     | Sonnet | `lib/themes.ts`, `lib/theme-runtime.ts`, `lib/effects.ts`, `common/ThemeHead.astro`, `Layout.astro`, `tailwind.config.js` (type scale, `prose-terminal`), `assets/styles/*`, `styles/*`. It also deletes `CustomStyles`/`ApplyColorMode` theme logic and fixes the `CommonMeta` preloads and the font-name mismatch.                                                                                                                                                                                                            |
-| F2 Config, nav and primitives | Sonnet | `vendor/integration/**`, `config.yaml`, `navigation.ts`, `tsconfig.json`, `components/core/**` with `_demo`, `PageLayout.astro`, `MarkdownLayout.astro`, and the permalink change in `utils/permalinks.ts`                                                                                                                                                                                                                                                                                                                      |
-| F3 De-personalize and prune   | Haiku  | Removes every item on the personal-data and dead-code lists above. It covers `package.json` (name, description, author placeholder), `public/preview*`, `public/images/projects/*`, `project-docs/`, the demo pages `about`/`services`, `LandingLayout` and unused `widgets`/`ui`. It deletes the GTM and Web3Forms literals, leaving temporary stubs, and stubs out personal text. Its last step is a grep sweep for `alec`, `reimel`, `areimel`, `arda`, `GTM-KX6H9NQ` and the Web3Forms key; the sweep must come back empty. |
+| Agent                         | Model  | Owns                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ----------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F1 Theme and effects core     | Sonnet | `lib/themes.ts`, `lib/theme-runtime.ts`, `lib/effects.ts`, `common/ThemeHead.astro`, `Layout.astro`, `tailwind.config.js` (type scale, `prose-terminal`), `assets/styles/*`, `styles/*`. It also deletes `CustomStyles`/`ApplyColorMode` theme logic and fixes the `CommonMeta` preloads and the font-name mismatch.                                                                                                                                                                                                  |
+| F2 Config, nav and primitives | Sonnet | `vendor/integration/**`, `config.yaml`, `navigation.ts`, `tsconfig.json`, `components/core/**` with `_demo`, `PageLayout.astro`, `MarkdownLayout.astro`, and the permalink change in `utils/permalinks.ts`                                                                                                                                                                                                                                                                                                            |
+| F3 De-personalize and prune   | Haiku  | Removes every item on the personal-data and dead-code lists above. It covers `package.json` (name, description, author placeholder), `public/preview*`, `public/images/projects/*`, `project-docs/`, the demo pages `about`/`services`, `LandingLayout` and unused `widgets`/`ui`. It deletes the GTM and Web3Forms literals, leaving temporary stubs, and stubs out personal text. Its last step is a grep sweep for the previous owner's name, handle, agency, GTM ID and form key; the sweep must come back empty. |
 
 F1 and F2 run in parallel (their files don't overlap). F3 runs after both merge, because it touches files they rewire.
 
@@ -364,7 +364,7 @@ F1 and F2 run in parallel (their files don't overlap). F3 runs after both merge,
 2. `pnpm run check`: Astro check, ESLint and Prettier are clean.
 3. `pnpm exec vitest run`: shell engine unit tests.
 4. `pnpm run test:e2e`: route smoke tests, theme and effects persistence, shell commands, axe with no serious violations.
-5. Personal-data sweep: `rg -i "alec|reimel|areimel|arda|GTM-KX6H9NQ|75f8b211"` over the repo (excluding `.git`) returns nothing.
+5. Personal-data sweep: a ripgrep for the previous owner's name, handle, agency, GTM ID and form key over the repo (excluding `.git`) returns nothing.
 6. Manual pass with Playwright MCP:
    - switch themes on `/components` and confirm every demo re-themes
    - with OS reduced motion on, confirm there's no boot screen, CRT or decoder

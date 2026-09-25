@@ -43,7 +43,7 @@ Spec: `docs/superpowers/specs/2026-09-25-terminal-template-design.md`
 
 ## Wave 3 — Integration & verification
 
-- [ ] V1 e2e run + fixes + screenshots
-- [ ] V2 DRY/quality review
-- [ ] V3 README, CUSTOMIZING, CLAUDE.md
-- [ ] Lead: sweep, screenshot review, final check + commit
+- [x] V1 e2e run + fixes + screenshots
+- [x] V2 DRY/quality review
+- [x] V3 README, CUSTOMIZING, CLAUDE.md
+- [x] Lead: sweep, screenshot review, final check + commit

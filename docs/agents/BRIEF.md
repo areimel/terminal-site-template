@@ -6,7 +6,6 @@ Read this file fully, then the spec at `docs/superpowers/specs/2026-09-25-termin
 
 ```bash
 git merge main --no-edit          # your worktree branch starts from an old commit — do this first
-cp "C:/Users/Alec/Documents/Dev/Personal-Repos/terminal-site-template/pnpm-lock.yaml" .
 pnpm install --frozen-lockfile
 ```
 
