@@ -1,0 +1,66 @@
+---
+/**
+ * DocsSidebar - the docs "file tree": sections rendered as folders (`▾ guides/`) with each doc
+ * as a file (`theming.md`) underneath. The current doc gets `aria-current="page"`.
+ *
+ * Wrapped in a native `<details>` so it collapses into a "Browse docs" disclosure on mobile; the
+ * summary is hidden at the `lg` breakpoint, where the tree is always shown open.
+ */
+import Panel from '~/components/core/Panel.astro';
+import { docHref } from '~/utils/docs';
+import type { DocSectionGroup } from '~/utils/docs';
+
+export interface Props {
+  groups: DocSectionGroup[];
+  /** id of the doc currently being viewed, so its entry can be marked `aria-current`. */
+  currentId: string;
+  class?: string;
+}
+
+const { groups, currentId, class: className } = Astro.props;
+
+const slugSection = (section: string) => section.toLowerCase().replace(/\s+/g, '-');
+---
+
+<details open class:list={['docs-sidebar', className]}>
+  <summary
+    class="mb-3 cursor-pointer font-uav-mono text-t-sm text-terminal-400 hover:text-terminal-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terminal-bright lg:hidden"
+  >
+    Browse docs
+  </summary>
+
+  <Panel variant="line" tone="muted" padding="sm" title="~/docs/" class="mt-2 lg:mt-0">
+    <nav aria-label="Docs">
+      <ul class="space-y-4 font-kode text-t-sm">
+        {
+          groups.map((group) => (
+            <li>
+              <p class="mb-1 text-terminal-400" aria-hidden="true">
+                &#9662; {slugSection(group.section)}/
+              </p>
+              <ul class="space-y-1 border-l border-terminal-300/40 pl-3">
+                {group.docs.map((doc) => {
+                  const isCurrent = doc.id === currentId;
+                  return (
+                    <li>
+                      <a
+                        href={docHref(doc.id)}
+                        aria-current={isCurrent ? 'page' : undefined}
+                        class:list={[
+                          'block truncate rounded-sm hover:text-terminal-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terminal-bright',
+                          isCurrent ? 'text-terminal-bright text-glow-subtle font-semibold' : 'text-terminal-300',
+                        ]}
+                      >
+                        {doc.id}.md
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </Panel>
+</details>

@@ -76,7 +76,7 @@ const projectCollection = defineCollection({
     title: z.string(),
     excerpt: z.string().optional(),
     image: z.string().optional(),
-    
+
     // Project specific fields
     projectUrl: z.string().url().optional(),
     repoUrl: z.string().url().optional(),
@@ -84,7 +84,7 @@ const projectCollection = defineCollection({
     client: z.string().optional(),
     duration: z.string().optional(),
     role: z.string().optional(),
-    
+
     category: z.string().optional(),
     tags: z.array(z.string()).optional(),
     author: z.string().optional(),
@@ -93,7 +93,33 @@ const projectCollection = defineCollection({
   }),
 });
 
+// Template documentation pages (file-tree sidebar, TOC, prev/next). `index.md` is the /docs
+// landing page; everything else routes to /docs/<id>.
+const docsCollection = defineCollection({
+  loader: glob({ pattern: ['**/*.md', '**/*.mdx'], base: 'src/data/docs' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    section: z.enum(['Getting started', 'Guides', 'Components', 'Reference']),
+    order: z.number(),
+    draft: z.boolean().optional(),
+  }),
+});
+
+// Release notes shown newest-first on /changelog.
+const changelogCollection = defineCollection({
+  loader: glob({ pattern: '*.md', base: 'src/data/changelog' }),
+  schema: z.object({
+    version: z.string(),
+    date: z.date(),
+    summary: z.string().optional(),
+    draft: z.boolean().optional(),
+  }),
+});
+
 export const collections = {
   post: postCollection,
   project: projectCollection,
+  docs: docsCollection,
+  changelog: changelogCollection,
 };
