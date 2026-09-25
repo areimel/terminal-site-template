@@ -44,8 +44,9 @@ Users can toggle effects individually in the **Settings** modal. They can also u
 ```bash
 effects on              # Enable all effects
 effects off             # Disable all effects
-effects decoder on      # Enable decoder only
-effects noise off       # Disable noise
+effects on decoder      # Enable decoder only
+effects off noise       # Disable noise
+effects status          # List every effect's current state
 ```
 
 Settings persist to localStorage under the key `terminal-effects`.
@@ -94,26 +95,28 @@ const effects = getEffects();
 
 ## Conditional rendering
 
-Gate visual effects using `isEnabled()`:
+This is a static site (`output: 'static'`), so Astro frontmatter runs at build time, not per-visitor — `isEnabled()` called there can only see the config defaults (no `localStorage`, no real `prefers-reduced-motion`), not what a specific visitor has actually chosen. Don't use it to decide whether to mark an element up:
 
 ```astro
 ---
-import { isEnabled } from '~/lib/effects';
-
-const showDecoder = isEnabled('decoder');
+import { Heading } from '~/components/core';
 ---
 
-<Heading level={1} decode={showDecoder}> Welcome </Heading>
+<Heading level={1} decode> Welcome </Heading>
 ```
 
-Never use effects that don't check this flag; an animation that can't be disabled is an accessibility failure.
+Always set `decode` (or use `DecoderText`/`data-decode` directly) on anything you want to be decodable. The actual on/off decision happens later, client-side, in `effects/EffectsRuntime.astro`: it calls the real `isEnabled('decoder')` (which does see the visitor's live `localStorage` override and `prefers-reduced-motion`) before animating any `[data-decode]` element, and snaps straight to the final text otherwise. If you gate the `decode` prop itself with a build-time `isEnabled()` call instead, an element built with it `false` never gets marked up — so it can't animate later even if the visitor turns the effect on in Settings.
+
+`BootScreen` and `CrtOverlay` follow the same pattern as `decode`: they always render their markup, and the `[data-fx-*]` attribute (set live, before paint, from the real `localStorage`/`prefers-reduced-motion` state) is what actually shows or hides them via CSS. `isEnabled()` in frontmatter is useful for things that genuinely don't need to react after the page has shipped (e.g. choosing which of two static text variants to print at build time) — for anything a visitor can toggle in Settings, mark the element up unconditionally and let the client-side runtime or `[data-fx-*]` CSS decide.
 
 ## Listening for changes
 
+The event is dispatched on `document` (not `window`), and its `detail` is the full effects state (every effect name plus `all`), not a single `{ name, enabled }` pair:
+
 ```typescript
-window.addEventListener('terminal:effects-change', (event) => {
-  const { name, enabled } = event.detail;
-  console.log(`Effect '${name}' is now ${enabled ? 'on' : 'off'}`);
+document.addEventListener('terminal:effects-change', (event) => {
+  console.log(event.detail);
+  // { boot: true, noise: false, scanline: true, overlay: true, decoder: true, all: true }
 });
 ```
 

@@ -35,7 +35,7 @@ export interface TerminalTheme {
 }
 ```
 
-All colors are hex values. The font field is optional; if omitted, the theme inherits the default (Kode Mono).
+Each value is a plain CSS color string — the built-in themes use `rgba()` so opacity is baked into the numbered steps, but hex or any other valid CSS color works too. The font field is optional; if omitted, the theme inherits the default (Kode Mono).
 
 ## Adding a theme
 
@@ -48,20 +48,20 @@ export const themes: TerminalTheme[] = [
     id: 'neon',
     label: 'Neon',
     colors: {
-      '100': '#4a4a5e',
-      '200': '#6f7f9f',
-      '300': '#a0b0d0',
-      '400': '#d0dff0',
-      '500': '#ffffff',
-      '600': '#ffffff',
-      '700': '#ffffff',
+      100: '#4a4a5e',
+      200: '#6f7f9f',
+      300: '#a0b0d0',
+      400: '#d0dff0',
+      500: '#ffffff',
+      600: '#ffffff',
+      700: '#ffffff',
       bright: '#ff00ff',
       bgPrimary: '#0a0e27',
       bgSecondary: '#1a1e3f',
       bgAccent: '#2a2e4f',
       accent: '#00ffff',
       accentBright: '#ff00ff',
-      glow: '#00ffff',
+      glow: '0 0 3ex var(--theme-600), 0 0 5px var(--theme-bright)',
     },
     font: 'uav', // Optional
   },
@@ -96,19 +96,25 @@ applyTheme('amber');
 
 ### Listen for theme changes
 
+The event is dispatched on `document` (not `window`):
+
 ```typescript
-window.addEventListener('terminal:theme-change', (event) => {
+document.addEventListener('terminal:theme-change', (event) => {
   console.log('New theme:', event.detail.id);
 });
 ```
 
 ### Get the current theme
 
+`getTheme()` returns the current theme's **id** (a string), not the theme object. Look it up in the registry with `getThemeById` if you need its colors:
+
 ```typescript
 import { getTheme } from '~/lib/theme-runtime';
+import { getThemeById } from '~/lib/themes';
 
-const currentTheme = getTheme();
-console.log(currentTheme.colors.accent);
+const currentId = getTheme(); // e.g. 'amber'
+const theme = getThemeById(currentId);
+console.log(theme?.colors.accent);
 ```
 
 ## Tailwind tokens
@@ -119,22 +125,19 @@ Components use Tailwind `terminal-*` classes:
 <div class="text-terminal-300 bg-terminal-bg-primary">Text in theme color 300 on primary background</div>
 ```
 
-Common tokens:
+Common tokens (each works with `text-`, `bg-`, `border-`, and `ring-`):
 
-- `text-terminal-{100,200,300,400,500,600,700}` — Text colors
-- `text-terminal-bright` — High-contrast text
-- `bg-terminal-bg-primary` — Main background
-- `bg-terminal-bg-secondary` — Secondary panels
-- `bg-terminal-bg-accent` — Input focus
-- `border-terminal-{100–700}` — Border colors
-- `text-terminal-accent` — Accent color
-- `text-terminal-glow` — Glow/focus outline
+- `terminal-{100,200,300,400,500,600,700}` — the numbered text/border/background colors
+- `terminal-bright` — high-contrast text
+- `terminal-bg-{primary,secondary,accent}` — backgrounds (main, panels, input focus)
 
-These map directly to the theme's color palette. When a user switches themes, all `terminal-*` classes update immediately.
+These map directly to the theme's color palette (`src/lib/themes.ts` `colors.100`–`colors.700`, `colors.bgPrimary`, etc). When a user switches themes, all `terminal-*` classes update immediately, because each one resolves to a `--terminal-*`/`--theme-*` CSS variable, not a fixed color.
+
+There's no `terminal-accent` or `terminal-glow` Tailwind color — those live only as CSS variables and the plain (non-Tailwind) classes below.
 
 ## CSS variables
 
-For custom styles, use CSS variables:
+For custom styles, use CSS variables (emitted by `common/ThemeHead.astro`):
 
 ```css
 .custom-element {
@@ -144,19 +147,21 @@ For custom styles, use CSS variables:
 }
 ```
 
-Available variables: `--theme-{100–700}`, `--theme-bright`, `--theme-bg-primary`, `--theme-bg-secondary`, `--theme-bg-accent`, `--theme-accent`, `--theme-accent-bright`, `--theme-glow`.
+Available variables: `--theme-{100–700}`, `--theme-bright`, `--theme-bg-primary`, `--theme-bg-secondary`, `--theme-bg-accent`, `--theme-accent`, `--theme-accent-bright`, `--theme-glow`, `--theme-glow-subtle`, `--theme-glow-strong`, `--theme-accent-glow`.
+
+For text glow, use the plain CSS classes `ThemeHead.astro` also emits, rather than a Tailwind utility: `.text-glow-subtle` and `.text-glow-strong` (the `Heading` component's `glow` prop sets these for you).
 
 ## Type scale
 
 Headings and body text use a modular scale (1.25x):
 
-- `text-t-sm` — 0.8rem (10px)
-- `text-t-base` — 1rem (12px)
-- `text-t-lg` — 1.25rem (16px)
-- `text-t-xl` — 1.562rem (20px)
-- `text-t-2xl` — 1.953rem (25px)
-- `text-t-3xl` — 2.441rem (31px)
-- `text-t-4xl` — 3.052rem (39px)
-- `text-t-5xl` — 3.815rem (49px)
+- `text-t-sm` — 0.8rem (~13px at the default 16px root)
+- `text-t-base` — 1rem (16px)
+- `text-t-lg` — 1.25rem (20px)
+- `text-t-xl` — 1.5625rem (25px)
+- `text-t-2xl` — 1.9531rem (~31px)
+- `text-t-3xl` — 2.4414rem (~39px)
+- `text-t-4xl` — 3.0518rem (~49px)
+- `text-t-5xl` — 3.8147rem (~61px)
 
 Use these consistently. Never hard-code font sizes or colors; always go through Tailwind or CSS variables.

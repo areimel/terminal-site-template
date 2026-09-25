@@ -19,14 +19,15 @@ Visit `/components` to see live demos of all components.
 
 Foundational primitives used everywhere:
 
-- **Panel** — Bordered container with title bar; variants for hierarchy (line, double, ascii)
-- **Button** — Clickable action; variants for prominence (solid, outline, ghost, link)
-- **Heading** — Semantic headings (h1–h6) with optional decode animation
+- **Panel** — Bordered container with title bar; variants for hierarchy (line, double, ascii, none)
+- **Button** — Clickable action; variants for prominence (solid, outline, ghost, link); `modalId` opens a `Modal` by id
+- **Heading** — Semantic headings (h1–h6) with an independent visual `size` (1–6, defaults to `level`), optional decode animation and `glow`
 - **Prompt** — Terminal prompt symbol, typically used before input or code blocks
 - **Divider** — Horizontal separator; styles include line, ascii, or dashed
 - **Badge** — Small label; tones for status (default, ok, warn, err)
 - **Kbd** — Keyboard key styling (e.g., `Ctrl+C`)
 - **Icon** — Tabler icon wrapper with sizing
+- **Container** — Page content width/gutters/spacing wrapper (`size`: prose, default, wide, full); every page uses it
 
 <div class="not-prose my-6 flex flex-wrap items-center gap-3">
   <Button variant="solid">Solid</Button>
@@ -87,29 +88,31 @@ Input components:
 - **Checkbox** — Checkbox input
 - **Radio** — Radio button input
 - **Toggle** — Switch input (on/off)
-- **Form** — Form wrapper with validation
-- **ContactForm** — Pre-built contact form with Web3Forms integration
+- **RadioGroup** — Wraps a set of `Radio` options with a shared label
+- **Form** — Form wrapper with validation; `provider` submits through Web3Forms
+- **ContactForm** — Pre-built contact form with Web3Forms integration; `variant="full"` or `"compact"` (wrap it in `Modal` yourself for a modal contact form — there's no separate `modal` variant)
 
 ### Feedback
 
 User feedback and modals:
 
-- **Modal** — Dialog overlay
-- **Toast** — Notification toast
+- **Modal** — Native `<dialog>`-based overlay, opened by `data-modal-open="<id>"` or `openModal(id)` from `~/lib/modal`
+- **Toaster** — Mounted once in `PageLayout`; renders toasts fired via `toast()` from `~/lib/toast` (there's no separate `Toast` component to import)
 - **Tooltip** — Hover tooltip
 - **Alert** — Persistent alert
 - **Spinner** — Loading spinner (ASCII frames)
-- **ProgressBar** — Progress indicator
 
 ### Data
 
 Data display components:
 
-- **DataTable** — Sortable table
+- **AsciiBar** — The base `[####------]` bar; `Meter` and `ProgressBar` both wrap it
+- **DataTable** — Sortable table; a column's `badges` option renders its cells as status `Badge`s instead of plain text
 - **StatReadout** — Statistic display (value + label)
-- **Meter** — Gauge/meter visualization
+- **Meter** — Gauge/meter visualization (`role="meter"`) for a value with a known range
+- **ProgressBar** — `role="progressbar"` for a running operation; supports an `indeterminate` mode
 - **KeyValue** — Key-value pair display
-- **LogStream** — Streaming log lines (custom element)
+- **LogStream** — Streaming log lines (custom element); exposes `appendLine(line)` and listens for `terminal:log`
 
 <div class="not-prose my-6 flex flex-col gap-6">
   <Meter label="Disk usage" value={72} unit="%" high={90} />
@@ -117,7 +120,7 @@ Data display components:
     caption="Recent deploys"
     columns={[
       { key: 'version', label: 'Version', sortable: true },
-      { key: 'status', label: 'Status', sortable: true },
+      { key: 'status', label: 'Status', sortable: true, badges: { ok: 'ok', 'rolled back': 'err' } },
       { key: 'date', label: 'Date', format: 'date', sortable: true },
     ]}
     rows={[
@@ -132,19 +135,21 @@ Data display components:
 
 Navigation and structure:
 
-- **SidebarNav** — Main sidebar navigation
+- **SidebarNav** — Main sidebar navigation, driven by `navigation.ts`
 - **Footer** — Site footer
 - **Tabs** — Tab navigation
-- **Accordion** — Collapsible sections
+- **Accordion** / **AccordionItem** — Collapsible sections
 - **Breadcrumb** — Page hierarchy
 - **Pagination** — Blog/post pagination
-- **SettingsPanel** — Theme and effects controls
+- **ThemeSwitcher** — Radiogroup of every theme in the registry
+- **EffectsControls** — Toggle for each effect plus an "all" switch
+- **SettingsPanel** — `ThemeSwitcher` + `EffectsControls` grouped under headings, no modal of its own (`PageLayout` wraps it in `Modal id="settings"`)
 
 ### Sections
 
 Page-level layouts:
 
-- **Hero** — Hero section with variants
+- **Hero** — Top-of-page banner; `variant`: split, terminal, minimal. Renders the page's `<h1>` — its `headingLevel` prop changes the semantic level (for a page that already has an `<h1>` elsewhere) without changing how it looks
 - **FeatureGrid** — Feature showcase grid
 - **CTA** — Call-to-action section
 - **FAQ** — Frequently asked questions
@@ -220,4 +225,4 @@ Some components (like `LogStream` and `TerminalShell`) are custom elements:
 customElements.define('terminal-shell', TerminalShellElement);
 ```
 
-Custom elements survive Astro's `ClientRouter` navigation. They clean up on `astro:before-swap` and re-initialize on `astro:page-load`.
+Custom elements survive Astro's `ClientRouter` navigation via their native lifecycle: `connectedCallback` (re)initializes them and `disconnectedCallback` cleans up, both firing automatically when the router swaps the DOM. Stateless enhancers that aren't custom elements (like the modal and effects runtimes) instead guard against double-init and re-run on `astro:page-load`/`astro:after-swap`.

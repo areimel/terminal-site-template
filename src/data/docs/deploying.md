@@ -17,18 +17,19 @@ Output lands in `dist/`. This folder contains:
 
 - `index.html` — Home page
 - `blog/`, `projects/`, `docs/` — Content routes
-- `_astro/` — Bundled CSS and JS
-- `images/` — Optimized images
-- Everything else is static and cacheable
+- `_astro/` — Bundled and minified CSS/JS
+- Everything else (images, fonts) copied as-is, and cacheable
 
 The build process:
 
 1. Collects content from `src/data/**` and `src/pages/**`
 2. Runs Astro's static site generator
-3. Optimizes images and bundles JavaScript
+3. Minifies and compresses HTML/JS (`astro-compress`) and bundles JavaScript
 4. Outputs to `dist/`
 
-The build is fast (under 20 seconds) because the site is static—no server rendering, no database queries.
+Images are **not** optimized or resized at build time — `astro.config.ts` configures `passthroughImageService()`, so images are served as-is. Compress the assets you add to `src/assets/images`/`public/` yourself before committing them if size matters.
+
+No server rendering or database queries happen at request time either way, since the output is entirely static.
 
 ## Preview locally
 
@@ -36,7 +37,7 @@ The build is fast (under 20 seconds) because the site is static—no server rend
 pnpm run preview
 ```
 
-Serves the `dist/` folder on `http://localhost:3000`. This is what visitors see after deployment.
+Serves the `dist/` folder, same as `pnpm run dev`, at `http://localhost:4321`. This is what visitors see after deployment.
 
 ## Netlify
 
@@ -50,23 +51,11 @@ The repo includes a `netlify.toml` configuration.
 4. Connect your GitHub repo
 5. Netlify detects the config and deploys automatically
 
-The build command is `pnpm install && pnpm run build`. Output is `dist/`.
+`netlify.toml`'s `[build]` block sets the command to `npm run build` (not `pnpm`) and `publish` to `dist`; Netlify still installs with pnpm on its own, since it detects the committed `pnpm-lock.yaml`. Change the command in `netlify.toml` if you'd rather it run `pnpm run build` explicitly.
 
-### Environment variables
+### Configuration
 
-For analytics or forms, add env vars in Netlify:
-
-1. Go to your site settings → Build & Deploy → Environment
-2. Add `GTM_ID`, `WEB3FORMS_ACCESS_KEY`, etc.
-
-Reference them in `src/config.yaml`:
-
-```yaml
-template:
-  integrations:
-    gtm:
-      id: '${process.env.GTM_ID}'
-```
+There's no environment-variable interpolation into `src/config.yaml` (no `.env`/`process.env.X` support) — set `template.integrations.forms.accessKey`, `gtm.id`, and `ga.id` directly in the file before you deploy. See `/docs/forms-and-integrations` for why that's fine for a Web3Forms key specifically.
 
 ### Deploy previews
 
@@ -84,11 +73,9 @@ The repo includes a `vercel.json` configuration.
 
 The build command is `pnpm install && pnpm run build`. Output is `dist/`.
 
-### Environment variables
+### Configuration
 
-1. Go to your project settings → Environment Variables
-2. Add `GTM_ID`, `WEB3FORMS_ACCESS_KEY`, etc.
-3. Redeploy for changes to take effect
+Same note as Netlify: there's no environment-variable wiring into `src/config.yaml`, so set `template.integrations.*` values directly in the file rather than in Vercel's Environment Variables UI.
 
 Vercel builds on every push; preview deployments are automatic.
 
@@ -107,12 +94,11 @@ DNS propagation takes up to 24 hours.
 
 Before launch:
 
-- [ ] Update `src/config.yaml` with your identity, organization, and location
-- [ ] Replace `public/favicon.svg` with your logo
-- [ ] Add a custom OG image: `public/og-image.png` (1200x630px)
-- [ ] Update social links in `navigation.ts`
-- [ ] Add your analytics IDs (GTM, GA) and Web3Forms key
-- [ ] Delete demo pages you don't need (e.g., `/pricing`, `/landing`)
+- [ ] Update `src/config.yaml`: `template.identity`, `template.social`, `site`, and `metadata`
+- [ ] Replace the files in `src/assets/favicons/` (`favicon.svg`, `favicon.ico`, `apple-touch-icon.png`) with your own
+- [ ] Add an OG image via a page's `metadata.openGraph.images` (see the `metadata` schema in `src/content/config.ts`) if you want a custom social-share image
+- [ ] Add your GTM id and Web3Forms key in `template.integrations` (see `/docs/forms-and-integrations`)
+- [ ] Delete demo pages you don't need (`landing.astro`, `pricing.astro`, `app.astro`, `now.astro`, `uses.astro` — see the README's "Make it yours" section)
 - [ ] Run `pnpm run check` to ensure no errors
 - [ ] Run `pnpm run build` and preview locally with `pnpm run preview`
 - [ ] Test on mobile (use DevTools or your phone)
