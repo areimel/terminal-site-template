@@ -1,0 +1,10 @@
+export { default as Accordion } from './Accordion.astro';
+export { default as AccordionItem } from './AccordionItem.astro';
+export { default as Breadcrumb } from './Breadcrumb.astro';
+export { default as EffectsControls } from './EffectsControls.astro';
+export { default as Footer } from './Footer.astro';
+export { default as Pagination } from './Pagination.astro';
+export { default as SettingsPanel } from './SettingsPanel.astro';
+export { default as SidebarNav } from './SidebarNav.astro';
+export { default as Tabs } from './Tabs.astro';
+export { default as ThemeSwitcher } from './ThemeSwitcher.astro';
