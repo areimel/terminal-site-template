@@ -1,0 +1,9 @@
+---
+/** Google Analytics (gtag.js). Renders nothing unless `template.integrations.ga.id` is set in config. */
+import { GoogleAnalytics } from '@astrolib/analytics';
+import { TEMPLATE } from 'astrowind:config';
+
+const gaId = TEMPLATE.integrations.ga.id;
+---
+
+{gaId && <GoogleAnalytics id={gaId} />}

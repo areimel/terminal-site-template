@@ -75,11 +75,6 @@ apps:
 
     isRelatedProjectsEnabled: false
 
-analytics:
-  vendors:
-    googleAnalytics:
-      id: null # or "G-XXXXXXXXXX"
-
 # Template persona, theme default, effects and integrations.
 # Every field here is optional - configBuilder fills in defaults for anything omitted.
 # See vendor/integration/utils/configBuilder.ts for the full typed shape (TEMPLATE export).

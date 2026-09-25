@@ -10,7 +10,6 @@ export type Config = {
     blog?: AppBlogConfig;
     projects?: AppProjectsConfig;
   };
-  analytics?: unknown;
   template?: TemplateConfigInput;
 };
 
@@ -105,15 +104,6 @@ export interface AppProjectsConfig {
     robots: {
       index: boolean;
       follow: boolean;
-    };
-  };
-}
-
-export interface AnalyticsConfig {
-  vendors: {
-    googleAnalytics: {
-      id?: string;
-      partytown?: boolean;
     };
   };
 }
@@ -324,19 +314,6 @@ const getAppProjects = (config: Config) => {
   return merge({}, _default, config?.apps?.projects ?? {}) as AppProjectsConfig;
 };
 
-const getAnalytics = (config: Config) => {
-  const _default = {
-    vendors: {
-      googleAnalytics: {
-        id: undefined,
-        partytown: true,
-      },
-    },
-  };
-
-  return merge({}, _default, config?.analytics ?? {}) as AnalyticsConfig;
-};
-
 const getTemplate = (config: Config) => {
   const _default: TemplateConfig = {
     identity: {
@@ -382,6 +359,5 @@ export default (config: Config) => ({
   METADATA: getMetadata(config),
   APP_BLOG: getAppBlog(config),
   APP_PROJECTS: getAppProjects(config),
-  ANALYTICS: getAnalytics(config),
   TEMPLATE: getTemplate(config),
 });

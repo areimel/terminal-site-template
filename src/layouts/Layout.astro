@@ -11,6 +11,7 @@ import Metadata from '~/components/common/Metadata.astro';
 // import SiteVerification from '~/components/common/SiteVerification.astro';
 // import Analytics from '~/components/common/Analytics.astro';
 import GoogleTagManagerHead from '~/components/common/GoogleTagManagerHead.astro';
+import GoogleAnalytics from '~/components/common/GoogleAnalytics.astro';
 import GoogleTagManagerBody from '~/components/common/GoogleTagManagerBody.astro';
 import CrtOverlay from '~/components/effects/CrtOverlay.astro';
 import BootScreen from '~/components/effects/BootScreen.astro';
@@ -35,6 +36,7 @@ const { language, textDirection } = I18N;
 <html lang={language} dir={textDirection} class={`2xl:text-[20px] ${themeClass(defaultThemeId)}`}>
   <head>
     <GoogleTagManagerHead />
+    <GoogleAnalytics />
     <CommonMeta />
     <Favicons />
     <ThemeHead />

@@ -5,7 +5,6 @@ declare module 'astrowind:config' {
     MetaDataConfig,
     AppBlogConfig,
     AppProjectsConfig,
-    AnalyticsConfig,
     TemplateConfig,
   } from './utils/configBuilder';
 
@@ -14,6 +13,5 @@ declare module 'astrowind:config' {
   export const METADATA: MetaDataConfig;
   export const APP_BLOG: AppBlogConfig;
   export const APP_PROJECTS: AppProjectsConfig;
-  export const ANALYTICS: AnalyticsConfig;
   export const TEMPLATE: TemplateConfig;
 }
