@@ -44,15 +44,9 @@ apps:
 
     category:
       isEnabled: true
-      pathname: 'category' # Category main path /category/some-category, you can change this to "group" (/group/some-category)
+      pathname: 'blog/category' # Category pages: /blog/category/some-category
       robots:
         index: true
-
-    tag:
-      isEnabled: false
-      pathname: 'tag' # Tag main path /tag/some-tag, you can change this to "topics" (/topics/some-category)
-      robots:
-        index: false
 
     isRelatedPostsEnabled: true
     relatedPostsCount: 4
@@ -75,15 +69,9 @@ apps:
 
     category:
       isEnabled: true
-      pathname: 'category' # Category main path /projects/category/some-category
+      pathname: 'projects/category' # Category pages: /projects/category/some-category
       robots:
         index: true
-
-    tag:
-      isEnabled: false
-      pathname: 'tag' # Tag main path /projects/tag/some-tag
-      robots:
-        index: false
 
     isRelatedProjectsEnabled: false
 

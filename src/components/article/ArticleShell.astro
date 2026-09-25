@@ -55,7 +55,10 @@ const imageSrc = typeof image === 'string' ? image : image?.src;
         post.category && (
           <>
             <span aria-hidden="true">·</span>
-            <a href={getPermalink(post.category.slug, 'category')} class="transition-colors hover:text-terminal-bright">
+            <a
+              href={post.category.permalink ?? getPermalink(post.category.slug, 'category')}
+              class="transition-colors hover:text-terminal-bright"
+            >
               {post.category.title}
             </a>
           </>

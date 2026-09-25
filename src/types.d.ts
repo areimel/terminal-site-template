@@ -61,6 +61,8 @@ export interface Post {
 export interface Taxonomy {
   slug: string;
   title: string;
+  /** Link to the taxonomy's listing page (set for categories by the content loader). */
+  permalink?: string;
 }
 
 export interface MetaData {

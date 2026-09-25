@@ -84,7 +84,7 @@ export const getPermalink = (slug = '', type = 'page'): string => {
       break;
 
     case 'project-category':
-      permalink = createPath(PROJECTS_BASE, PROJECT_CATEGORY_BASE, trimSlash(slug));
+      permalink = createPath(PROJECT_CATEGORY_BASE, trimSlash(slug));
       break;
 
     case 'project-tag':
