@@ -132,7 +132,10 @@ const theme: ShellCommand = {
       const ids = ctx.themes.map((t) => t.id);
       const currentIndex = ids.indexOf(ctx.currentTheme());
       const next = ids[(currentIndex + 1) % ids.length] ?? ids[0];
-      if (next) ctx.setTheme(next);
+      if (next) {
+        ctx.setTheme(next);
+        ctx.print(`Theme set to ${next}.`, 'ok');
+      }
       return;
     }
     const match = ctx.themes.find((t) => t.id.toLowerCase() === arg.toLowerCase());
@@ -141,6 +144,7 @@ const theme: ShellCommand = {
       return;
     }
     ctx.setTheme(match.id);
+    ctx.print(`Theme set to ${match.id}.`, 'ok');
   },
   complete(args, ctx) {
     const partial = (args[0] ?? '').toLowerCase();
