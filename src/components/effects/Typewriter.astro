@@ -1,0 +1,194 @@
+---
+/**
+ * Typewriter - types out a string, or cycles through several, with an optional blinking cursor.
+ *
+ * Gated by the `decoder` effect and `prefers-reduced-motion` (both resolved through
+ * `~/lib/effects`, the same switch `DecoderText` uses): when either says no, this renders the
+ * first string as plain, static text. The full text is always available to assistive tech
+ * through a visually hidden span, independent of the animation.
+ */
+export interface Props {
+  text: string | string[];
+  /** Milliseconds per typed character. */
+  speed?: number;
+  /** When `text` is an array, keep cycling through it instead of stopping after the last one. */
+  loop?: boolean;
+  cursor?: boolean;
+  as?: string;
+  class?: string;
+}
+
+const { text, speed = 60, loop = false, cursor = true, as: Tag = 'span', class: className } = Astro.props;
+
+const items = Array.isArray(text) ? text : [text];
+const first = items[0] ?? '';
+const srText = items.join(', ');
+---
+
+<Tag
+  data-typewriter
+  data-items={JSON.stringify(items)}
+  data-speed={speed}
+  data-loop={loop ? 'true' : 'false'}
+  data-cursor={cursor ? 'true' : 'false'}
+  class:list={['terminal-typewriter', className]}
+>
+  <span class="sr-only" data-typewriter-sr>{srText}</span>
+  <span aria-hidden="true" data-typewriter-display>{first}</span>
+</Tag>
+
+<script>
+  import { isEnabled } from '~/lib/effects';
+
+  const SELECTOR = '[data-typewriter]';
+  const PAUSE_BETWEEN_ITEMS_MS = 1200;
+
+  interface TypeState {
+    timer?: ReturnType<typeof setTimeout>;
+    stopped: boolean;
+  }
+
+  const states = new WeakMap<HTMLElement, TypeState>();
+
+  function readItems(el: HTMLElement): string[] {
+    try {
+      const parsed: unknown = JSON.parse(el.dataset.items ?? '[]');
+      if (!Array.isArray(parsed)) return [''];
+      const strings = parsed.filter((item): item is string => typeof item === 'string');
+      return strings.length > 0 ? strings : [''];
+    } catch {
+      return [''];
+    }
+  }
+
+  function showStatic(el: HTMLElement, text: string): void {
+    const display = el.querySelector<HTMLElement>('[data-typewriter-display]');
+    if (display) display.textContent = text;
+  }
+
+  function stop(el: HTMLElement): void {
+    const state = states.get(el);
+    if (!state) return;
+    state.stopped = true;
+    if (state.timer) clearTimeout(state.timer);
+  }
+
+  function runTypewriter(el: HTMLElement): void {
+    const items = readItems(el);
+    const loop = el.dataset.loop === 'true';
+    const speed = Number(el.dataset.speed) || 60;
+    const displayEl = el.querySelector<HTMLElement>('[data-typewriter-display]');
+    if (!displayEl) return;
+
+    const state: TypeState = { stopped: false };
+    states.set(el, state);
+
+    let itemIndex = 0;
+
+    function typeItem(text: string, onDone: () => void): void {
+      let i = 0;
+      const step = () => {
+        if (state.stopped) return;
+        displayEl!.textContent = text.slice(0, i);
+        i++;
+        if (i <= text.length) {
+          state.timer = setTimeout(step, speed);
+        } else {
+          onDone();
+        }
+      };
+      step();
+    }
+
+    function eraseItem(text: string, onDone: () => void): void {
+      let i = text.length;
+      const step = () => {
+        if (state.stopped) return;
+        displayEl!.textContent = text.slice(0, i);
+        i--;
+        if (i >= 0) {
+          state.timer = setTimeout(step, speed / 2);
+        } else {
+          onDone();
+        }
+      };
+      step();
+    }
+
+    function advance(): void {
+      if (state.stopped) return;
+      const current = items[itemIndex];
+      typeItem(current, () => {
+        const isLast = itemIndex >= items.length - 1;
+        if (items.length === 1 || (isLast && !loop)) return;
+        state.timer = setTimeout(() => {
+          eraseItem(current, () => {
+            itemIndex = (itemIndex + 1) % items.length;
+            advance();
+          });
+        }, PAUSE_BETWEEN_ITEMS_MS);
+      });
+    }
+
+    advance();
+  }
+
+  function setupAll(): void {
+    document.querySelectorAll<HTMLElement>(SELECTOR).forEach((el) => {
+      if (states.has(el)) return;
+      if (!isEnabled('decoder')) {
+        showStatic(el, readItems(el)[0] ?? '');
+        return;
+      }
+      runTypewriter(el);
+    });
+  }
+
+  document.addEventListener('astro:page-load', setupAll);
+  setupAll();
+
+  document.addEventListener('terminal:effects-change', () => {
+    document.querySelectorAll<HTMLElement>(SELECTOR).forEach((el) => {
+      const enabled = isEnabled('decoder');
+      const hasState = states.has(el);
+      if (!enabled && hasState) {
+        stop(el);
+        showStatic(el, readItems(el)[0] ?? '');
+      } else if (enabled && !hasState) {
+        runTypewriter(el);
+      }
+    });
+  });
+</script>
+
+<style>
+  .terminal-typewriter {
+    display: inline-flex;
+    align-items: baseline;
+  }
+
+  .terminal-typewriter[data-cursor='true'] [data-typewriter-display]::after {
+    content: '_';
+    display: inline-block;
+    margin-left: 0.1em;
+    animation: terminal-typewriter-blink 1s steps(1, end) infinite;
+  }
+
+  @keyframes terminal-typewriter-blink {
+    0%,
+    49% {
+      opacity: 1;
+    }
+    50%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .terminal-typewriter[data-cursor='true'] [data-typewriter-display]::after {
+      animation: none;
+      opacity: 1;
+    }
+  }
+</style>

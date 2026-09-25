@@ -1,0 +1,65 @@
+---
+/**
+ * EffectsDemo - renders the effects/ component group for the `/components` gallery.
+ *
+ * BootScreen and CrtOverlay are page-level effects already included once, globally, in
+ * `Layout.astro` - this demo doesn't re-mount them (a second `#loading-screen` or a stacked CRT
+ * overlay would just double up), it shows what they do and links to a way to see BootScreen
+ * again.
+ */
+import { Panel, Heading, Button } from '~/components/core';
+import DecoderText from '../DecoderText.astro';
+import Typewriter from '../Typewriter.astro';
+---
+
+<div class="flex flex-col gap-6">
+  <Panel title="DecoderText">
+    <p class="mb-3 font-kode text-t-sm text-terminal-400">
+      Scrambles into place once, the first time it enters the viewport.
+    </p>
+    <DecoderText text="ACCESS GRANTED" as="p" class="font-uav-mono text-t-xl text-terminal-bright" />
+  </Panel>
+
+  <Panel title="Heading (decode)">
+    <p class="mb-3 font-kode text-t-sm text-terminal-400">
+      The core Heading primitive's <code>decode</code> prop marks itself up for the same enhancer.
+    </p>
+    <Heading level={3} decode>System status: online</Heading>
+  </Panel>
+
+  <Panel title="Typewriter">
+    <p class="mb-3 font-kode text-t-sm text-terminal-400">
+      Types a single string, or cycles through several with a blinking cursor.
+    </p>
+    <div class="flex flex-col gap-2 font-kode text-t-sm text-terminal-400">
+      <Typewriter text="Connection established." />
+      <Typewriter text={['Scanning sectors...', 'Indexing files...', 'Ready.']} loop />
+    </div>
+  </Panel>
+
+  <Panel title="BootScreen">
+    <p class="mb-3 font-kode text-t-sm text-terminal-400">
+      Runs once per browser session on first load; this button clears that flag and reloads the page so you can watch it
+      again.
+    </p>
+    <Button type="button" variant="outline" class="js-replay-boot">Replay boot screen</Button>
+  </Panel>
+
+  <Panel title="CrtOverlay">
+    <p class="font-kode text-t-sm text-terminal-400">
+      Global: it's already layered over this entire gallery (noise, scanline and vignette), toggled from the effects
+      settings.
+    </p>
+  </Panel>
+</div>
+
+<script>
+  document.querySelector('.js-replay-boot')?.addEventListener('click', () => {
+    try {
+      sessionStorage.removeItem('terminal-booted');
+    } catch {
+      /* storage unavailable; reloading still shows whatever state it left behind */
+    }
+    window.location.reload();
+  });
+</script>

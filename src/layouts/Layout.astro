@@ -13,8 +13,9 @@ import Metadata from '~/components/common/Metadata.astro';
 import GoogleTagManagerHead from '~/components/common/GoogleTagManagerHead.astro';
 import GoogleTagManagerBody from '~/components/common/GoogleTagManagerBody.astro';
 import BasicScripts from '~/components/common/BasicScripts.astro';
-import TerminalOverlay from '~/components/TerminalComponents/TerminalOverlay.astro';
-import LoadingScreen from '~/components/LoadingScreenV1.astro';
+import CrtOverlay from '~/components/effects/CrtOverlay.astro';
+import BootScreen from '~/components/effects/BootScreen.astro';
+import EffectsRuntime from '~/components/effects/EffectsRuntime.astro';
 
 // Comment the line below to disable View Transitions
 import { ClientRouter } from 'astro:transitions';
@@ -109,8 +110,9 @@ const { language, textDirection } = I18N;
 
   <body class="antialiased text-default bg-page tracking-tight font-sans">
     <GoogleTagManagerBody />
-    <LoadingScreen />
-    <TerminalOverlay />
+    <BootScreen />
+    <CrtOverlay />
+    <EffectsRuntime />
 
     <slot />
 
