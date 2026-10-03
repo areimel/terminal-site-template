@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * E2E config for the terminal site template.
+ * E2E config for the ARDA Terminal Framework.
  *
  * Reduced motion is emulated by default so the boot screen, CRT overlay and
  * decoder effects (all gated through `~/lib/effects`) don't interfere with

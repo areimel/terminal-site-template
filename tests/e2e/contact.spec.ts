@@ -25,8 +25,8 @@ test('submitting a valid form with no access key shows the demo-mode notice', as
   await page.goto('/contact');
   const form = page.locator('form[data-provider="true"]');
 
-  await form.locator('input[name="name"]').fill('Ada Operator');
-  await form.locator('input[name="email"]').fill('ada@example.com');
+  await form.locator('input[name="name"]').fill('Field Agent');
+  await form.locator('input[name="email"]').fill('agent@example.com');
   await form.locator('textarea[name="message"]').fill('Hello from the e2e suite.');
   await form.locator('button[type="submit"]').click();
 

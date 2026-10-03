@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A forkable Astro 5 template for building sites and web apps with an 80s lo-fi CRT terminal aesthetic: a themed component kit (~60 components across 10 groups), a config-driven persona/navigation system, a five-theme registry, toggleable visual effects, an interactive terminal shell, and demo pages (dashboard, landing, pricing, blog, projects, docs). See `README.md` for the quick start and `CUSTOMIZING.md` for task recipes.
+The ARDA Terminal Framework: a forkable Astro 5 template by ARDA (Advanced Research & Development Agency) for building sites and web apps with an 80s lo-fi CRT terminal aesthetic. It includes a themed component kit (~60 components across 10 groups), a config-driven persona/navigation system, a five-theme registry, toggleable visual effects, an interactive terminal shell, and demo pages (dashboard, landing, pricing, blog, projects, docs). See `README.md` for the quick start and `CUSTOMIZING.md` for task recipes.
 
 ## Development commands
 
@@ -51,12 +51,16 @@ Every group except the page-specific ones ships a `src/components/<group>/_demo/
 - `forms.ts` — `submitForm(form)`: validates, then posts to Web3Forms using the form's `data-access-key` (or reports demo mode if none is configured). Dispatches `terminal:toast` either way.
 - `shell/` — `types.ts` (the `ShellContext`/`ShellCommand`/`ShellEngine` contract), `engine.ts` (`createShell(host, extraCommands?)`, DOM-free and unit-tested), `builtins.ts` (help, ls, cd, open, theme, effects, clear, whoami, echo, date, history, sudo), `parse.ts`, `commands.ts` (`userCommands` — the file a fork edits to add its own commands).
 
-### Config (`src/config.yaml` + `vendor/integration/`)
+### Config (`src/config.yaml` + `src/data/global-content/` + `vendor/integration/`)
 
-`vendor/integration/utils/configBuilder.ts` builds the typed `astrowind:config` virtual module from `src/config.yaml`, filling in defaults for anything omitted. Import what you need from it:
+**Global content:** `src/data/global-content/` holds site-wide YAML files (one per feature). `vendor/integration/utils/loadGlobalContent.ts` loads every `*.yaml`/`*.yml` file directly in that folder (non-recursive) and exposes them from `astrowind:config` as `GLOBAL_CONTENT`, keyed by camelCased filename (`branding.yaml` → `GLOBAL_CONTENT.branding`, `site-links.yaml` → `GLOBAL_CONTENT.siteLinks`). Each file's top level must be a key/value mapping; two files mapping to the same key is a build error. Edits to existing files reload in dev; a newly added file needs a dev-server restart. To type a file, add a field to the `GlobalContent` interface in `vendor/integration/utils/configBuilder.ts` (e.g. `contact: { email: string }`). Plain Markdown content can't read these values.
+
+**Branding:** `src/data/global-content/branding.yaml` is the single source for brand strings: `projectName`, `projectSlug`, `projectDescription`, `companyName`, `companyFullName`, `companyDisplayName`, `personaName`, `personaHandle`, `shellHost`, `author`. `configBuilder.ts` merges this over built-in defaults and exposes it as `BRANDING` (same as `GLOBAL_CONTENT.branding`), supplying defaults for SITE.name, METADATA title/description/openGraph.site_name, TEMPLATE.identity name/handle/org, and TEMPLATE.shell.prompt. Values set explicitly in `src/config.yaml` override these derived defaults.
+
+Import what you need:
 
 ```ts
-import { TEMPLATE, SITE, METADATA, APP_BLOG, APP_PROJECTS } from 'astrowind:config';
+import { GLOBAL_CONTENT, BRANDING, TEMPLATE, SITE, METADATA, APP_BLOG, APP_PROJECTS } from 'astrowind:config';
 ```
 
 `TEMPLATE` shape: `identity {name, handle, org, role, tagline, location}`, `social [{label, href, icon}]`, `themes.default`, `effects {boot, noise, scanline, overlay, decoder}`, `shell {prompt, motd}`, `integrations {forms:{provider, accessKey}, gtm:{id}, ga:{id}}`. GTM (`common/GoogleTagManagerHead.astro`/`Body.astro`) and GA (`common/GoogleAnalytics.astro`) render only when their ids are set. There's no env-var interpolation into `config.yaml` — values in it are committed as plain text.
@@ -73,6 +77,7 @@ Extend `vendor/integration/**` for new config fields; don't replace the pattern 
 
 ## Conventions
 
+- **Brand strings and site-wide copy**: come from `GLOBAL_CONTENT`, `BRANDING`, or `TEMPLATE` imported from `astrowind:config`, never hard-coded in components. New site-wide copy goes in a YAML file in `src/data/global-content/`; rebranding is one file.
 - **Colors**: only via Tailwind `terminal-*` tokens (`text-terminal-300`, `bg-terminal-bg-secondary`, `border-terminal-400`, `text-terminal-bright`, …) or `--theme-*`/`--terminal-*` CSS variables. **Never hard-code a hex/rgb color in a component** — every component has to re-theme live across all 5 themes, and switching is instant because these all resolve through CSS variables, not fixed values.
 - **Type scale**: `text-t-sm` through `text-t-5xl` (a 1.25 modular scale on a 16px root). Fonts: `font-uav-mono` for headings/display, Kode Mono (default body), VT323 only for large ASCII/display moments. Long-form text: `prose prose-terminal`.
 - **Structure carries meaning**: Panel titles read like a window/file name (`~/projects/readme.txt`); border `variant` encodes hierarchy (`double` = app chrome, `line` = ordinary content, `ascii` = callouts); numbering only on real sequences; ALL-CAPS reserved for status strings (`OK`/`WARN`/`ERR`).

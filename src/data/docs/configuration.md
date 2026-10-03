@@ -5,7 +5,60 @@ section: Getting started
 order: 2
 ---
 
-Configuration lives in two files: `src/config.yaml` (site-wide settings) and `src/navigation.ts` (menu structure).
+Configuration lives in three places: `src/data/global-content/` (site-wide YAML content, including branding), `src/config.yaml` (site-wide settings), and `src/navigation.ts` (menu structure).
+
+## Global content
+
+The `src/data/global-content/` folder holds site-wide YAML files that load automatically at build time. Each file becomes a key in the `GLOBAL_CONTENT` object, keyed by its camelCased filename — `branding.yaml` → `GLOBAL_CONTENT.branding`, `site-links.yaml` → `GLOBAL_CONTENT.siteLinks`.
+
+Each file's top level must be a key/value mapping. Use global content in components with:
+
+```typescript
+import { GLOBAL_CONTENT } from 'astrowind:config';
+
+GLOBAL_CONTENT.contact.email; // from contact.yaml, once typed (see below)
+```
+
+**Note:** New files need a dev-server restart; edits to existing files reload automatically.
+
+**Typing:** Files read as `unknown` until typed, so `astro check` rejects property access on them. Add one field per file to the existing `GlobalContent` interface in `vendor/integration/utils/configBuilder.ts`:
+
+```ts
+export interface GlobalContent {
+  branding: BrandingConfig;
+  contact: { email: string; phone: string }; // add one line per file
+  [key: string]: unknown;
+}
+```
+
+Markdown content files can't read these variables, so site names and content inside posts and docs are edited by hand.
+
+### branding.yaml
+
+`branding.yaml` is special: it's merged over built-in defaults and also exported as `BRANDING` from `astrowind:config`. It defines the product name, company name, persona, and shell hostname, which automatically fill in defaults for site metadata and identity throughout the site.
+
+Each branding key:
+
+- **projectName** — Product name used for the site name, page titles, and Open Graph site_name.
+- **projectSlug** — URL/package-safe form of the product name.
+- **projectDescription** — One-sentence description, used as the default meta description.
+- **companyName** — Short company name, used everywhere by default (identity.org, boot screen, demos).
+- **companyDisplayName** — Dotted display form (optional; nothing uses it unless you reference it).
+- **companyFullName** — Expanded company name.
+- **personaName** — Persona name shown in the footer, boot log, and shell's `whoami`.
+- **personaHandle** — Short handle (no spaces), shown by `whoami` and in the boot log.
+- **shellHost** — Hostname in the shell prompt: `guest@<shellHost>:~$`.
+- **author** — Author or copyright holder.
+
+Use branding values in code with:
+
+```typescript
+import { BRANDING } from 'astrowind:config';
+
+console.log(BRANDING.projectName); // "ARDA Terminal Framework"
+```
+
+**Override order:** Built-in defaults < `branding.yaml` < explicit values in `src/config.yaml`. For example, `template.shell.prompt` in `config.yaml` overrides the derived `guest@<shellHost>:~$`.
 
 ## src/config.yaml
 
@@ -13,26 +66,20 @@ The config file defines your site's identity, themes, effects, and integrations.
 
 ```yaml
 site: 'https://yourdomain.com'
-metadata:
-  title: 'My Terminal Site'
-  description: 'A site built with the terminal template'
 
 template:
   identity:
-    name: 'Ada Operator'
-    handle: 'ada'
-    org: 'MAINFRAME-7 Systems'
     role: 'Systems Developer'
-    tagline: 'Building reliable infrastructure'
+    tagline: 'Building steady systems.'
     location: 'Sector 7, Grid North'
 
   social:
     - label: 'GitHub'
       href: 'https://github.com/example'
       icon: 'tabler:brand-github'
-    - label: 'LinkedIn'
-      href: 'https://linkedin.com/in/example'
-      icon: 'tabler:brand-linkedin'
+    - label: 'X'
+      href: 'https://x.com/example'
+      icon: 'tabler:brand-x'
 
   themes:
     default: 'green'
@@ -45,7 +92,6 @@ template:
     decoder: true
 
   shell:
-    prompt: 'guest@mainframe-7:~$'
     motd: 'Type help to list commands.'
 
   integrations:
@@ -60,14 +106,11 @@ template:
 
 ### Identity fields
 
-- **name** — Your full name or persona
-- **handle** — Short name for terminal prompts (no spaces)
-- **org** — Organization or company name
-- **role** — Job title
+- **role** — Job title or position
 - **tagline** — One-line description
 - **location** — Geographic location or fictional sector
 
-These appear in the footer, meta tags, and shell identity.
+These fields are optional. `name`, `handle`, and `org` default to `personaName`, `personaHandle`, and `companyName` from the branding file (see Branding above); set them here only to override.
 
 ### Social links
 
@@ -91,8 +134,9 @@ Users can toggle these in Settings. The `prefers-reduced-motion` media query dis
 
 ### Shell configuration
 
-- **prompt** — The shell prompt shown in the terminal (e.g., `user@host:~$`)
-- **motd** — Message of the day shown on shell startup
+- **motd** — Message of the day shown on shell startup (e.g., "Type help to list commands.")
+
+- **prompt** — Optional. Defaults to `guest@<shellHost>:~$` from `src/data/global-content/branding.yaml`; set it here to override.
 
 ### Integrations
 

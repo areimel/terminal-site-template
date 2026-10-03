@@ -1,8 +1,8 @@
-# Terminal Site Template: De-personalize + Component Kit + Demo Pages
+# ARDA Terminal Framework: De-personalize + Component Kit + Demo Pages
 
 ## Context
 
-This repo started as a copy of a personal developer portfolio: Astro 5, AstroWind-derived, with an 80s CRT terminal aesthetic. The goal is a **fork/clone GitHub template** that other people can use to build **sites and web apps** with the same theme. To get there:
+This repo started as a copy of a personal developer portfolio: Astro 5, AstroWind-derived, with an 80s CRT terminal aesthetic. The goal is a **fork/clone GitHub template** that other people can use to build **sites and web apps** with the same theme. The project is now the ARDA Terminal Framework, built by ARDA (Advanced Research & Development Agency). To get there:
 
 - strip every personal detail
 - delete dead code and AstroWind leftovers
@@ -169,12 +169,11 @@ Add a `template:` block with typed defaults:
 
 ```yaml
 template:
-  identity:
-    { name: Ada Operator, handle: ada, org: MAINFRAME-7 Systems, role: Systems Developer, tagline: ..., location: ... }
+  identity: { name: Field Agent, handle: agent, org: ARDA, role: Systems Developer, tagline: ..., location: ... }
   social: [{ label: GitHub, href: 'https://github.com/example', icon: tabler:brand-github }]
   themes: { default: green }
   effects: { boot: true, noise: true, scanline: true, overlay: true, decoder: true }
-  shell: { prompt: 'guest@mainframe-7:~$', motd: 'Type help to list commands.' }
+  shell: { prompt: 'guest@arda:~$', motd: 'Type help to list commands.' }
   integrations: { forms: { provider: web3forms, accessKey: null }, gtm: { id: null }, ga: { id: null } }
 ```
 
@@ -313,7 +312,7 @@ F1 and F2 run in parallel (their files don't overlap). F3 runs after both merge,
   - RelatedPosts no longer depends on AstroWind widgets.
 - D2 (Sonnet): the `docs` and `changelog` collections in `content/config.ts`, `components/docs/` (DocsLayout with a file-tree sidebar, TOC, prev/next), `pages/docs/**`, `pages/changelog.astro`.
 - D3 (Haiku): all content under `src/data/**`.
-  - `profile.ts` persona "Ada Operator / MAINFRAME-7 Systems".
+  - `profile.ts` persona "Field Agent / ARDA".
   - 3 projects, 3 posts, 2 changelog entries.
   - Docs Markdown: getting-started, config, theming, effects, shell-commands, components, forms and integrations, deploying.
   - Plain Markdown only; MDX component embeds come in Wave 2.
@@ -347,7 +346,7 @@ F1 and F2 run in parallel (their files don't overlap). F3 runs after both merge,
 - V2 (`feature-dev:code-reviewer`, Sonnet): DRY and quality audit.
   - Check for leftover duplicated styles or components, unused files, hard-coded theme names, props that are declared but unused, and focus/keyboard gaps.
   - Findings are fixed by the lead or sent back to V1.
-- V3 (Haiku): `README.md` (quick start, rebrand in 5 steps, deploy to Netlify/Vercel, credits to AstroWind and onWidget), `CUSTOMIZING.md` (add a theme, add a shell command, add a component demo, toggle effects, enable integrations), and updates to `CLAUDE.md` for the new structure.
+- V3 (Haiku): `README.md` (quick start, rebrand in one file, deploy to Netlify/Vercel, credits to AstroWind and onWidget), `CUSTOMIZING.md` (change the branding, add a theme, add a shell command, add a component demo, toggle effects, enable integrations), and updates to `CLAUDE.md` for the new structure and branding documentation.
 - Lead:
   - Run the final personal-data grep sweep again.
   - Review screenshots against the design direction and cut one accessory per page.

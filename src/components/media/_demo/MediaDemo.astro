@@ -1,4 +1,5 @@
 ---
+import { BRANDING } from 'astrowind:config';
 import Panel from '~/components/core/Panel.astro';
 import Figure from '~/components/media/Figure.astro';
 import CrtImage from '~/components/media/CrtImage.astro';
@@ -22,7 +23,7 @@ const asciiArt = `
   |  o   |
    \\  o /
     '---'
-   [MAINFRAME]
+   [${BRANDING.companyName}]
 `;
 ---
 
@@ -63,7 +64,7 @@ const asciiArt = `
 
   <Panel title="AsciiFrame.astro" class="w-full">
     <p class="text-t-sm text-terminal-500 mb-4">Preformatted ASCII art with title bar and accessibility label.</p>
-    <AsciiFrame title="TERMINAL DISPLAY" label="A stylized MAINFRAME computer terminal">
+    <AsciiFrame title="TERMINAL DISPLAY" label="A stylized mainframe computer terminal">
       {asciiArt}
     </AsciiFrame>
   </Panel>

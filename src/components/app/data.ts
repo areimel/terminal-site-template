@@ -1,10 +1,11 @@
 /**
- * Typed, persona-neutral fake data for the `/app` "MAINFRAME-7 operations console" demo.
+ * Typed, persona-neutral fake data for the `/app` operations console demo (org name comes from the branding config).
  *
  * Pure data + pure math only (no `window`/`document` access), so this is safe to import
  * from Astro frontmatter (server, initial render) as well as from `<script>` tags (client,
  * for the health-check refresh and the ambient meter drift).
  */
+import { BRANDING } from 'astrowind:config';
 
 export interface ProcessRow {
   pid: number;
@@ -154,7 +155,7 @@ export const stats: ConsoleStats = {
 };
 
 export const systemInfo: { key: string; value: string }[] = [
-  { key: 'Cluster', value: 'MAINFRAME-7' },
+  { key: 'Cluster', value: BRANDING.companyName },
   { key: 'Region', value: 'sector-7' },
   { key: 'Kernel', value: 'TERMOS 7.4.2' },
   { key: 'Nodes online', value: `${nodes.length}/${nodes.length}` },

@@ -10,7 +10,7 @@ tags:
 image: /images/blog/photo-1513151233558-d860c5398176.webp
 ---
 
-A well-chosen terminal font doesn't just look retro. It vanishes. You stop noticing the pixels and start reading the content. This guide covers the fonts I use at MAINFRAME-7 and why each one solves a specific problem.
+A well-chosen terminal font doesn't just look retro. It vanishes. You stop noticing the pixels and start reading the content. This guide covers the fonts I use at ARDA and why each one solves a specific problem.
 
 ## The three tiers
 

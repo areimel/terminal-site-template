@@ -1,6 +1,6 @@
-# Terminal Site Template
+# ARDA Terminal Framework
 
-A retro 80s lo-fi terminal-themed [Astro 5](https://astro.build) template for building sites and web apps with a distinctive CRT aesthetic. It's built to be forked: strip the placeholder persona, edit a config file, and ship your own site on the same component kit.
+A retro 80s lo-fi terminal-themed [Astro 5](https://astro.build) framework for building sites and web apps with a distinctive CRT aesthetic. Built by ARDA (Advanced Research & Development Agency) and designed to be forked: rebrand in one file, edit your config, and ship your own site on the same component kit.
 
 **What's included**
 
@@ -8,6 +8,7 @@ A retro 80s lo-fi terminal-themed [Astro 5](https://astro.build) template for bu
 - **Visual effects** (boot sequence, CRT noise, scanline, screen overlay, text-decode), each independently toggleable and fully disabled under `prefers-reduced-motion`
 - **A themed component kit** — around 60 components across 10 groups (core, content, media, effects, forms, feedback, data, navigation, sections, shell), each documented live on `/components`
 - **An interactive terminal shell** (`<terminal-shell>`) with built-in commands, history, and Tab completion — embeddable inline or full-screen at `/terminal`
+- **One-file rebranding** — `src/data/global-content/branding.yaml` holds all brand strings (project name, company, persona, shell host), auto-exposed as `GLOBAL_CONTENT`; the folder can hold any site-wide YAML
 - **Docs** at `/docs`, generated from a content collection
 - **Demo pages**: a dashboard (`/app`), a product landing page (`/landing`), and a pricing page (`/pricing`)
 - **Blog and projects** collections with category pages and RSS
@@ -31,14 +32,14 @@ pnpm test:e2e     # Playwright smoke tests (route, theme, effects, shell, a11y)
 
 ## Make it yours in 5 steps
 
-1. **Set your identity and defaults in `src/config.yaml`.** Edit `template.identity` (name, handle, org, role, tagline, location), `template.social` (links shown in the footer and shell), `site` and `metadata` (domain, title, description), and `template.themes.default` / `template.effects` for the theme and motion a first-time visitor sees.
-2. **Replace the favicon.** Swap the files in `src/assets/favicons/` (`favicon.svg`, `favicon.ico`, `apple-touch-icon.png`).
-3. **Replace the content in `src/data/`.** Persona data lives in `src/data/profile.ts` (skills, facts, stack, now/uses); blog posts in `src/data/post/`; projects in `src/data/projects/`. Docs (`src/data/docs/`) and the changelog (`src/data/changelog/`) are yours to keep, edit, or delete.
-4. **Delete the demo pages you don't need.** None of these are required by the rest of the site:
+1. **Rebrand in `src/data/global-content/branding.yaml`.** This YAML file holds all brand strings (project name, company, persona, shell host); the site name, page titles, meta description, and shell prompt all default to it. The folder can hold additional site-wide YAML files too (see `CUSTOMIZING.md`).
+2. **Set your identity and navigation in `src/config.yaml`.** Edit `template.identity` (role, tagline, location), `template.social` (links shown in the footer and shell), `site` and `metadata` (domain), and `template.themes.default` / `template.effects` for the theme and motion a first-time visitor sees.
+3. **Replace the favicon.** Swap the files in `src/assets/favicons/` (`favicon.svg`, `favicon.ico`, `apple-touch-icon.png`).
+4. **Replace the content in `src/data/`.** Persona data lives in `src/data/profile.ts` (skills, facts, stack, now/uses); blog posts in `src/data/post/`; projects in `src/data/projects/`. Docs (`src/data/docs/`) and the changelog (`src/data/changelog/`) are yours to keep, edit, or delete.
+5. **Delete the demo pages you don't need.** None of these are required by the rest of the site:
    - `src/pages/landing.astro` and `src/pages/pricing.astro` — both build on the shared `src/components/sections/` group (Hero, FeatureGrid, CTA, FAQ, Timeline, Testimonial, PricingTable); only remove that folder if you're dropping both pages and nothing else uses them.
    - `src/pages/app.astro` — its dashboard-only pieces live in `src/components/app/` (safe to delete together).
    - `src/pages/now.astro`, `src/pages/uses.astro` — read from `src/data/profile.ts`; delete the page and its data, or leave both and edit the data.
-5. **Pick your default theme and effects.** `template.themes.default` in `src/config.yaml` is one of `green | amber | red | yellow | blue` (see `src/lib/themes.ts` to add your own — recipe in `CUSTOMIZING.md`). `template.effects` sets the boot/noise/scanline/overlay/decoder defaults; visitors can still override them, and reduced motion always wins.
 
 See [`CUSTOMIZING.md`](./CUSTOMIZING.md) for task-by-task recipes (add a theme, add a shell command, add a component, wire up forms/analytics, and more), and [`/docs`](http://localhost:4321/docs) once the dev server is running for the full guide.
 
@@ -64,11 +65,12 @@ src/
 │   └── <group>/_demo/  # every group ships a demo, rendered on /components
 ├── content/           # Collection schemas (src/content/config.ts)
 ├── data/
-│   ├── profile.ts     # persona: skills, facts, stack, now, uses
-│   ├── post/          # blog posts (Markdown)
-│   ├── projects/      # projects (MDX)
-│   ├── docs/           # template docs (Markdown/MDX)
-│   └── changelog/      # release notes (Markdown)
+│   ├── profile.ts        # persona: skills, facts, stack, now, uses
+│   ├── post/             # blog posts (Markdown)
+│   ├── projects/         # projects (MDX)
+│   ├── docs/             # template docs (Markdown/MDX)
+│   ├── global-content/   # site-wide YAML (branding.yaml), auto-loaded as GLOBAL_CONTENT
+│   └── changelog/        # release notes (Markdown)
 ├── layouts/           # Layout.astro, PageLayout.astro, DocsLayout.astro, MarkdownLayout.astro
 ├── lib/
 │   ├── themes.ts        # theme registry
@@ -84,7 +86,7 @@ src/
 └── navigation.ts      # mainNav, footerNav, socialLinks
 ```
 
-`vendor/integration/` is the `astrowind:config` virtual module (extends `src/config.yaml` with typed defaults — see `vendor/integration/utils/configBuilder.ts`); leave it alone unless you're adding a new config field.
+`vendor/integration/` builds the `astrowind:config` virtual module from `src/config.yaml` and every YAML file in `src/data/global-content/` (see `configBuilder.ts` and `loadGlobalContent.ts`). Leave it alone unless you're adding a new config field.
 
 ## Deploying
 

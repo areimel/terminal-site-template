@@ -10,7 +10,7 @@ tags:
 image: /images/blog/photo-1517245386807-bb43f82c33c4.webp
 ---
 
-Most status page services cost $50–$500 a month. We don't have $500 a month at MAINFRAME-7 for something that should just publish JSON and HTML. So we built Uplink instead.
+Most status page services cost $50–$500 a month. We don't have $500 a month at ARDA for something that should just publish JSON and HTML. So we built Uplink instead.
 
 Three principles guided the build: static output, edge distribution, and no databases for reads.
 

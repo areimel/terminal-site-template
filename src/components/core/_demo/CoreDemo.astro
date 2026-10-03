@@ -3,6 +3,7 @@
  * CoreDemo - renders every core primitive and its variants with short labels.
  * Embedded in the `/components` gallery (built in a later wave).
  */
+import { TEMPLATE } from 'astrowind:config';
 import { Panel, Button, Heading, Prompt, Divider, Badge, Kbd, Icon } from '~/components/core';
 ---
 
@@ -72,7 +73,7 @@ import { Panel, Button, Heading, Prompt, Divider, Badge, Kbd, Icon } from '~/com
   <section class="flex flex-wrap items-center gap-6 font-kode">
     <span><Prompt /> default</span>
     <span><Prompt symbol="$" blink={false} /> no blink</span>
-    <span><Prompt symbol="guest@mainframe-7:~$" /> custom symbol</span>
+    <span><Prompt symbol={TEMPLATE.shell.prompt} /> custom symbol</span>
   </section>
 
   <Divider />

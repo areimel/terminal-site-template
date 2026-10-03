@@ -5,10 +5,10 @@ section: Getting started
 order: 0
 ---
 
-This template ships a themed component kit, a config-driven identity and navigation system, a terminal shell, and a set of demo pages that show how the pieces fit together. Use the guides below to get your fork running, wire up your own content, and learn the conventions the rest of the docs assume.
+This template ships a themed component kit, a config-driven identity and navigation system, a terminal shell, and a set of demo pages that show how the pieces fit together. You can rebrand the entire site from one file. Use the guides below to get your fork running, wire up your own content, and learn the conventions the rest of the docs assume.
 
 - [Getting started](/docs/getting-started): install the template, run the dev server, and make your first edit.
-- [Configuration](/docs/configuration): the `template` block in `config.yaml` - identity, social links, shell prompt, integrations.
+- [Configuration](/docs/configuration): global content (`src/data/global-content/`, including branding) and the `template` block in `config.yaml` - identity, social links, shell, integrations.
 - [Theming](/docs/theming): the theme registry, adding a palette, and the CSS variables it emits.
 - [Effects](/docs/effects): boot, noise, scanline, overlay and decoder effects, and how reduced motion turns them off.
 - [Shell commands](/docs/shell-commands): the built-in `terminal-shell` commands and how to add your own.

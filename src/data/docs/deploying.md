@@ -94,7 +94,8 @@ DNS propagation takes up to 24 hours.
 
 Before launch:
 
-- [ ] Update `src/config.yaml`: `template.identity`, `template.social`, `site`, and `metadata`
+- [ ] Set your brand in `src/data/global-content/branding.yaml` (project name, description, company, persona)
+- [ ] Update `src/config.yaml`: `site` (your domain), `template.identity` (role, tagline, location) and `template.social`
 - [ ] Replace the files in `src/assets/favicons/` (`favicon.svg`, `favicon.ico`, `apple-touch-icon.png`) with your own
 - [ ] Add an OG image via a page's `metadata.openGraph.images` (see the `metadata` schema in `src/content/config.ts`) if you want a custom social-share image
 - [ ] Add your GTM id and Web3Forms key in `template.integrations` (see `/docs/forms-and-integrations`)

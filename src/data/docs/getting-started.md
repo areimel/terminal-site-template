@@ -24,14 +24,14 @@ pnpm --version
 To use this template as a starting point, fork it on GitHub or clone it:
 
 ```bash
-git clone https://github.com/example/terminal-site-template.git
-cd terminal-site-template
+git clone https://github.com/example/arda-terminal-framework.git
+cd arda-terminal-framework
 ```
 
 If you're forking, clone your fork instead:
 
 ```bash
-git clone https://github.com/your-username/terminal-site-template.git
+git clone https://github.com/your-username/arda-terminal-framework.git
 ```
 
 ## Install dependencies
@@ -56,6 +56,7 @@ The key folders:
 
 - `src/components/` — Reusable Astro components organized by function (core, content, forms, etc.)
 - `src/data/` — Content files: posts (blog/), projects, docs, and `profile.ts` (your persona)
+- `src/data/global-content/` — Site-wide YAML content (branding.yaml: project name, company, persona, shell host)
 - `src/pages/` — File-based routing; `/pages/index.astro` → `/`
 - `src/lib/` — Utilities: theme system, effects, shell engine
 - `src/config.yaml` — Site metadata and template settings
@@ -65,7 +66,7 @@ Don't edit files in `.astro/` or `dist/`; these are build artifacts.
 
 ## Next steps
 
-1. **Update your identity:** Edit `src/config.yaml` and `src/data/profile.ts`
+1. **Rebrand:** Edit `src/data/global-content/branding.yaml`, then your persona details in `src/config.yaml` (`template.identity` role/tagline/location) and `src/data/profile.ts`
 2. **Create a theme:** See `/docs/theming`
 3. **Write content:** Add posts to `src/data/post/`, projects to `src/data/projects/`
 4. **Deploy:** See `/docs/deploying` for Netlify/Vercel setup

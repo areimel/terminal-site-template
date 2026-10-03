@@ -1,6 +1,6 @@
 ---
 /**
- * /app - the "MAINFRAME-7 operations console" dashboard demo: shows the kit works for web
+ * /app - the operations console dashboard demo (branded via `BRANDING`): shows the kit works for web
  * apps, not just marketing/content sites. Signature moment: the live demo LogStream is the
  * dominant, always-updating pane; everything around it (stats, tables, meters) stays calm.
  *
@@ -19,11 +19,12 @@ import NodesPanel from '~/components/app/NodesPanel.astro';
 import SystemInfoPanel from '~/components/app/SystemInfoPanel.astro';
 import RestartNodeModal from '~/components/app/RestartNodeModal.astro';
 import { processes, scheduledJobs, runningJobs, nodes, stats, systemInfo } from '~/components/app/data';
+import { BRANDING } from 'astrowind:config';
 import type { MetaData } from '~/types';
 
 const metadata: MetaData = {
   title: 'Operations console',
-  description: 'A live MAINFRAME-7 operations console demo: processes, jobs, nodes and a streaming system log.',
+  description: `A live ${BRANDING.companyName} operations console demo: processes, jobs, nodes and a streaming system log.`,
 };
 
 // 14d 06:22:10 of fake uptime at first paint; StatusBar ticks it forward client-side.
