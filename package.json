@@ -1,6 +1,6 @@
 {
   "name": "arda-terminal-framework",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A retro terminal-themed framework for building sites and web apps with Astro.",
   "author": "Alec Reimel (ARDA)",
   "type": "module",

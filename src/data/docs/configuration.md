@@ -5,11 +5,37 @@ section: Getting started
 order: 2
 ---
 
-Configuration lives in three files: `src/data/global-content/branding.yaml` (identity and site strings), `src/config.yaml` (site-wide settings), and `src/navigation.ts` (menu structure).
+Configuration lives in three places: `src/data/global-content/` (site-wide YAML content, including branding), `src/config.yaml` (site-wide settings), and `src/navigation.ts` (menu structure).
 
-## Branding
+## Global content
 
-Brand strings live in `src/data/global-content/branding.yaml`. This is the single place to rebrand your site. It defines the product name, company name, persona, and shell hostname, which automatically fill in defaults for site metadata and identity throughout the site.
+The `src/data/global-content/` folder holds site-wide YAML files that load automatically at build time. Each file becomes a key in the `GLOBAL_CONTENT` object, keyed by its camelCased filename — `branding.yaml` → `GLOBAL_CONTENT.branding`, `site-links.yaml` → `GLOBAL_CONTENT.siteLinks`.
+
+Each file's top level must be a key/value mapping. Use global content in components with:
+
+```typescript
+import { GLOBAL_CONTENT } from 'astrowind:config';
+
+GLOBAL_CONTENT.contact.email; // from contact.yaml, once typed (see below)
+```
+
+**Note:** New files need a dev-server restart; edits to existing files reload automatically.
+
+**Typing:** Files read as `unknown` until typed, so `astro check` rejects property access on them. Add one field per file to the existing `GlobalContent` interface in `vendor/integration/utils/configBuilder.ts`:
+
+```ts
+export interface GlobalContent {
+  branding: BrandingConfig;
+  contact: { email: string; phone: string }; // add one line per file
+  [key: string]: unknown;
+}
+```
+
+Markdown content files can't read these variables, so site names and content inside posts and docs are edited by hand.
+
+### branding.yaml
+
+`branding.yaml` is special: it's merged over built-in defaults and also exported as `BRANDING` from `astrowind:config`. It defines the product name, company name, persona, and shell hostname, which automatically fill in defaults for site metadata and identity throughout the site.
 
 Each branding key:
 
@@ -24,18 +50,15 @@ Each branding key:
 - **shellHost** — Hostname in the shell prompt: `guest@<shellHost>:~$`.
 - **author** — Author or copyright holder.
 
-A value set explicitly in `src/config.yaml` still overrides the one derived from branding.yaml. For example, `template.shell.prompt` in `config.yaml` replaces the derived `guest@<shellHost>:~$`.
-
 Use branding values in code with:
 
 ```typescript
 import { BRANDING } from 'astrowind:config';
 
-// projectName, projectSlug, projectDescription, companyName, companyDisplayName, companyFullName, personaName, personaHandle, shellHost, author
 console.log(BRANDING.projectName); // "ARDA Terminal Framework"
 ```
 
-Markdown content files can't read these variables, so brand names inside posts and docs are edited by hand.
+**Override order:** Built-in defaults < `branding.yaml` < explicit values in `src/config.yaml`. For example, `template.shell.prompt` in `config.yaml` overrides the derived `guest@<shellHost>:~$`.
 
 ## src/config.yaml
 

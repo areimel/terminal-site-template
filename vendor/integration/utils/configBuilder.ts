@@ -201,6 +201,15 @@ export interface BrandingConfig {
   author: string;
 }
 
+/**
+ * Everything in src/data/global-content/, keyed by camelCased filename. `branding` is the
+ * defaults-merged branding.yaml. Add a field here to type a new file; untyped files read as `unknown`.
+ */
+export interface GlobalContent {
+  branding: BrandingConfig;
+  [key: string]: unknown;
+}
+
 const getBranding = (branding: Partial<BrandingConfig> = {}) => {
   const _default: BrandingConfig = {
     projectName: 'ARDA Terminal Framework',

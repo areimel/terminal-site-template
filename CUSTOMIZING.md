@@ -29,6 +29,41 @@ import { BRANDING, TEMPLATE } from 'astrowind:config';
 
 Note: markdown content (`README.md`, `src/data/docs/` etc.), `package.json`, and `LICENSE.md` must be edited by hand — they're not driven by config.
 
+## Add a global content file
+
+The `src/data/global-content/` folder holds site-wide YAML files that load automatically at build time. Create a new file to add structured content:
+
+1. Create `src/data/global-content/contact.yaml`:
+
+   ```yaml
+   email: hello@example.com
+   phone: '+1 555 0100'
+   ```
+
+2. Restart `pnpm dev` (new files need a dev-server restart; edits to existing files reload automatically).
+
+3. Type it by adding a field to the existing `GlobalContent` interface in `vendor/integration/utils/configBuilder.ts`. Untyped files read as `unknown`, so `astro check` rejects property access on them until they're typed:
+
+   ```ts
+   export interface GlobalContent {
+     branding: BrandingConfig;
+     contact: { email: string; phone: string }; // add one line per file
+     [key: string]: unknown;
+   }
+   ```
+
+4. Import and use it in a component:
+
+   ```astro
+   ---
+   import { GLOBAL_CONTENT } from 'astrowind:config';
+   ---
+
+   <a href={`mailto:${GLOBAL_CONTENT.contact.email}`}>Email us</a>
+   ```
+
+**Naming rule:** Each filename becomes a camelCased key in `GLOBAL_CONTENT` — `contact.yaml` → `GLOBAL_CONTENT.contact`, `site-links.yaml` → `GLOBAL_CONTENT.siteLinks`. Each file's top level must be a key/value mapping.
+
 ## Add a theme
 
 Themes live in the registry at `src/lib/themes.ts`. Add an entry to the `themes` array — the switcher, the shell's `theme` command, and every component that uses `terminal-*` classes or `--theme-*` variables pick it up automatically, with no other code changes.
