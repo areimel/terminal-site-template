@@ -1,9 +1,10 @@
 ---
 /**
  * BoxesDemo - renders Card, TextBox, Callout and FactGrid with persona-neutral sample
- * content (a fictional "MAINFRAME-7" system context). Embedded in the `/components`
+ * content (a fictional "ARDA" system context). Embedded in the `/components`
  * gallery (built in a later wave).
  */
+import { BRANDING } from 'astrowind:config';
 import { Panel } from '~/components/core';
 import Card from '../Card.astro';
 import TextBox from '../TextBox.astro';
@@ -21,7 +22,7 @@ import FactGrid from '../FactGrid.astro';
         title="Signal relay uplink restored"
         href="#"
         meta="LOG-0417 . uplink"
-        excerpt="Restores the relay between MAINFRAME-7 and the outer grid nodes after a cold boot."
+        excerpt={`Restores the relay between ${BRANDING.companyName} and the outer grid nodes after a cold boot.`}
         tags={['systems', 'networking']}
       />
       <Card
@@ -64,7 +65,9 @@ import FactGrid from '../FactGrid.astro';
       A status-tagged aside for notes, tips, warnings and errors.
     </p>
     <div class="flex flex-col gap-4">
-      <Callout tone="note">MAINFRAME-7 caches command history locally; clear it any time from Settings.</Callout>
+      <Callout tone="note"
+        >{BRANDING.companyName} caches command history locally; clear it any time from Settings.</Callout
+      >
       <Callout tone="tip">Tab-complete works in every shell prompt across the site.</Callout>
       <Callout tone="warn">Effects are forced off when the OS requests reduced motion.</Callout>
       <Callout tone="err" title="Uplink dropped">Reconnect from the settings panel, then retry the command.</Callout>
@@ -81,7 +84,7 @@ import FactGrid from '../FactGrid.astro';
         { label: 'Uptime', value: '412 days' },
         { label: 'Sector', value: '7, Grid North' },
         { label: 'Status', value: 'Nominal' },
-        { label: 'Operator', value: 'ADA-01', href: '#' },
+        { label: 'Operator', value: `${BRANDING.personaHandle.toUpperCase()}-01`, href: '#' },
         { label: 'Load average', value: '0.42, 0.38, 0.31' },
         { label: 'Last sync', value: '04:17 UTC' },
       ]}

@@ -182,11 +182,45 @@ export type TemplateConfigInput = {
   };
 };
 
-const DEFAULT_SITE_NAME = 'Website';
+// ---------------------------------------------------------------------------
+// Branding (src/data/global-content/branding.yaml)
+// ---------------------------------------------------------------------------
 
-const getSite = (config: Config) => {
+export interface BrandingConfig {
+  projectName: string;
+  projectSlug: string;
+  projectDescription: string;
+  companyName: string;
+  /** Dotted display form (e.g. `A.R.D.A.`); opt-in, nothing uses it by default. */
+  companyDisplayName: string;
+  companyFullName: string;
+  personaName: string;
+  personaHandle: string;
+  /** Hostname in the default shell prompt: `guest@<shellHost>:~$`. */
+  shellHost: string;
+  author: string;
+}
+
+const getBranding = (branding: Partial<BrandingConfig> = {}) => {
+  const _default: BrandingConfig = {
+    projectName: 'ARDA Terminal Framework',
+    projectSlug: 'arda-terminal-framework',
+    projectDescription: 'A retro terminal-themed framework for building sites and web apps with Astro.',
+    companyName: 'ARDA',
+    companyDisplayName: 'A.R.D.A.',
+    companyFullName: 'Advanced Research & Development Agency',
+    personaName: 'Field Agent',
+    personaHandle: 'agent',
+    shellHost: 'arda',
+    author: 'Alec Reimel',
+  };
+
+  return merge({}, _default, branding ?? {}) as BrandingConfig;
+};
+
+const getSite = (config: Config, branding: BrandingConfig) => {
   const _default = {
-    name: DEFAULT_SITE_NAME,
+    name: branding.projectName,
     site: undefined,
     base: '/',
     trailingSlash: false,
@@ -197,20 +231,21 @@ const getSite = (config: Config) => {
   return merge({}, _default, config?.site ?? {}) as SiteConfig;
 };
 
-const getMetadata = (config: Config) => {
-  const siteConfig = getSite(config);
+const getMetadata = (config: Config, branding: BrandingConfig) => {
+  const siteConfig = getSite(config, branding);
 
   const _default = {
     title: {
-      default: siteConfig?.name || DEFAULT_SITE_NAME,
-      template: '%s',
+      default: siteConfig.name,
+      template: `%s | ${siteConfig.name}`,
     },
-    description: '',
+    description: branding.projectDescription,
     robots: {
       index: false,
       follow: false,
     },
     openGraph: {
+      site_name: siteConfig.name,
       type: 'website',
     },
   };
@@ -314,12 +349,12 @@ const getAppProjects = (config: Config) => {
   return merge({}, _default, config?.apps?.projects ?? {}) as AppProjectsConfig;
 };
 
-const getTemplate = (config: Config) => {
+const getTemplate = (config: Config, branding: BrandingConfig) => {
   const _default: TemplateConfig = {
     identity: {
-      name: 'Ada Operator',
-      handle: 'ada',
-      org: 'MAINFRAME-7 Systems',
+      name: branding.personaName,
+      handle: branding.personaHandle,
+      org: branding.companyName,
       role: 'Systems Developer',
       tagline: 'Building steady systems, one terminal command at a time.',
       location: 'Sector 7, Grid North',
@@ -340,7 +375,7 @@ const getTemplate = (config: Config) => {
       decoder: true,
     },
     shell: {
-      prompt: 'guest@mainframe-7:~$',
+      prompt: `guest@${branding.shellHost}:~$`,
       motd: 'Type help to list commands.',
     },
     integrations: {
@@ -353,11 +388,20 @@ const getTemplate = (config: Config) => {
   return merge({}, _default, config?.template ?? {}) as TemplateConfig;
 };
 
-export default (config: Config) => ({
-  SITE: getSite(config),
-  I18N: getI18N(config),
-  METADATA: getMetadata(config),
-  APP_BLOG: getAppBlog(config),
-  APP_PROJECTS: getAppProjects(config),
-  TEMPLATE: getTemplate(config),
-});
+/**
+ * Branding is resolved first; site name, metadata, persona and shell prompt derive their
+ * defaults from it, and any value set explicitly in config.yaml still wins.
+ */
+export default (config: Config, rawBranding?: Partial<BrandingConfig>) => {
+  const branding = getBranding(rawBranding);
+
+  return {
+    BRANDING: branding,
+    SITE: getSite(config, branding),
+    I18N: getI18N(config),
+    METADATA: getMetadata(config, branding),
+    APP_BLOG: getAppBlog(config),
+    APP_PROJECTS: getAppProjects(config),
+    TEMPLATE: getTemplate(config, branding),
+  };
+};

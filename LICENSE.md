@@ -1,7 +1,7 @@
 MIT License
 
 Copyright (c) 2023 onWidget (AstroWind)
-Copyright (c) 2026 Terminal Site Template contributors
+Copyright (c) 2026 ARDA (Advanced Research & Development Agency)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -2,10 +2,13 @@ import fs from 'node:fs';
 import os from 'node:os';
 import type { AstroConfig, AstroIntegration } from 'astro';
 
-import configBuilder, { type Config } from './utils/configBuilder';
+import configBuilder, { type BrandingConfig, type Config } from './utils/configBuilder';
 import loadConfig from './utils/loadConfig';
 
-export default ({ config: _themeConfig = 'src/config.yaml' } = {}): AstroIntegration => {
+export default ({
+  config: _themeConfig = 'src/config.yaml',
+  branding: _brandingConfig = 'src/data/global-content/branding.yaml',
+}: { config?: string | object; branding?: string | object } = {}): AstroIntegration => {
   let cfg: AstroConfig;
   return {
     name: 'astrowind-integration',
@@ -26,7 +29,13 @@ export default ({ config: _themeConfig = 'src/config.yaml' } = {}): AstroIntegra
         const resolvedVirtualModuleId = '\0' + virtualModuleId;
 
         const rawJsonConfig = (await loadConfig(_themeConfig)) as Config;
-        const { SITE, I18N, METADATA, APP_BLOG, APP_PROJECTS, TEMPLATE } = configBuilder(rawJsonConfig);
+        // Optional: a missing branding file falls back to configBuilder's built-in defaults.
+        const hasBrandingFile = typeof _brandingConfig !== 'string' || fs.existsSync(_brandingConfig);
+        const rawBranding = hasBrandingFile ? ((await loadConfig(_brandingConfig)) as Partial<BrandingConfig>) : {};
+        const { BRANDING, SITE, I18N, METADATA, APP_BLOG, APP_PROJECTS, TEMPLATE } = configBuilder(
+          rawJsonConfig,
+          rawBranding ?? {}
+        );
 
         updateConfig({
           site: SITE.site,
@@ -46,6 +55,7 @@ export default ({ config: _themeConfig = 'src/config.yaml' } = {}): AstroIntegra
                 load(id) {
                   if (id === resolvedVirtualModuleId) {
                     return `
+                    export const BRANDING = ${JSON.stringify(BRANDING)};
                     export const SITE = ${JSON.stringify(SITE)};
                     export const I18N = ${JSON.stringify(I18N)};
                     export const METADATA = ${JSON.stringify(METADATA)};
@@ -62,6 +72,8 @@ export default ({ config: _themeConfig = 'src/config.yaml' } = {}): AstroIntegra
 
         if (typeof _themeConfig === 'string') {
           addWatchFile(new URL(_themeConfig, config.root));
+          if (typeof _brandingConfig === 'string' && hasBrandingFile)
+            addWatchFile(new URL(_brandingConfig, config.root));
 
           buildLogger.info(`Astrowind \`${_themeConfig}\` has been loaded.`);
         } else {

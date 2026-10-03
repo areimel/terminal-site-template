@@ -1,20 +1,17 @@
+# Brand strings (site name, SEO title/description, Open Graph site_name, persona name/handle/org,
+# shell prompt host) come from src/data/global-content/branding.yaml. Setting any of them here
+# still overrides the branding-derived default.
 site:
-  name: MAINFRAME-7 Terminal
   site: 'https://example.com'
   base: '/'
   trailingSlash: false
 
 # Default SEO metadata
 metadata:
-  title:
-    default: MAINFRAME-7 Terminal
-    template: '%s | MAINFRAME-7 Terminal'
-  description: 'A retro terminal-themed site and web app template built with Astro.'
   robots:
     index: true
     follow: true
   openGraph:
-    site_name: MAINFRAME-7 Terminal
     type: website
   twitter:
     handle: '@example'
@@ -80,9 +77,6 @@ apps:
 # See vendor/integration/utils/configBuilder.ts for the full typed shape (TEMPLATE export).
 template:
   identity:
-    name: Ada Operator
-    handle: ada
-    org: MAINFRAME-7 Systems
     role: Systems Developer
     tagline: 'Building steady systems, one terminal command at a time.'
     location: 'Sector 7, Grid North'
@@ -109,7 +103,6 @@ template:
     decoder: true
 
   shell:
-    prompt: 'guest@mainframe-7:~$'
     motd: 'Type help to list commands.'
 
   integrations:

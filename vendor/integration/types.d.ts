@@ -1,5 +1,6 @@
 declare module 'astrowind:config' {
   import type {
+    BrandingConfig,
     SiteConfig,
     I18NConfig,
     MetaDataConfig,
@@ -8,6 +9,7 @@ declare module 'astrowind:config' {
     TemplateConfig,
   } from './utils/configBuilder';
 
+  export const BRANDING: BrandingConfig;
   export const SITE: SiteConfig;
   export const I18N: I18NConfig;
   export const METADATA: MetaDataConfig;

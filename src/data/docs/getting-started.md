@@ -24,14 +24,14 @@ pnpm --version
 To use this template as a starting point, fork it on GitHub or clone it:
 
 ```bash
-git clone https://github.com/example/terminal-site-template.git
-cd terminal-site-template
+git clone https://github.com/example/arda-terminal-framework.git
+cd arda-terminal-framework
 ```
 
 If you're forking, clone your fork instead:
 
 ```bash
-git clone https://github.com/your-username/terminal-site-template.git
+git clone https://github.com/your-username/arda-terminal-framework.git
 ```
 
 ## Install dependencies

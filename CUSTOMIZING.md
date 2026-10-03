@@ -2,6 +2,33 @@
 
 Task-oriented recipes for the most common changes. For a narrative walkthrough, see `/docs` (built from `src/data/docs/`); this file is the quick-reference version, plus a few things that don't have their own doc page yet.
 
+## Change the branding
+
+All brand strings live in one file: `src/data/global-content/branding.yaml`. Edit it to rebrand the entire site in one place:
+
+- `projectName` — the site title (used for `<title>` and Open Graph `site_name`)
+- `projectSlug` — URL/package-safe form, available as `BRANDING.projectSlug`
+- `projectDescription` — the meta description
+- `companyName` — short company name (identity.org everywhere by default; boot screen, demos)
+- `companyFullName` — expanded form
+- `companyDisplayName` — dotted display form (A.R.D.A.), opt-in
+- `personaName` — persona shown in footer, boot log, shell whoami
+- `personaHandle` — persona handle, shown by `whoami` and in the boot log
+- `shellHost` — hostname in the shell prompt (`guest@<shellHost>:~$`)
+- `author` — copyright holder
+
+`vendor/integration/utils/configBuilder.ts` loads this and exposes it as `BRANDING` from `astrowind:config`, supplying defaults for SITE.name, METADATA title/description, TEMPLATE.identity, and TEMPLATE.shell.prompt — any value you set in `src/config.yaml` still overrides these defaults.
+
+To use brand strings in a component, import them:
+
+```ts
+import { BRANDING, TEMPLATE } from 'astrowind:config';
+
+// e.g., <h1>{BRANDING.projectName}</h1> or <p>{BRANDING.companyFullName}</p>
+```
+
+Note: markdown content (`README.md`, `src/data/docs/` etc.), `package.json`, and `LICENSE.md` must be edited by hand — they're not driven by config.
+
 ## Add a theme
 
 Themes live in the registry at `src/lib/themes.ts`. Add an entry to the `themes` array — the switcher, the shell's `theme` command, and every component that uses `terminal-*` classes or `--theme-*` variables pick it up automatically, with no other code changes.

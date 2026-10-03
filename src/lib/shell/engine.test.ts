@@ -52,7 +52,7 @@ function createFakeHost(): FakeHost {
       { id: 'amber', label: 'Amber' },
     ],
     currentTheme: () => currentTheme,
-    identity: { name: 'Ada Operator', handle: 'ada', role: 'Systems Engineer', org: 'MAINFRAME-7' },
+    identity: { name: 'Field Agent', handle: 'agent', role: 'Systems Engineer', org: 'ARDA' },
   };
 
   return {
@@ -107,7 +107,7 @@ describe('createShell: dispatch', () => {
     const { host, calls } = createFakeHost();
     const shell = createShell(host);
     await shell.run('WHOAMI');
-    expect(calls.print[0][0]).toBe('Ada Operator (@ada), Systems Engineer at MAINFRAME-7');
+    expect(calls.print[0][0]).toBe('Field Agent (@agent), Systems Engineer at ARDA');
   });
 
   it('resolves aliases (clear via cls)', async () => {

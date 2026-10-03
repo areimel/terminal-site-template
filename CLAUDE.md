@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A forkable Astro 5 template for building sites and web apps with an 80s lo-fi CRT terminal aesthetic: a themed component kit (~60 components across 10 groups), a config-driven persona/navigation system, a five-theme registry, toggleable visual effects, an interactive terminal shell, and demo pages (dashboard, landing, pricing, blog, projects, docs). See `README.md` for the quick start and `CUSTOMIZING.md` for task recipes.
+The ARDA Terminal Framework: a forkable Astro 5 template by ARDA (Advanced Research & Development Agency) for building sites and web apps with an 80s lo-fi CRT terminal aesthetic. It includes a themed component kit (~60 components across 10 groups), a config-driven persona/navigation system, a five-theme registry, toggleable visual effects, an interactive terminal shell, and demo pages (dashboard, landing, pricing, blog, projects, docs). See `README.md` for the quick start and `CUSTOMIZING.md` for task recipes.
 
 ## Development commands
 
@@ -51,12 +51,14 @@ Every group except the page-specific ones ships a `src/components/<group>/_demo/
 - `forms.ts` — `submitForm(form)`: validates, then posts to Web3Forms using the form's `data-access-key` (or reports demo mode if none is configured). Dispatches `terminal:toast` either way.
 - `shell/` — `types.ts` (the `ShellContext`/`ShellCommand`/`ShellEngine` contract), `engine.ts` (`createShell(host, extraCommands?)`, DOM-free and unit-tested), `builtins.ts` (help, ls, cd, open, theme, effects, clear, whoami, echo, date, history, sudo), `parse.ts`, `commands.ts` (`userCommands` — the file a fork edits to add its own commands).
 
-### Config (`src/config.yaml` + `vendor/integration/`)
+### Config (`src/data/global-content/branding.yaml` + `src/config.yaml` + `vendor/integration/`)
 
-`vendor/integration/utils/configBuilder.ts` builds the typed `astrowind:config` virtual module from `src/config.yaml`, filling in defaults for anything omitted. Import what you need from it:
+`src/data/global-content/branding.yaml` is the single source for brand strings: `projectName` (site title), `projectSlug` (package-safe form), `projectDescription` (meta description), `companyName`/`companyFullName` (everywhere by default), `companyDisplayName` (opt-in dotted form), `personaName`/`personaHandle` (footer, boot log, shell whoami), `shellHost` (shell prompt), `author` (copyright holder). `vendor/integration/utils/configBuilder.ts` loads this and exposes it as `BRANDING` from `astrowind:config`, filling in defaults for SITE.name, METADATA title/description/og site_name, TEMPLATE.identity name/handle/org, and TEMPLATE.shell.prompt. Values set explicitly in `src/config.yaml` override these derived defaults.
+
+Import what you need:
 
 ```ts
-import { TEMPLATE, SITE, METADATA, APP_BLOG, APP_PROJECTS } from 'astrowind:config';
+import { BRANDING, TEMPLATE, SITE, METADATA, APP_BLOG, APP_PROJECTS } from 'astrowind:config';
 ```
 
 `TEMPLATE` shape: `identity {name, handle, org, role, tagline, location}`, `social [{label, href, icon}]`, `themes.default`, `effects {boot, noise, scanline, overlay, decoder}`, `shell {prompt, motd}`, `integrations {forms:{provider, accessKey}, gtm:{id}, ga:{id}}`. GTM (`common/GoogleTagManagerHead.astro`/`Body.astro`) and GA (`common/GoogleAnalytics.astro`) render only when their ids are set. There's no env-var interpolation into `config.yaml` — values in it are committed as plain text.
@@ -73,6 +75,7 @@ Extend `vendor/integration/**` for new config fields; don't replace the pattern 
 
 ## Conventions
 
+- **Brand strings**: come from `BRANDING` and `TEMPLATE` imported from `astrowind:config`, never hard-coded in components. Edit `src/data/global-content/branding.yaml` or `src/config.yaml` to change them site-wide; rebranding takes one file.
 - **Colors**: only via Tailwind `terminal-*` tokens (`text-terminal-300`, `bg-terminal-bg-secondary`, `border-terminal-400`, `text-terminal-bright`, …) or `--theme-*`/`--terminal-*` CSS variables. **Never hard-code a hex/rgb color in a component** — every component has to re-theme live across all 5 themes, and switching is instant because these all resolve through CSS variables, not fixed values.
 - **Type scale**: `text-t-sm` through `text-t-5xl` (a 1.25 modular scale on a 16px root). Fonts: `font-uav-mono` for headings/display, Kode Mono (default body), VT323 only for large ASCII/display moments. Long-form text: `prose prose-terminal`.
 - **Structure carries meaning**: Panel titles read like a window/file name (`~/projects/readme.txt`); border `variant` encodes hierarchy (`double` = app chrome, `line` = ordinary content, `ascii` = callouts); numbering only on real sequences; ALL-CAPS reserved for status strings (`OK`/`WARN`/`ERR`).

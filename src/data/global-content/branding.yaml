@@ -1,0 +1,28 @@
+# Global branding. The single place to rebrand the site.
+# vendor/integration loads this file and exposes it as `BRANDING` from 'astrowind:config'.
+# It also supplies the defaults for the site name, SEO title, persona and shell prompt;
+# a value set explicitly in src/config.yaml still overrides the one derived here.
+
+# Product name, used for the site name, page titles and Open Graph site_name.
+projectName: ARDA Terminal Framework
+# URL/package-safe form of the product name.
+projectSlug: arda-terminal-framework
+# One-sentence description, used as the default meta description.
+projectDescription: A retro terminal-themed framework for building sites and web apps with Astro.
+
+# Short company name, used everywhere by default (identity.org, boot screen, demos).
+companyName: ARDA
+# Dotted display form. Opt-in: nothing uses it unless you reference BRANDING.companyDisplayName.
+companyDisplayName: A.R.D.A.
+# Expanded company name.
+companyFullName: Advanced Research & Development Agency
+
+# Demo persona shown in the footer, boot log and the shell's `whoami`.
+personaName: Field Agent
+personaHandle: agent
+
+# Hostname in the shell prompt: guest@<shellHost>:~$
+shellHost: arda
+
+# Author / copyright holder.
+author: Alec Reimel
